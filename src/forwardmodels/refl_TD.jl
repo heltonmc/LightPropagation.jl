@@ -30,14 +30,14 @@ function DA_semiinf(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::F
     zₛ::Float64 = 1/μsp
     zₑ::Float64 = 2A*D
     ν::Float64 = 29.9792345/nmed
-	A::Float64
+    A::Float64
 
     z₃ₘ::Float64 = - zₛ
     z₄ₘ::Float64 = 2zₑ +zₛ
 
-	Rt1 = Array{Float64}(length(t))
-	Rt2 = Array{Float64}(length(t))
-	Rt = Array{Float64}(length(t))
+    Rt1 = Array{Float64}(length(t))
+    Rt2 = Array{Float64}(length(t))
+    Rt = Array{Float64}(length(t))
 
 
 	if n == 1.0
@@ -58,7 +58,7 @@ function DA_semiinf(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::F
    	Rt = @. Rt1*Rt2
     
 
-   	 replace!(Rt, NaN => 0)
+   	replace!(Rt, NaN => 0)
     return Rt
 
 end
