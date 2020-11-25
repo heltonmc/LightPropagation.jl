@@ -24,10 +24,10 @@ function DA_semiinf(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::F
 
 
 	n::Float64 = nmed/ndet
-    μₐ::Float64 = β[1]
-	μₛₚ::Float64 = β[2]
-    D::Float64 = 1/3μₛₚ
-    zₛ::Float64 = 1/μₛₚ
+    μa::Float64 = β[1]
+	μsp::Float64 = β[2]
+    D::Float64 = 1/3μsp
+    zₛ::Float64 = 1/μsp
     zₑ::Float64 = 2A*D
     ν::Float64 = 29.9792345/nmed
 	A::Float64
@@ -50,7 +50,7 @@ function DA_semiinf(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::F
 	end
 
 
-    Rt1 = @. -exp(-(ρ^2/(4D*ν*t)) - μₐ*ν*t)
+    Rt1 = @. -exp(-(ρ^2/(4D*ν*t)) - μa*ν*t)
     Rt1 = @. Rt1/(2*(4π*D*ν)^(3/2)*t^(5/2))
 
     Rt2 = @. z₃ₘ*exp(-(z₃ₘ^2/(4D*ν*t))) - z₄ₘ*exp(-(z₄ₘ^2/(4D*ν*t)))
@@ -68,10 +68,10 @@ end
 function DA_reflslab(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
 	#s is slab thickness
 	n::Float64 = nmed/ndet
-	μₐ::Float64 = β[1]
-	μₛₚ::Float64 = β[2]
-    D::Float64 = 1/3μₛₚ
-    zₛ::Float64 = 1/μₛₚ
+	μa::Float64 = β[1]
+	μsp::Float64 = β[2]
+    D::Float64 = 1/3μsp
+    zₛ::Float64 = 1/μsp
 	zₑ::Float64 = 2A*D
 	A::Float64
 	ν::Float64 = 29.9792345/nmed
@@ -99,7 +99,7 @@ function DA_reflslab(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::F
 	z₄ₘ = Float64[-2m.*s .- (4m .- 2).*zₑ .+ zₛ for m in xs]
 	
     
-    Rt1 = @. -exp(-(ρ^2/(4D*ν*t)) - μₐ*ν*t)
+    Rt1 = @. -exp(-(ρ^2/(4D*ν*t)) - μa*ν*t)
     Rt1 = @. Rt1/(2*(4π*D*ν)^(3/2)*t^(5/2))
 
 
@@ -112,8 +112,6 @@ function DA_reflslab(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::F
 end
 
 
-0.523095 seconds (26 allocations: 190.738 MiB, 1.43% gc time)
-
 
 function DT_transslab(t, β, ρ, s)
 
@@ -121,8 +119,8 @@ function DT_transslab(t, β, ρ, s)
 	ndet = 1.4
 	n = nmed/ndet
 
-    μₐ = β[1]
-    μₛₚ = β[2]
+    μa = β[1]
+    μsp = β[2]
     # s = slab thickness
 	if n == 1
 		A = 1
@@ -134,8 +132,8 @@ function DT_transslab(t, β, ρ, s)
 	end
 
 
-    D = 1/3μₛₚ
-    zₛ = 1/μₛₚ
+    D = 1/3μsp
+    zₛ = 1/μsp
     zₑ = 2A*D
 
 	ν = 29.9792345/nmed
@@ -146,7 +144,7 @@ function DT_transslab(t, β, ρ, s)
     
 
 
-    Rt1 = @. exp(-(ρ^2/(4D*ν*t)) - μₐ*ν*t)
+    Rt1 = @. exp(-(ρ^2/(4D*ν*t)) - μa*ν*t)
     Rt1 = @. Rt1/(2*(4π*D*ν)^(3/2)*t^(5/2))
 
     
@@ -179,8 +177,8 @@ function DT_refl_paralpip(t, β, rd, rs, L)
 
 	nmed = 1.4
 	ndet = 1.4
-	μₐ = β[1]
-	μₛₚ = β[2]
+	μa = β[1]
+	μsp = β[2]
 	x = rd[1]
 	y = rd[2]
 	xu = rs[1]
@@ -200,8 +198,8 @@ function DT_refl_paralpip(t, β, rd, rs, L)
 		A = 2/(1-R0) - 1
 	end
 
-	D = 1/3μₛₚ
-	zo = 1/μₛₚ
+	D = 1/3μsp
+	zo = 1/μsp
 	zb = 2A*D
 
 	ν = 29.9792345/nmed
@@ -217,7 +215,7 @@ function DT_refl_paralpip(t, β, rd, rs, L)
 	z₂ₙ = Float64[2n*lz + (4n-2)*zb - zo for n in xs]
 
 
-	Rt1 = @. exp(-μₐ*ν*t)/(2*(4π*D*ν)^(3/2)*t^(5/2))
+	Rt1 = @. exp(-μa*ν*t)/(2*(4π*D*ν)^(3/2)*t^(5/2))
 
 	Rt2 = @. exp(-(x-x₁ₗ')^2 / (4D*ν*t)) - exp(-(x-x₂ₗ')^2 / (4D*ν*t))
 
@@ -242,8 +240,8 @@ function DT_trans_paralpip(t, β, rd, rs, L)
 
 	nmed = 1.4
 	ndet = 1.4
-	μₐ = β[1]
-	μₛₚ = β[2]
+	μa = β[1]
+	μsp = β[2]
 	x = rd[1]
 	y = rd[2]
 	z = rd[3]
@@ -264,8 +262,8 @@ function DT_trans_paralpip(t, β, rd, rs, L)
 		A = 2/(1-R0) - 1
 	end
 
-	D = 1/3μₛₚ
-	zo = 1/μₛₚ
+	D = 1/3μsp
+	zo = 1/μsp
 	zb = 2A*D
 
 	ν = 29.9792345/nmed
@@ -281,7 +279,7 @@ function DT_trans_paralpip(t, β, rd, rs, L)
 	z₂ₙ = Float64[2n*lz + (4n-2)*zb - zo for n in xs]
 
 
-	Rt1 = @. exp(-μₐ*ν*t)/(2*(4π*D*ν)^(3/2)*t^(5/2))
+	Rt1 = @. exp(-μa*ν*t)/(2*(4π*D*ν)^(3/2)*t^(5/2))
 
 	Rt2 = @. exp(-(x-x₁ₗ')^2 / (4D*ν*t)) - exp(-(x-x₂ₗ')^2 / (4D*ν*t))
 
