@@ -112,15 +112,24 @@ end
 
 
 
-function DT_transslab(t, β, ρ, s)
+function DT_transslab(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
+	#s is slab thickness
+    n::Float64 = nmed/ndet
+    μa::Float64 = β[1]
+    μsp::Float64 = β[2]
+    D::Float64 = 1/3μsp
+	ν::Float64 = 29.9792345/nmed
+	xs::UnitRange{Int64} = -10:10
 
-    nmed = 1.4
-	ndet = 1.4
-	n = nmed/ndet
 
-    μa = β[1]
-    μsp = β[2]
-    # s = slab thickness
+	z1m = Array{Float64}(undef, length(xs))
+	z2m = Array{Float64}(undef, length(xs))
+
+
+    Rt1 = Array{Float64}(undef, length(t))
+    Rt2 = Array{Float64}(undef, length(t), length(z1m))
+	Rt = Array{Float64}(undef, length(t))
+    
 	if n == 1
 		A = 1
 	elseif n > 1
@@ -131,53 +140,58 @@ function DT_transslab(t, β, ρ, s)
 	end
 
 
-    D = 1/3μsp
-    zs = 1/μsp
-    ze = 2A*D
+    zs::Float64 = 1/μsp
+    ze::Float64 = 2A*D
 
-	ν = 29.9792345/nmed
-
-    m = Vector(-10:1:10)
-    z1m = (1 .- 2m).*s .- 4m.*ze .- zs
-    z2m = (1 .- 2m).*s .- (4m .- 2).*ze .+ zs
+    z1m = Float64[(1 .- 2m).*s .- 4m.*ze .- zs for m in xs]
+    z2m = Float64[(1 .- 2m).*s .- (4m .- 2).*ze .+ zs for m in xs]
     
-
-
     Rt1 = @. exp(-(ρ^2/(4D*ν*t)) - μa*ν*t)
     Rt1 = @. Rt1/(2*(4π*D*ν)^(3/2)*t^(5/2))
 
-    
     Rt2 = @. z1m'*exp(-(z1m'^2 / (4D*ν*t))) - z2m'*exp(-(z2m'^2 / (4D*ν*t)))
-    Rt21 = sum(Rt2, dims=2)
     
-    
-
-    Rt = @. Rt1*Rt21
-    
-
-    replace!(Rt, NaN => 0)
+    Rt = Rt1.*sum(Rt2, dims=2)
+	replace!(Rt, NaN => 0)
+	
     return Rt
 end
 
 
-function DT_refl_paralpip(t, β, rd, rs, L)
+function DT_refl_paralpip(t, β::Array{Float64,1}, ndet::Float64, nmed::Float64, rd::Array{Float64,1}, rs::Array{Float64,1}, L::Array{Float64,1})
+
+
 	# rd is location of detector [x,y]
 	# rs is location of source [x,y]
 	# L is dimensions of parallelpiped [Lx, Ly, Lz]
+	n::Float64 = nmed/ndet
+    μa::Float64 = β[1]
+    μsp::Float64 = β[2]
+    D::Float64 = 1/3μsp
+	ν::Float64 = 29.9792345/nmed
+	xs::UnitRange{Int64} = -10:10
 
+	x::Float64 = rd[1]
+	y::Float64 = rd[2]
+	xu::Float64 = rs[1]
+	yu::Float64 = rs[2]
+	lx::Float64 = L[1]
+	ly::Float64 = L[2]
+	lz::Float64 = L[3]
 
+	x1l = Array{Float64}(undef, length(xs))
+	x2l = Array{Float64}(undef, length(xs))
+	y1m = Array{Float64}(undef, length(xs))
+	y2m = Array{Float64}(undef, length(xs))
+	z1n = Array{Float64}(undef, length(xs))
+	z2n = Array{Float64}(undef, length(xs))
 
-	nmed = 1.4
-	ndet = 1.4
-	μa = β[1]
-	μsp = β[2]
-	x = rd[1]
-	y = rd[2]
-	xu = rs[1]
-	yu = rs[2]
-	lx = L[1]
-	ly = L[2]
-	lz = L[3]
+	Rt1 = Array{Float64}(undef, length(t))
+	Rt2 = Array{Float64}(undef, length(t), length(xs))
+	Rt3 = Array{Float64}(undef, length(t), length(xs))
+	Rt4 = Array{Float64}(undef, length(t), length(xs))
+
+	Rt = Array{Float64}(undef, length(t))
 
 	if (nmed == ndet)
 		A = 1
@@ -190,14 +204,9 @@ function DT_refl_paralpip(t, β, rd, rs, L)
 		A = 2/(1-R0) - 1
 	end
 
-	D = 1/3μsp
-	zo = 1/μsp
-	zb = 2A*D
-
-	ν = 29.9792345/nmed
-
-
-	xs = -10:10
+	
+	zo::Float64 = 1/μsp
+	zb::Float64 = 2A*D
 
 	x1l = Float64[2l*lx + 4l*zb + xu for l in xs]
 	x2l = Float64[2l*lx + (4l-2)*zb - xu for l in xs]
@@ -223,25 +232,40 @@ end
 
 
 
-function DT_trans_paralpip(t, β, rd, rs, L)
+function DT_trans_paralpip(t, β::Array{Float64,1}, ndet::Float64, nmed::Float64, rd::Array{Float64,1}, rs::Array{Float64,1}, L::Array{Float64,1})
 	# rd is location of detector [x,y]
 	# rs is location of source [x,y]
 	# L is dimensions of parallelpiped [Lx, Ly, Lz]
 
+	n::Float64 = nmed/ndet
+    μa::Float64 = β[1]
+    μsp::Float64 = β[2]
+    D::Float64 = 1/3μsp
+	ν::Float64 = 29.9792345/nmed
+	xs::UnitRange{Int64} = -10:10
 
+	x::Float64 = rd[1]
+	y::Float64 = rd[2]
+	z::Float64 = L[3]
+	xu::Float64 = rs[1]
+	yu::Float64 = rs[2]
+	lx::Float64 = L[1]
+	ly::Float64 = L[2]
+	lz::Float64 = L[3]
 
-	nmed = 1.4
-	ndet = 1.4
-	μa = β[1]
-	μsp = β[2]
-	x = rd[1]
-	y = rd[2]
-	z = rd[3]
-	xu = rs[1]
-	yu = rs[2]
-	lx = L[1]
-	ly = L[2]
-	lz = L[3]
+	x1l = Array{Float64}(undef, length(xs))
+	x2l = Array{Float64}(undef, length(xs))
+	y1m = Array{Float64}(undef, length(xs))
+	y2m = Array{Float64}(undef, length(xs))
+	z1n = Array{Float64}(undef, length(xs))
+	z2n = Array{Float64}(undef, length(xs))
+
+	Rt1 = Array{Float64}(undef, length(t))
+	Rt2 = Array{Float64}(undef, length(t), length(xs))
+	Rt3 = Array{Float64}(undef, length(t), length(xs))
+	Rt4 = Array{Float64}(undef, length(t), length(xs))
+
+	Rt = Array{Float64}(undef, length(t))
 
 	if (nmed == ndet)
 		A = 1
@@ -254,14 +278,9 @@ function DT_trans_paralpip(t, β, rd, rs, L)
 		A = 2/(1-R0) - 1
 	end
 
-	D = 1/3μsp
-	zo = 1/μsp
-	zb = 2A*D
+	zo::Float64 = 1/μsp
+	zb::Float64 = 2A*D
 
-	ν = 29.9792345/nmed
-
-
-	xs = -10:10
 
 	x1l = Float64[2l*lx + 4l*zb + xu for l in xs]
 	x2l = Float64[2l*lx + (4l-2)*zb - xu for l in xs]
