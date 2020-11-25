@@ -24,15 +24,15 @@ function DA_semiinf(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::F
 
 
 	n::Float64 = nmed/ndet
-    μa::Float64 = β[1]
+   	μa::Float64 = β[1]
 	μsp::Float64 = β[2]
-    D::Float64 = 1/3μsp
-    zₛ::Float64 = 1/μsp
-    zₑ::Float64 = 2A*D
-    ν::Float64 = 29.9792345/nmed
+    	D::Float64 = 1/3μsp
+    	zₛ::Float64 = 1/μsp
+    	zₑ::Float64 = 2A*D
+    	ν::Float64 = 29.9792345/nmed
 	A::Float64
 
-    z₃ₘ::Float64 = - zₛ
+    	z₃ₘ::Float64 = - zₛ
 	z₄ₘ::Float64 = 2zₑ +zₛ
 
 	Rt1 = Array{Float64}(length(t))
@@ -50,15 +50,15 @@ function DA_semiinf(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::F
 	end
 
 
-    Rt1 = @. -exp(-(ρ^2/(4D*ν*t)) - μa*ν*t)
-    Rt1 = @. Rt1/(2*(4π*D*ν)^(3/2)*t^(5/2))
+   	 Rt1 = @. -exp(-(ρ^2/(4D*ν*t)) - μa*ν*t)
+   	 Rt1 = @. Rt1/(2*(4π*D*ν)^(3/2)*t^(5/2))
 
-    Rt2 = @. z₃ₘ*exp(-(z₃ₘ^2/(4D*ν*t))) - z₄ₘ*exp(-(z₄ₘ^2/(4D*ν*t)))
+   	 Rt2 = @. z₃ₘ*exp(-(z₃ₘ^2/(4D*ν*t))) - z₄ₘ*exp(-(z₄ₘ^2/(4D*ν*t)))
 
-    Rt = @. Rt1*Rt2
+   	 Rt = @. Rt1*Rt2
     
 
-    replace!(Rt, NaN => 0)
+   	 replace!(Rt, NaN => 0)
     return Rt
 
 end
@@ -70,8 +70,8 @@ function DA_reflslab(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::F
 	n::Float64 = nmed/ndet
 	μa::Float64 = β[1]
 	μsp::Float64 = β[2]
-    D::Float64 = 1/3μsp
-    zₛ::Float64 = 1/μsp
+   	D::Float64 = 1/3μsp
+    	zₛ::Float64 = 1/μsp
 	zₑ::Float64 = 2A*D
 	A::Float64
 	ν::Float64 = 29.9792345/nmed
@@ -95,17 +95,17 @@ function DA_reflslab(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::F
 	
 	x₁ₗ = Float64[2l*lx + 4l*zb + xu for l in xs]
 
-    z₃ₘ = Float64[-2m.*s .- 4m.*zₑ .- zₛ for m in xs]
+    	z₃ₘ = Float64[-2m.*s .- 4m.*zₑ .- zₛ for m in xs]
 	z₄ₘ = Float64[-2m.*s .- (4m .- 2).*zₑ .+ zₛ for m in xs]
 	
     
-    Rt1 = @. -exp(-(ρ^2/(4D*ν*t)) - μa*ν*t)
-    Rt1 = @. Rt1/(2*(4π*D*ν)^(3/2)*t^(5/2))
+    	Rt1 = @. -exp(-(ρ^2/(4D*ν*t)) - μa*ν*t)
+   	Rt1 = @. Rt1/(2*(4π*D*ν)^(3/2)*t^(5/2))
 
 
 	Rt2 = @. z₃ₘ'*exp(-(z₃ₘ'^2 / (4D*ν*t))) - z₄ₘ'*exp(-(z₄ₘ'^2 / (4D*ν*t)))
 
-    Rt = @. Rt1*sum(Rt2, dims=2)
+    	Rt = @. Rt1*sum(Rt2, dims=2)
 	replace!(Rt, NaN => 0)
 
 	return Rt
