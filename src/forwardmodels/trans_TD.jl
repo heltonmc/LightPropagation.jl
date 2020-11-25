@@ -1,3 +1,6 @@
+##### Diffusion approximation for Slab Geometry (transmittance) #####
+# The transmittance for the slab is calculated from Eqn. 39 from Contini 1997 for the first 11 dipoles (-10:1:10).
+
 
 function DT_transslab(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
 	#s is slab thickness
@@ -46,6 +49,24 @@ end
 
 
 
+##### Diffusion approximation for a turbid parallelepiped (transmittance)  #####
+
+
+
+#=
+@article{kienle2005light,
+  title={Light diffusion through a turbid parallelepiped},
+  author={Kienle, Alwin},
+  journal={JOSA A},
+  volume={22},
+  number={9},
+  pages={1883--1888},
+  year={2005},
+  publisher={Optical Society of America}
+}
+
+The transmitance is directly given by equation 8 in Kienle 2005.
+=#
 
 
 function DT_trans_paralpip(t, β::Array{Float64,1}, ndet::Float64, nmed::Float64, rd::Array{Float64,1}, rs::Array{Float64,1}, L::Array{Float64,1})
