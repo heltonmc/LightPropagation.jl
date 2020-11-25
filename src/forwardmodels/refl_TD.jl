@@ -2,6 +2,23 @@
 
 ##### Diffusion approximation for semi-infinite media  #####
 
+#=
+
+@article{contini1997photon,
+  title={Photon migration through a turbid slab described by a model based on diffusion approximation. I. Theory},
+  author={Contini, Daniele and Martelli, Fabrizio and Zaccanti, Giovanni},
+  journal={Applied optics},
+  volume={36},
+  number={19},
+  pages={4587--4599},
+  year={1997},
+  publisher={Optical Society of America}
+}
+
+The reflectance for the semi-infinite medium is calculated from Equation 36 from Contini 1997. 
+The semi-infinite medium is described by retaining the first of the dipole sources (m=0) from Eqn. 36.
+=#
+
 #Reflectance semi-infinite
 function DA_semiinf(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
 
