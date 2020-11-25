@@ -63,6 +63,8 @@ function DA_semiinf(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::F
 end
 
 ##### Diffusion approximation for Slab Geometry   #####
+#The reflectance for the slab is calculated from Equation 36 from Contini 1997 for the first 11 dipoles (-10:1:10).
+#The number of sources considered in the summation can be changed with xs. Larger values of m will be needed for large values of SDS and t.
    
 function DA_reflslab(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
 	#s is slab thickness
@@ -111,6 +113,24 @@ function DA_reflslab(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::F
 end
 
 
+##### Diffusion approximation for a turbid parallelepiped (reflectance)  #####
+
+
+
+#=
+@article{kienle2005light,
+  title={Light diffusion through a turbid parallelepiped},
+  author={Kienle, Alwin},
+  journal={JOSA A},
+  volume={22},
+  number={9},
+  pages={1883--1888},
+  year={2005},
+  publisher={Optical Society of America}
+}
+
+The fluence is given by equation 6 in Kienle 2005. The reflectance as calculated here uses Fick's law where Rt(rho, t) = D∂/∂zϕ(rho, z=0, t)
+=#
 
 function DT_refl_paralpip(t, β::Array{Float64,1}, ndet::Float64, nmed::Float64, rd::Array{Float64,1}, rs::Array{Float64,1}, L::Array{Float64,1})
 
