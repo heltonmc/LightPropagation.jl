@@ -1,89 +1,36 @@
-function refl_DT(t,β)
-    μa = β[1]
-    μsp = β[2]
-    n = 1.35
-    ρ = 1
-    c = 29.9792458 # Speed of light cm/ns
-    v = c/n # Speed of light in medium
-    D = 1/(3μsp) # Diffusion Coefficient
-    Rt = @. (v/(4π*D*v*t)^1.5)*exp(-(ρ^2)/(4D*v*t)-μa*v*t)
-    replace!(Rt, NaN => 0)
-    m = findmax(Rt)
-    Rt = Rt./m[1]
-
-end
-
-function refl_DT1(t,β,ρ)
-
-	nmed = 1.35
-	ndet = 1.45
-	μa = β[1]
-	μsp = β[2]
-	#ρ = β[3]
 
 
-	if (nmed == ndet)
-		Afac = 1
-	elseif nmed > ndet
-		costhetac = sqrt(1 - (ndet/nmed).^2)
-		R0 = ((nmed/ndet-1)/(nmed/ndet +1)).^2
-		Afac = (2/(1-R0) -1 + abs(costhetac.^3))./(1-abs(costhetac.^2))
-	else #nmed < ndet
-		R0 = ((nmed/ndet-1)/(nmed/ndet +1)).^2
-		Afac = 2/(1-R0) - 1
-	end
+##### Diffusion approximation for semi-infinite media  #####
 
-	z0 = 1/(μa+μsp)
-	D = 1/(3*(μa + μsp))
-	zb = 2*Afac*D
-
-	v = 29.9792345/nmed # speed of light in medium
-
-	Rt1 = @. v*exp(-μa*v*t)
-	Rt1 = @. Rt1/((4*π*D*v*t)^1.5)
-	Rt1 = @. Rt1*(exp(-(z0^2 + ρ^2)/(4*D*v*t)) - exp(-((2*zb + z0)^2 + ρ^2)/(4*D*v*t)))
-
-	Rt2 = @. 3*exp(-μa*v*t)/(2*((4*π*D*v)^1.5)*(t^2.5))
-	Rt2 = @. Rt2*(z0*exp(-((z0^2 + ρ^2)/(4*D*v*t))) + (2*zb + z0)*exp(-((2*zb+z0)^2 + ρ^2)/(4*D*v*t)))
-
-	Rt = @. abs(Rt1)+abs(Rt2)
-	replace!(Rt, NaN => 0)
-	m = findmax(Rt)
-	#Rt = Rt./m[1]
-	return Rt
-end
+#Reflectance semi-infinite
+function DA_semiinf(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
 
 
+	n::Float64 = nmed/ndet
+    μₐ::Float64 = β[1]
+	μₛₚ::Float64 = β[2]
+    D::Float64 = 1/3μₛₚ
+    zₛ::Float64 = 1/μₛₚ
+    zₑ::Float64 = 2A*D
+    ν::Float64 = 29.9792345/nmed
+	A::Float64
 
-function DT_semiinfinite(t, β, ρ)
+    z₃ₘ::Float64 = - zₛ
+	z₄ₘ::Float64 = 2zₑ +zₛ
 
-	nmed = 1.4
-	ndet = 1.4
-	n = nmed/ndet
+	Rt1 = Array{Float64}(length(t))
+	Rt2 = Array{Float64}(length(t))
+	Rt = Array{Float64}(length(t))
 
-    μₐ = β[1]
-    μₛₚ = β[2]
-    # s = slab thickness
-	if n == 1
-		A = 1
+
+	if n == 1.0
+		A = 1.0
 	elseif n > 1
 		A = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 +
 		 5507.53041n^4 - 2463.357945n^5 + 610.956547n^6 - 64.8047n^7
 	else 
 		A = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3
 	end
-	
-
-    D = 1/3μₛₚ
-    zₛ = 1/μₛₚ
-    zₑ = 2A*D
-
-    ν = 29.9792345/nmed
-
-
-    z₃ₘ = - zₛ
-    z₄ₘ = 2zₑ +zₛ
-
 
 
     Rt1 = @. -exp(-(ρ^2/(4D*ν*t)) - μₐ*ν*t)
@@ -99,20 +46,29 @@ function DT_semiinfinite(t, β, ρ)
 
 end
 
-
-
+##### Diffusion approximation for Slab Geometry   #####
    
-function DT_reflslab(t, β, ρ, s)
+function DA_reflslab(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
+	#s is slab thickness
+	n::Float64 = nmed/ndet
+	μₐ::Float64 = β[1]
+	μₛₚ::Float64 = β[2]
+    D::Float64 = 1/3μₛₚ
+    zₛ::Float64 = 1/μₛₚ
+	zₑ::Float64 = 2A*D
+	A::Float64
+	ν::Float64 = 29.9792345/nmed
+	xs::UnitRange{Int64} = -10:10
 
-	nmed = 1.4
-	ndet = 1.4
-	n = nmed/ndet
+	z₃ₘ::Array{Float64}(length(xs))
+	z₄ₘ::Array{Float64}(length(xs))
 
-    μₐ = β[1]
-    μₛₚ = β[2]
-    # s = slab thickness
+	Rt1::Array{Float64}(length(t))
+	Rt2::Array{Float64}(length(t), length(z₃ₘ))
+	Rt::Array{Float64}(length(t))
+	
 	if n == 1
-		A = 1
+		A= 1
 	elseif n > 1
 		A = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 +
 		 5507.53041n^4 - 2463.357945n^5 + 610.956547n^6 - 64.8047n^7
@@ -120,38 +76,26 @@ function DT_reflslab(t, β, ρ, s)
 		A = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3
 	end
 	
+	x₁ₗ = Float64[2l*lx + 4l*zb + xu for l in xs]
 
-    D = 1/3μₛₚ
-    zₛ = 1/μₛₚ
-    zₑ = 2A*D
-
-    ν = 29.9792345/nmed
-
-    m = Vector(-10:1:10)
-    z₃ₘ = -2m.*s .- 4m.*zₑ .- zₛ
-    z₄ₘ = -2m.*s .- (4m .- 2).*zₑ .+ zₛ
+    z₃ₘ = Float64[-2m.*s .- 4m.*zₑ .- zₛ for m in xs]
+	z₄ₘ = Float64[-2m.*s .- (4m .- 2).*zₑ .+ zₛ for m in xs]
+	
     
     Rt1 = @. -exp(-(ρ^2/(4D*ν*t)) - μₐ*ν*t)
     Rt1 = @. Rt1/(2*(4π*D*ν)^(3/2)*t^(5/2))
 
 
-	#Rt2 = Array{Float64, 2}(undef, length(t), length(z₃ₘ))
 	Rt2 = @. z₃ₘ'*exp(-(z₃ₘ'^2 / (4D*ν*t))) - z₄ₘ'*exp(-(z₄ₘ'^2 / (4D*ν*t)))
 
-
-    Rt21 = sum(Rt2, dims=2)
-
-    
-
-    Rt = @. Rt1*Rt21
-    
-
+    Rt = @. Rt1*sum(Rt2, dims=2)
 	replace!(Rt, NaN => 0)
 
-	
 	return Rt
-
 end
+
+
+0.523095 seconds (26 allocations: 190.738 MiB, 1.43% gc time)
 
 
 function DT_transslab(t, β, ρ, s)
@@ -205,3 +149,131 @@ A1(n) = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3 + 1.171382n^4 # for n<1
 A2(n) = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 + 5507.53041n^4 - 2463.357945n^5 + 610.956547n^6 - 64.8047n^7 #for n>1
 
 # seems to work for range 0.5<n<1.8 
+
+
+
+
+function DT_refl_paralpip(t, β, rd, rs, L)
+	# rd is location of detector [x,y]
+	# rs is location of source [x,y]
+	# L is dimensions of parallelpiped [Lx, Ly, Lz]
+
+
+
+	nmed = 1.4
+	ndet = 1.4
+	μₐ = β[1]
+	μₛₚ = β[2]
+	x = rd[1]
+	y = rd[2]
+	xu = rs[1]
+	yu = rs[2]
+	lx = L[1]
+	ly = L[2]
+	lz = L[3]
+
+	if (nmed == ndet)
+		A = 1
+	elseif nmed > ndet
+		costhetac = sqrt(1 - (ndet/nmed).^2)
+		R0 = ((nmed/ndet-1)/(nmed/ndet +1)).^2
+		A = (2/(1-R0) -1 + abs(costhetac.^3))./(1-abs(costhetac.^2))
+	else nmed < ndet
+		R0 = ((nmed/ndet-1)/(nmed/ndet +1)).^2
+		A = 2/(1-R0) - 1
+	end
+
+	D = 1/3μₛₚ
+	zo = 1/μₛₚ
+	zb = 2A*D
+
+	ν = 29.9792345/nmed
+
+
+	xs = -10:10
+
+	x₁ₗ = Float64[2l*lx + 4l*zb + xu for l in xs]
+	x₂ₗ = Float64[2l*lx + (4l-2)*zb - xu for l in xs]
+	y₁ₘ = Float64[2m*ly + 4m*zb + yu for m in xs]
+	y₂ₘ = Float64[2m*ly + (4m-2)*zb - yu for m in xs]
+	z₁ₙ = Float64[2n*lz + 4n*zb + zo for n in xs]
+	z₂ₙ = Float64[2n*lz + (4n-2)*zb - zo for n in xs]
+
+
+	Rt1 = @. exp(-μₐ*ν*t)/(2*(4π*D*ν)^(3/2)*t^(5/2))
+
+	Rt2 = @. exp(-(x-x₁ₗ')^2 / (4D*ν*t)) - exp(-(x-x₂ₗ')^2 / (4D*ν*t))
+
+	Rt3 = @. exp(-(y-y₁ₘ')^2 / (4D*ν*t)) - exp(-(y-y₂ₘ')^2 / (4D*ν*t))
+
+	Rt4 = @. z₁ₙ'*exp(-z₁ₙ'^2 /(4D*ν*t)) - z₂ₙ'*exp(-z₂ₙ'^2 /(4D*ν*t))
+
+	Rt = Rt1.*sum(Rt2, dims=2).*sum(Rt3, dims=2).*sum(Rt4, dims=2)
+	replace!(Rt, NaN =>0)
+	return Rt
+end
+
+
+
+
+function DT_trans_paralpip(t, β, rd, rs, L)
+	# rd is location of detector [x,y]
+	# rs is location of source [x,y]
+	# L is dimensions of parallelpiped [Lx, Ly, Lz]
+
+
+
+	nmed = 1.4
+	ndet = 1.4
+	μₐ = β[1]
+	μₛₚ = β[2]
+	x = rd[1]
+	y = rd[2]
+	z = rd[3]
+	xu = rs[1]
+	yu = rs[2]
+	lx = L[1]
+	ly = L[2]
+	lz = L[3]
+
+	if (nmed == ndet)
+		A = 1
+	elseif nmed > ndet
+		costhetac = sqrt(1 - (ndet/nmed).^2)
+		R0 = ((nmed/ndet-1)/(nmed/ndet +1)).^2
+		A = (2/(1-R0) -1 + abs(costhetac.^3))./(1-abs(costhetac.^2))
+	else nmed < ndet
+		R0 = ((nmed/ndet-1)/(nmed/ndet +1)).^2
+		A = 2/(1-R0) - 1
+	end
+
+	D = 1/3μₛₚ
+	zo = 1/μₛₚ
+	zb = 2A*D
+
+	ν = 29.9792345/nmed
+
+
+	xs = -10:10
+
+	x₁ₗ = Float64[2l*lx + 4l*zb + xu for l in xs]
+	x₂ₗ = Float64[2l*lx + (4l-2)*zb - xu for l in xs]
+	y₁ₘ = Float64[2m*ly + 4m*zb + yu for m in xs]
+	y₂ₘ = Float64[2m*ly + (4m-2)*zb - yu for m in xs]
+	z₁ₙ = Float64[2n*lz + 4n*zb + zo for n in xs]
+	z₂ₙ = Float64[2n*lz + (4n-2)*zb - zo for n in xs]
+
+
+	Rt1 = @. exp(-μₐ*ν*t)/(2*(4π*D*ν)^(3/2)*t^(5/2))
+
+	Rt2 = @. exp(-(x-x₁ₗ')^2 / (4D*ν*t)) - exp(-(x-x₂ₗ')^2 / (4D*ν*t))
+
+	Rt3 = @. exp(-(y-y₁ₘ')^2 / (4D*ν*t)) - exp(-(y-y₂ₘ')^2 / (4D*ν*t))
+
+	Rt4 = @. (lz - z₁ₙ')*exp(-(lz-z₁ₙ')^2 /(4D*ν*t)) - (lz - z₂ₙ')*exp(-(lz-z₂ₙ')^2 /(4D*ν*t))
+
+	Rt = Rt1.*sum(Rt2, dims=2).*sum(Rt3, dims=2).*sum(Rt4, dims=2)
+	replace!(Rt, NaN =>0)
+	return Rt
+end
+
