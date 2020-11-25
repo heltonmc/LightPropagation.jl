@@ -27,33 +27,32 @@ function DA_semiinf(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::F
     μa::Float64 = β[1]
     μsp::Float64 = β[2]
     D::Float64 = 1/3μsp
-    zₛ::Float64 = 1/μsp
-    zₑ::Float64 = 2A*D
-    ν::Float64 = 29.9792345/nmed
-    A::Float64
+	ν::Float64 = 29.9792345/nmed
 
-    z₃ₘ::Float64 = - zₛ
-    z₄ₘ::Float64 = 2zₑ +zₛ
-
-    Rt1 = Array{Float64}(length(t))
-    Rt2 = Array{Float64}(length(t))
-    Rt = Array{Float64}(length(t))
+    Rt1 = Array{Float64}(undef, length(t))
+    Rt2 = Array{Float64}(undef, length(t))
+    Rt = Array{Float64}(undef, length(t))
 
 
-	if n == 1.0
-		A = 1.0
-	elseif n > 1
+	if n > 1.0
 		A = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 +
 		 5507.53041n^4 - 2463.357945n^5 + 610.956547n^6 - 64.8047n^7
-	else 
+	elseif n < 1.0
 		A = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3
+	else 
+		A = 1
 	end
 
+	zs::Float64 = 1/μsp
+	ze::Float64 = 2A*D
+
+	z3m::Float64 = - zs
+    z4m::Float64 = 2ze +zs
 
    	Rt1 = @. -exp(-(ρ^2/(4D*ν*t)) - μa*ν*t)
    	Rt1 = @. Rt1/(2*(4π*D*ν)^(3/2)*t^(5/2))
 
-   	Rt2 = @. z₃ₘ*exp(-(z₃ₘ^2/(4D*ν*t))) - z₄ₘ*exp(-(z₄ₘ^2/(4D*ν*t)))
+   	Rt2 = @. z3m*exp(-(z3m^2/(4D*ν*t))) - z4m*exp(-(z4m^2/(4D*ν*t)))
 
    	Rt = @. Rt1*Rt2
     
@@ -67,23 +66,22 @@ end
    
 function DA_reflslab(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
 	#s is slab thickness
+
 	n::Float64 = nmed/ndet
-	μa::Float64 = β[1]
-	μsp::Float64 = β[2]
-   	D::Float64 = 1/3μsp
-    zₛ::Float64 = 1/μsp
-	zₑ::Float64 = 2A*D
-	A::Float64
+    μa::Float64 = β[1]
+    μsp::Float64 = β[2]
+    D::Float64 = 1/3μsp
 	ν::Float64 = 29.9792345/nmed
 	xs::UnitRange{Int64} = -10:10
 
-	z₃ₘ::Array{Float64}(length(xs))
-	z₄ₘ::Array{Float64}(length(xs))
+	z3m = Array{Float64}(undef, length(xs))
+	z4m = Array{Float64}(undef, length(xs))
 
-	Rt1::Array{Float64}(length(t))
-	Rt2::Array{Float64}(length(t), length(z₃ₘ))
-	Rt::Array{Float64}(length(t))
-	
+
+    Rt1 = Array{Float64}(undef, length(t))
+    Rt2 = Array{Float64}(undef, length(t), length(z3m))
+	Rt = Array{Float64}(undef, length(t))
+
 	if n == 1
 		A= 1
 	elseif n > 1
@@ -92,20 +90,21 @@ function DA_reflslab(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::F
 	else 
 		A = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3
 	end
-	
-	x₁ₗ = Float64[2l*lx + 4l*zb + xu for l in xs]
 
-    z₃ₘ = Float64[-2m.*s .- 4m.*zₑ .- zₛ for m in xs]
-	z₄ₘ = Float64[-2m.*s .- (4m .- 2).*zₑ .+ zₛ for m in xs]
+	zs::Float64 = 1/μsp
+	ze::Float64 = 2A*D
+	
+    z3m = Float64[-2m.*s .- 4m.*ze .- zs for m in xs]
+	z4m = Float64[-2m.*s .- (4m .- 2).*ze .+ zs for m in xs]
 	
     
     Rt1 = @. -exp(-(ρ^2/(4D*ν*t)) - μa*ν*t)
    	Rt1 = @. Rt1/(2*(4π*D*ν)^(3/2)*t^(5/2))
 
 
-	Rt2 = @. z₃ₘ'*exp(-(z₃ₘ'^2 / (4D*ν*t))) - z₄ₘ'*exp(-(z₄ₘ'^2 / (4D*ν*t)))
+	Rt2 = @. z3m'*exp(-(z3m'^2 / (4D*ν*t))) - z4m'*exp(-(z4m'^2 / (4D*ν*t)))
 
-    Rt = @. Rt1*sum(Rt2, dims=2)
+    Rt = Rt1.*sum(Rt2, dims=2)
 	replace!(Rt, NaN => 0)
 
 	return Rt
@@ -133,14 +132,14 @@ function DT_transslab(t, β, ρ, s)
 
 
     D = 1/3μsp
-    zₛ = 1/μsp
-    zₑ = 2A*D
+    zs = 1/μsp
+    ze = 2A*D
 
 	ν = 29.9792345/nmed
 
     m = Vector(-10:1:10)
-    z₁ₘ = (1 .- 2m).*s .- 4m.*zₑ .- zₛ
-    z₂ₘ = (1 .- 2m).*s .- (4m .- 2).*zₑ .+ zₛ
+    z₁ₘ = (1 .- 2m).*s .- 4m.*ze .- zs
+    z₂ₘ = (1 .- 2m).*s .- (4m .- 2).*ze .+ zs
     
 
 
