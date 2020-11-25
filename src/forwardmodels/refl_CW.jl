@@ -1,5 +1,5 @@
 
-##### Steady State Reflection from a Slab #####
+##### Steady State Reflectance from a Slab #####
 # Taken from Eqn. 45 from Contini 1997
 
 function DA_reflslabCW(ρ::Float64, β::Array{Float64,1},ndet::Float64, nmed::Float64, s::Float64)
