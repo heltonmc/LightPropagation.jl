@@ -17,11 +17,10 @@ function DA_transslabCW(ρ::Float64, β::Array{Float64,1},ndet::Float64, nmed::F
 
     Rt1 = Array{Float64}(undef, length(xs))
     Rt2 = Array{Float64}(undef, length(xs))
-	Rt = Array{Float64}(undef, 1)
 
-	if n == 1
-		A= 1
-	elseif n > 1
+	if n == 1.0
+		A= 1.0
+	elseif n > 1.0
 		A = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 +
 		 5507.53041n^4 - 2463.357945n^5 + 610.956547n^6 - 64.8047n^7
 	else 
