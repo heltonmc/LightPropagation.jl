@@ -163,8 +163,6 @@ function DT_refl_paralpip(t, β::Array{Float64,1}, ndet::Float64, nmed::Float64,
 	Rt3 = Array{Float64}(undef, length(t), length(xs))
 	Rt4 = Array{Float64}(undef, length(t), length(xs))
 
-	Rt = Array{Float64}(undef, length(t))
-
 	if n == 1.0
 		A= 1.0
 	elseif n > 1.0
