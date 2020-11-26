@@ -18,11 +18,10 @@ function DT_transslab(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::
 
     Rt1 = Array{Float64}(undef, length(t))
     Rt2 = Array{Float64}(undef, length(t), length(z1m))
-	Rt = Array{Float64}(undef, length(t))
     
-	if n == 1
-		A = 1
-	elseif n > 1
+	if n == 1.0
+		A = 1.0
+	elseif n > 1.0
 		A = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 + 
 		 5507.53041n^4 - 2463.357945n^5 + 610.956547n^6 - 64.8047n^7
 	else 
@@ -102,17 +101,13 @@ function DT_trans_paralpip(t, β::Array{Float64,1}, ndet::Float64, nmed::Float64
 	Rt3 = Array{Float64}(undef, length(t), length(xs))
 	Rt4 = Array{Float64}(undef, length(t), length(xs))
 
-	Rt = Array{Float64}(undef, length(t))
-
-	if (nmed == ndet)
-		A = 1
-	elseif nmed > ndet
-		costhetac = sqrt(1 - (ndet/nmed).^2)
-		R0 = ((nmed/ndet-1)/(nmed/ndet +1)).^2
-		A = (2/(1-R0) -1 + abs(costhetac.^3))./(1-abs(costhetac.^2))
-	else nmed < ndet
-		R0 = ((nmed/ndet-1)/(nmed/ndet +1)).^2
-		A = 2/(1-R0) - 1
+	if n == 1.0
+		A = 1.0
+	elseif n > 1.0
+		A = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 + 
+		 5507.53041n^4 - 2463.357945n^5 + 610.956547n^6 - 64.8047n^7
+	else 
+		A = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3
 	end
 
 	zo::Float64 = 1/μsp
