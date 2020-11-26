@@ -111,6 +111,61 @@ function DA_reflslab(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::F
 end
 
 
+#=
+A more optimized version of DA_reflslab devectorizing code
+
+=#
+
+function DA_reflslab1(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
+	#s is slab thickness
+
+	  n::Float64 = nmed/ndet
+    μa::Float64 = β[1]
+    μsp::Float64 = β[2]
+    D::Float64 = 1/3μsp
+  	ν::Float64 = 29.9792345/nmed
+  	xs::UnitRange{Int64} = -10:10
+
+
+
+    Rt1 = Array{Float64}(undef, length(t))
+   	Rt2 = zeros(Float64, length(t))
+	
+		if n == 1.0
+			A= 1.0
+		elseif n > 1.0
+			A = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 +
+		 	5507.53041n^4 - 2463.357945n^5 + 610.956547n^6 - 64.8047n^7
+		else 
+			A = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3
+		end
+
+
+		zs::Float64 = 1/μsp
+		ze::Float64 = 2A*D
+
+
+		Rt1 = @. -exp(-(ρ^2/(4D*ν*t)) - μa*ν*t)/(2*(4π*D*ν)^(3/2)*t^(5/2))
+
+		@inbounds begin
+			for n in 1:length(t)
+				for m in xs
+
+					z3m = -2m.*s .- 4m.*ze .- zs
+					z4m = -2m.*s .- (4m .- 2).*ze .+ zs
+
+			 		Rt2[n] += z3m*exp(-(z3m^2 / (4D*ν*t[n]))) - z4m*exp(-(z4m^2 / (4D*ν*t[n])))
+				end
+			end
+
+		end
+	
+
+
+	return replace!(Rt1.*Rt2, NaN => 0)
+	
+end
+
 ##### Diffusion approximation for a turbid parallelepiped (reflectance)  #####
 
 
