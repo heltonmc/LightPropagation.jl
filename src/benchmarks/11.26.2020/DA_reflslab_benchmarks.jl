@@ -59,6 +59,20 @@ function DA_reflslab(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::F
 end
 
 
+#=@benchmark DA_reflslab(0:0.01:10,[0.1,10.0], 1.0,1.0,1.0,10.0)
+BenchmarkTools.Trial: 
+  memory estimate:  369.83 KiB
+  allocs estimate:  18
+  --------------
+  minimum time:     722.578 μs (0.00% GC)
+  median time:      811.696 μs (0.00% GC)
+  mean time:        856.330 μs (2.28% GC)
+  maximum time:     4.086 ms (73.78% GC)
+  --------------
+  samples:          5835
+  evals/sample:     1
+=#
+
 function DA_reflslab1(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
 	#s is slab thickness
 
@@ -109,3 +123,22 @@ function DA_reflslab1(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::
 	return replace!(Rt1.*Rt2, NaN => 0)
 
 end
+
+
+
+#=
+@benchmark DA_reflslab1(0:0.01:10,[0.1,10.0], 1.0,1.0,1.0,10.0)
+BenchmarkTools.Trial: 
+  memory estimate:  34.98 KiB
+  allocs estimate:  26
+  --------------
+  minimum time:     289.363 μs (0.00% GC)
+  median time:      318.652 μs (0.00% GC)
+  mean time:        433.391 μs (0.81% GC)
+  maximum time:     10.766 ms (57.23% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+
+
+  =#
