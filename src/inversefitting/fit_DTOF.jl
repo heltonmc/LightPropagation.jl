@@ -88,8 +88,6 @@ function DT_model(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Flo
 end
 
 
-end
-
 
 function conv_DT(t, β, data)
 
@@ -140,7 +138,7 @@ function getfit(input_data, model_params; alpha=0.1)
 end
 
 
-function plotfit(fit::fitresult1, data::input_data)
+function plotfit(fit::fitresult, data::input_data)
 	scatter(fit.xdata, fit.ydata, color="black", label="DTOF", markersize=3, alpha=0.8)
 
 	#scatter(data.t[600:900], log.(data.DTOF[600:900]), color="black", label="DTOF", markersize=3, alpha=0.8)

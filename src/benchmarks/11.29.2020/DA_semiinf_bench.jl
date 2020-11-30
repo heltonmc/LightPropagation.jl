@@ -159,17 +159,6 @@ BenchmarkTools.Trial:
   evals/sample:     1
 
   12 THREADS : (Michael's Desktop)
-BenchmarkTools.Trial: 
-  memory estimate:  33.05 KiB
-  allocs estimate:  67
-  --------------
-  minimum time:     16.301 μs (0.00% GC)
-  median time:      17.934 μs (0.00% GC)
-  mean time:        28.674 μs (2.28% GC)
-  maximum time:     5.131 ms (19.35% GC)
-  --------------
-  samples:          10000
-  evals/sample:     1
 
 
 =#
