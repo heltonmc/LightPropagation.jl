@@ -69,6 +69,19 @@ BenchmarkTools.Trial:
   samples:          10000
   evals/sample:     1
 
+12 THREADS (Michaels Desktop CPU: Intel 8700k)
+BenchmarkTools.Trial: 
+  memory estimate:  48.16 KiB
+  allocs estimate:  9
+  --------------
+  minimum time:     46.689 μs (0.00% GC)
+  median time:      48.945 μs (0.00% GC)
+  mean time:        50.164 μs (0.79% GC)
+  maximum time:     613.391 μs (84.43% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+
 =#
 
 function DA_semiinf1(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
@@ -141,6 +154,19 @@ BenchmarkTools.Trial:
   median time:      51.549 μs (0.00% GC)
   mean time:        98.719 μs (2.47% GC)
   maximum time:     8.069 ms (0.00% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+
+  12 THREADS : (Michael's Desktop)
+BenchmarkTools.Trial: 
+  memory estimate:  33.05 KiB
+  allocs estimate:  67
+  --------------
+  minimum time:     16.301 μs (0.00% GC)
+  median time:      17.934 μs (0.00% GC)
+  mean time:        28.674 μs (2.28% GC)
+  maximum time:     5.131 ms (19.35% GC)
   --------------
   samples:          10000
   evals/sample:     1
