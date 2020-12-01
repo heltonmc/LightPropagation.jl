@@ -16,7 +16,7 @@ model(t, p) = p[1] * exp.(-p[2] *t)
 
 tdata = 1:0.01:10
 
-ydata = model(tdata, [1.0, 2.0]) +randn(length(tdata))
+ydata = model(tdata, [1.0, 2.0]) + randn(length(tdata))
 
 IRF = [Vector(1:500); Vector(500:-1:100)]
 
@@ -70,7 +70,7 @@ function fit2(tdata, ydata, IRF)
     curve_fit((tdata, p) -> convFIT1(tdata, p, pl, IRF_fft), tdata, ydata, [0.5, 0.5])
 end
 
-
+#=
 
 ############# Run these commands after running previous lines ################
 julia> @benchmark f = fit(tdata,ydata,IRF)
@@ -99,4 +99,4 @@ BenchmarkTools.Trial:
     --------------
     samples:          23
     evals/sample:     1
-  
+  =#
