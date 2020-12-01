@@ -91,6 +91,9 @@ end
 
 function conv_DT(t, β, data)
 
+	RtDT = Array{Float64}(undef, length(data.t))
+	convDT = Array{Float64}(undef, 2*length(data.t) - 1)
+
 	RtDT = DT_model(data.t, β, data.ρ, data.nmed, data.ndet)
 
 	convDT = conv(data.IRF, RtDT)
