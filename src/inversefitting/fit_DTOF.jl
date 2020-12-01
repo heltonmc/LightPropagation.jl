@@ -43,41 +43,50 @@ end
 
 
 
-function DT_model(t,β,ρ,nmed,ndet)
-	#diffusion theory model for homogenous semi-infinite layer
-	μa = β[1]
-	μsp = β[2]
+function DT_model(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
+	#optimzed semi-infinite model
+
+    n::Float64 = nmed/ndet
+    μa::Float64 = β[1]
+    μsp::Float64 = β[2]
+    D::Float64 = 1/3μsp
+	ν::Float64 = 29.9792345/nmed
+
+    Rt1 = Array{Float64}(undef, length(t))
+    Rt2 = Array{Float64}(undef, length(t))
 
 
-	if (nmed == ndet)
-		Afac = 1
-	elseif nmed > ndet
-		costhetac = sqrt(1 - (ndet/nmed).^2)
-		R0 = ((nmed/ndet-1)/(nmed/ndet +1)).^2
-		Afac = (2/(1-R0) -1 + abs(costhetac.^3))./(1-abs(costhetac.^2))
-	else nmed < ndet
-		R0 = ((nmed/ndet-1)/(nmed/ndet +1)).^2
-		Afac = 2/(1-R0) - 1
+	if n > 1.0
+		A = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 +
+		 5507.53041n^4 - 2463.357945n^5 + 610.956547n^6 - 64.8047n^7
+	elseif n < 1.0
+		A = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3
+	else 
+		A = 1.0
 	end
 
-	z0 = 1/(μa+μsp)
-	D = 1/(3*(μa + μsp))
-	zb = 2*Afac*D
+	zs::Float64 = 1/μsp
+	ze::Float64 = 2A*D
 
-	v = 29.9792345/nmed # speed of light in medium
+	z3m::Float64 = - zs
+    z4m::Float64 = 2ze +zs
 
-	Rt1 = @. v*exp(-μa*v*t)
-	Rt1 = @. Rt1/((4*π*D*v*t)^1.5)
-	Rt1 = @. Rt1*(exp(-(z0^2 + ρ^2)/(4*D*v*t)) - exp(-((2*zb + z0)^2 + ρ^2)/(4*D*v*t)))
+	Threads.@threads for n in eachindex(t)
+		
+   		Rt1[n] = -exp(-(ρ^2/(4D*ν*t[n])) - μa*ν*t[n])
+   		Rt1[n] = Rt1[n]/(2*(4π*D*ν)^(3/2)*t[n]^(5/2))
 
-	Rt2 = @. 3*exp(-μa*v*t)/(2*((4*π*D*v)^1.5)*(t^2.5))
-	Rt2 = @. Rt2*(z0*exp(-((z0^2 + ρ^2)/(4*D*v*t))) + (2*zb + z0)*exp(-((2*zb+z0)^2 + ρ^2)/(4*D*v*t)))
+   		Rt2[n] = z3m*exp(-(z3m^2/(4D*ν*t[n]))) - z4m*exp(-(z4m^2/(4D*ν*t[n])))
+		
+	end
+	
+    
 
-	Rt = @. abs(Rt1)+abs(Rt2)
-	replace!(Rt, NaN => 0)
-	m = findmax(Rt)
-	Rt = Rt./m[1]
+   Rt = replace!(Rt1.*Rt2, NaN => 0)
+   return Rt./maximum(Rt)
+
 end
+
 
 
 function conv_DT(t, β, data)
@@ -129,7 +138,7 @@ function getfit(input_data, model_params; alpha=0.1)
 end
 
 
-function plotfit(fit::fitresult1, data::input_data)
+function plotfit(fit::fitresult, data::input_data)
 	scatter(fit.xdata, fit.ydata, color="black", label="DTOF", markersize=3, alpha=0.8)
 
 	#scatter(data.t[600:900], log.(data.DTOF[600:900]), color="black", label="DTOF", markersize=3, alpha=0.8)
