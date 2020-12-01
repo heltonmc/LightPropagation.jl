@@ -1,6 +1,6 @@
 
 
-##### Diffusion approximation for semi-infinite media  #####
+##### Diffusion approximation for semi-infinite media (reflectance) #####
 
 #=
 
@@ -18,8 +18,6 @@
 The reflectance for the semi-infinite medium is calculated from Equation 36 from Contini 1997. 
 The semi-infinite medium is described by retaining the first of the dipole sources (m=0) from Eqn. 36.
 =#
-
-#Reflectance semi-infinite
 
 """
     DA_semiinf(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
@@ -91,9 +89,12 @@ end
 
 
 
-##### Diffusion approximation for Slab Geometry   #####
-#The reflectance for the slab is calculated from Equation 36 from Contini 1997 for the first 11 dipoles (-10:1:10).
-#The number of sources considered in the summation can be changed with xs. Larger values of m will be needed for large values of SDS and t.
+##### Diffusion approximation for Slab Geometry (reflectance) #####
+
+#=
+The reflectance for the slab is calculated from Equation 36 from Contini 1997 for the first 11 dipoles (-10:1:10).
+The number of sources considered in the summation can be changed with xs. Larger values of m will be needed for large values of SDS and t.
+=#
 
 """
     DA_reflslab(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
@@ -172,8 +173,6 @@ function DA_reflslab(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::F
 	return replace!(Rt1.*Rt2, NaN => 0)
 end
 ##### Diffusion approximation for a turbid parallelepiped (reflectance)  #####
-
-
 
 #=
 @article{kienle2005light,
