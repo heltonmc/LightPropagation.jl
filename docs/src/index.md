@@ -1,11 +1,8 @@
 
-
-```@meta
-DocTestSetup = quote
-    using MyModule
-end
+```@contents
+pages = [
+    "Home" => "index.md",
+    "DT"   => "DAslab_semiinfgeom.md"
+]
 ```
 
-```@autodocs
-Modules = ["LightPropagation.jl"]
-```

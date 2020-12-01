@@ -3,10 +3,14 @@ using Documenter
 using LightPropagation
 
 makedocs(
-    format = Documenter.HTML(),
     sitename = "LightPropagation.jl",
-    doctest = false
+    doctest = false,
+    modules=[LightPropagation],
+    repo = "github.com/heltonmc/LightPropagation.git",
+    pages = [
+    "Home" => "index.md",
+    "DT"   => "DAslab_semiinfgeom.md"
+]
 )
-
 
 deploydocs(repo = "https://github.com/heltonmc/LightPropagation.jl.git")
