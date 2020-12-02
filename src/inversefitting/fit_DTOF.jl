@@ -89,7 +89,7 @@ end
 
 
 
-function conv_DT(t, β, data)
+function conv_DT(t, β::Array{Float64,1}, data::input_data)
 
 	RtDT = Array{Float64}(undef, length(data.t))
 	convDT = Array{Float64}(undef, 2*length(data.t) - 1)
