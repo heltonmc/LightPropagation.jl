@@ -1,9 +1,5 @@
 using DSP, DelimitedFiles, LsqFit
 
-
-
-
-
 function DT_model(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
 	#optimzed semi-infinite model
 
@@ -51,8 +47,8 @@ end
 function get_fit_window(counts, risefactor, tailfactor)
 
     maxval = maximum(counts)
-    ind1 = findfirst(x -> x > maxval*risefactor, counts)
-    ind2 =  findlast(x -> x >maxval*tailfactor, counts)
+    ind1::Int = findfirst(x -> x > maxval*risefactor, counts)
+    ind2::Int =  findlast(x -> x >maxval*tailfactor, counts)
     
     return ind1, ind2
 end
@@ -99,14 +95,14 @@ end
 
 function getfit(input_data, model_params)
     ## get FFT padding and plans
-    out = pads(input_data.IRF)
+    out::Array{eltype(input_data.IRF)} = pads(input_data.IRF)
     pl, upadRfft = get_fftplan(input_data.IRF, out)
 
     #get fit windows
     ind1, ind2 = get_fit_window(input_data.DTOF, model_params.risefactor, model_params.tailfactor)
 
 
-    fit = curve_fit((t, β) -> conv_DT(t, β, input_data, out, pl, upadRfft), input_data.t[ind1:ind2], log.(input_data.DTOF[ind1:ind2]),
+    curve_fit((t, β) -> conv_DT(t, β, input_data, out, pl, upadRfft), input_data.t[ind1:ind2], log.(input_data.DTOF[ind1:ind2]),
     model_params.initparams, lower=model_params.lb, upper=model_params.ub)
 
 end
@@ -114,14 +110,14 @@ end
 #= 12/3/2020
 @benchmark getfit(data,modelp)
 BenchmarkTools.Trial: 
-  memory estimate:  35.19 MiB
-  allocs estimate:  9870
+  memory estimate:  30.68 MiB
+  allocs estimate:  9561
   --------------
-  minimum time:     15.048 ms (0.00% GC)
-  median time:      16.743 ms (5.32% GC)
-  mean time:        18.813 ms (3.84% GC)
-  maximum time:     62.818 ms (1.33% GC)
+  minimum time:     15.015 ms (0.00% GC)
+  median time:      16.626 ms (5.95% GC)
+  mean time:        18.319 ms (3.91% GC)
+  maximum time:     64.462 ms (1.59% GC)
   --------------
-  samples:          266
+  samples:          273
   evals/sample:     1
 =#
