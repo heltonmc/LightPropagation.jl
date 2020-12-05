@@ -1,4 +1,6 @@
-push!(LOAD_PATH,"/home/heltonmc/git-hub/LightPropagation/src")
+#push!(LOAD_PATH,"/home/heltonmc/git-hub/LightPropagation/src")
+push!(LOAD_PATH,"/Users/michaelhelton/LightPropagation/src")
+
 using Documenter
 using LightPropagation
 #=
@@ -15,11 +17,19 @@ makedocs(
 ]
 )
 =#
-deploydocs(repo = "https://github.com/heltonmc/LightPropagation.jl.git")
 
 
 makedocs(
     sitename = "LightPropagation.jl",
+    modules = [LightPropagation],
     format = Documenter.HTML(),
-    pages = Any[ "Home" => "index.md"]
+    pages = [ 
+                "Home" => "index.md",
+                "Forward Models" => Any[
+                    "SDA" => "DA_slab_semiinfgeom.md"
+                ]
+
+    ]
 )
+
+deploydocs(repo = "https://github.com/heltonmc/LightPropagation.jl.git")
