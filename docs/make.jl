@@ -20,8 +20,8 @@ makedocs(
 
 
 makedocs(
-    sitename = "LightPropagation.jl",
     modules = [LightPropagation],
+    sitename = "LightPropagation.jl",
     format = Documenter.HTML(),
     pages = [ 
                 "Home" => "index.md",
