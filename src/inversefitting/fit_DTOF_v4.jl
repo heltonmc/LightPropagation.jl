@@ -1,4 +1,4 @@
-sing DSP, DelimitedFiles, LsqFit
+using DSP, DelimitedFiles, LsqFit
 
 function DT_model(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
 	#optimzed semi-infinite model
@@ -57,15 +57,10 @@ end
 function pads(u::Array{Float64,1})
     outsize = 2 .* length(u) .- 1
     out = zeros(eltype(u), nextfastfft(outsize))
+    copyto!(out, u)
+
 end
 
-function get_fftplan(u::Array{Float64,1}, out)
-    upad = zeros(eltype(u), length(out))
-    copyto!(upad,u)
-    pl = plan_rfft(upad)
-    upadRfft = pl * upad
-    return pl, upadRfft
-end
 
 
 function conv_DT(t, β::Array{Float64,1}, data::input_data, out, fftIRF, pl, pli;
@@ -92,10 +87,9 @@ end
 
 function getfit(input_data, model_params)
     ## get FFT padding and plans
-    out::Array{eltype(input_data.IRF)} = pads(input_data.IRF)
-    copyto!(out, input_data.IRF)
+    out = pads(input_data.IRF)
 
-    pl = plan_rfft(out; flags = FFTW.MEASURE)
+    pl = plan_rfft(out)
     fftIRF = pl * out
     pli = plan_irfft(fftIRF, length(out))
 
@@ -139,3 +133,68 @@ BenchmarkTools.Trial:
   --------------
   samples:          993
   evals/sample:     1
+
+
+using DelimitedFiles, LsqFit, DSP, FFTW
+filename1 = "/home/heltonmc/Desktop/DTOF.asc"
+filename = "/home/heltonmc/Desktop/IRF.asc"
+
+  data_array = readdlm(filename,skipstart=10)
+data_array1 = readdlm(filename1,skipstart=10)
+
+RtIRF = data_array[1:end-1,2]
+RtIRF = RtIRF./maximum(RtIRF)
+tIRF = data_array[1:end-1,1]
+
+RtDTOF = data_array1[1:end-1,2]
+RtDTOF = RtDTOF./maximum(RtDTOF)
+tDTOF = data_array1[1:end-1,1]
+
+
+struct input_data
+    t::Array{Float64,1}
+	DTOF::Array{Float64,1}
+	IRF::Array{Float64,1}
+	DTOFerrors::Array{Float64,1}
+	ρ::Float64
+	nmed::Float64
+	ndet::Float64
+	lambda::Float64
+	normpeaks::Bool
+end
+
+struct model_params
+	#yerrors::Array{Float64,1}          #uncertainties in dependent variable
+    model::Function                    #model to be fitted against
+	initparams::Array{Float64,1}
+	lb::Array{Float64,1}
+	ub::Array{Float64,1}
+	risefactor::Float64  			#percent of peak to fit on rising edge
+	tailfactor::Float64				#perfecnt of peak to fit on failing tail
+	dof::Int64
+end
+
+
+struct fitresult
+    #Fit inputs
+    xdata::Array{Float64,1}     #independent variable
+    ydata::Array{Float64,1}     #dependent variable
+    yerrors::Array{Float64,1}   #uncertainties in dependent variable
+	model::Function             #model to be fitted against
+
+    #Fit results
+    residuals::Array{Float64,1}  	 #weighted residuals
+    params::Array{Float64,1}    		#best fit parameters for model
+	marginerror::Array{Float64,1}        #product of standard error and the critical value of each parameter at a certain significance level (default is 5%) from t-distribution.
+    perrors::Array{Float64,1}            #uncertainties in best fit parameters
+    dof::Int64                  		#number of degrees of freedom in fit
+    chisq::Float64             		 #chi^2 value of fit
+    probability::Float64      		  #probability of chi^2 value
+end
+
+
+
+
+data = input_data(tDTOF, RtDTOF, RtIRF, rand(length(RtDTOF)), 2.56, 1.5, 1.51, 700, false)
+
+modelp = model_params(DT_model, [0.2,10], [0.001,1], [1,20], 0.9, 0.1, 2)
