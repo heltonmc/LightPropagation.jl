@@ -10,7 +10,7 @@ The described derivations follow the methods from [Contini 1997](https://www.osa
 (\frac{1}{\nu}\frac{\partial }{\partial t} - D\nabla^2 + \mu_a)\Phi(\vec{r}, t) = Q(\vec{r}, t)
 ```
 
-Where (``Q(\vec{r}, t)``) is the isotropic source term and D is the diffusion coefficient, (''D = \frac{1}{3\mu_s'}``
+Where ``Q(\vec{r}, t)`` is the isotropic source term and D is the diffusion coefficient, ``D = \frac{1}{3\mu_s'}``
 
 ### Solution of the Diffusion Equation for homogeneous media in a slab geometry 
 
@@ -47,25 +47,27 @@ T (\rho, t) = - D\frac{\partial}{\partial z} \Phi(\rho, z = s, t)
 ```
 
 Which yields Equation 36 from [Contini 1997](https://www.osapublishing.org/ao/abstract.cfm?uri=ao-36-19-4587)[^1] for the time-dependent reflectance on the surface:
+
 ```math
 R(\rho, t) = - \frac{exp(-\mu_a \nu t - \frac{\rho^2}{4 D \nu t})}{2(4\pi D \nu)^\frac{3}{2}t^\frac{5}{2}}
 \times
-\sum_{m=-\infty}^{m=+\infty} [z_3_,_mexp(-\frac{z_3_,_m^2}{4 D \nu t}) - 
-z_4_,_mexp(-\frac{z_4_,_m^2}{4 D \nu t})]
+\sum_{m=-\infty}^{m=+\infty} [z_{3,m}exp(-\frac{z_{3,m}^2}{4 D \nu t}) - 
+z_{4,m}exp(-\frac{z_{4,m}^2}{4 D \nu t})]
 ```
 and Equation 39 from [Contini 1997](https://www.osapublishing.org/ao/abstract.cfm?uri=ao-36-19-4587).[^1] for the time-dependent transmittance on at the distance z=s where s is the thickness of the slab:
+
 ```math
 T(\rho, t) = \frac{exp(-\mu_a \nu t - \frac{\rho^2}{4 D \nu t})}{2(4\pi D \nu)^\frac{3}{2}t^\frac{5}{2}}
 \times
-\sum_{m=-\infty}^{m=+\infty} [z_1_,_mexp(-\frac{z_1_,_m^2}{4 D \nu t}) - 
-z_2_,_mexp(-\frac{z_2_,_m^2}{4 D \nu t})]
+\sum_{m=-\infty}^{m=+\infty} [z_{1,m}exp(-\frac{z_{1,m}^2}{4 D \nu t}) - 
+z_{2,m}exp(-\frac{z_{2,m}^2}{4 D \nu t})]
 ```
 
 Where:
-- ``z_1_,_m = s(1-2m) - 4mz_e - z_o``
-- ``z_2_,_m = s(1-2m) - (4m-2)z_e - z_o``
-- ``z_3_,_m = -2ms - 4mz_e - z_o``
-- ``z_4_,_m = -2ms - (4m-2)z_e - z_o``
+- ``z_{1,m} = s(1-2m) - 4mz_e - z_o``
+- ``z_{2,m} = s(1-2m) - (4m-2)z_e - z_o``
+- ``z_{3,m} = -2ms - 4mz_e - z_o``
+- ``z_{4,m} = -2ms - (4m-2)z_e - z_o``
 
 
 To obtain solution

@@ -1,4 +1,8 @@
-
+```@meta
+DocTestSetup = quote
+    using LightPropagation
+end
+```
 
 ##### Diffusion approximation for semi-infinite media (reflectance) #####
 
