@@ -206,20 +206,20 @@ function DT_model3(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Fl
      
     end
  
-     return Rt./maximum(Rt)
+     return Rt
 
 end
 
 #= 12 threads
 julia> @benchmark DT_model3(0:0.01:10, [0.1,10.], 1.0, 1.0, 1.0)
 BenchmarkTools.Trial: 
-  memory estimate:  24.98 KiB
-  allocs estimate:  64
+  memory estimate:  16.95 KiB
+  allocs estimate:  62
   --------------
-  minimum time:     10.504 μs (0.00% GC)
-  median time:      12.108 μs (0.00% GC)
-  mean time:        13.717 μs (4.25% GC)
-  maximum time:     1.396 ms (86.42% GC)
+  minimum time:     9.657 μs (0.00% GC)
+  median time:      11.596 μs (0.00% GC)
+  mean time:        13.072 μs (3.51% GC)
+  maximum time:     1.661 ms (96.79% GC)
   --------------
   samples:          10000
   evals/sample:     1
