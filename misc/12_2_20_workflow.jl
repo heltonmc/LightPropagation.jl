@@ -243,3 +243,50 @@ function DT_model(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Flo
    return Rt./maximum(Rt)
 
 end
+
+
+
+
+function DT_model3(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
+	#optimzed semi-infinite model
+
+    n::Float64 = nmed/ndet
+    μa::Float64 = β[1]
+    μsp::Float64 = β[2]
+    D::Float64 = 1/3μsp
+	ν::Float64 = 29.9792345/nmed
+
+    Rt = Array{Float64}(undef, length(t))
+
+
+	if n > 1.0
+		A = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 +
+		 5507.53041n^4 - 2463.357945n^5 + 610.956547n^6 - 64.8047n^7
+	elseif n < 1.0
+		A = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3
+	else 
+		A = 1.0
+	end
+
+	zs::Float64 = 1/μsp
+	ze::Float64 = 2A*D
+
+	z3m::Float64 = - zs
+    z4m::Float64 = 2ze +zs
+
+    Threads.@threads for n in eachindex(t)
+		
+        Rt[n] = -exp(-(ρ^2/(4D*ν*t[n])) - μa*ν*t[n])
+        Rt[n] = Rt[n]/(2*(4π*D*ν)^(3/2)*t[n]^(5/2))
+
+        Rt[n] = Rt[n]*(z3m*exp(-(z3m^2/(4D*ν*t[n]))) - z4m*exp(-(z4m^2/(4D*ν*t[n]))))
+
+        if Rt[n] == NaN
+            Rt[n] = 0
+        end
+     
+ end
+ 
+     return Rt./maximum(Rt)
+
+end
