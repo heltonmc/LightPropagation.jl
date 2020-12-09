@@ -200,7 +200,7 @@ function DT_model3(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Fl
 
         Rt[n] = Rt[n]*(z3m*exp(-(z3m^2/(4D*ν*t[n]))) - z4m*exp(-(z4m^2/(4D*ν*t[n]))))
 
-        if Rt[n] == NaN
+        if isnan(Rt[n])
             Rt[n] = 0
         end
      
