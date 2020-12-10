@@ -12,8 +12,12 @@ The current library supports simulating the time-resolved reflectance in the for
 
 The easiest way to install julia is by [downloading julia](https://julialang.org/downloads/) from the offical site and following the [platform specific installations](https://julialang.org/downloads/platform/). 
 
-The current package is not registered with the general Julia repository. 
-The easiest way to use is to clone the repository by typing `git clone https://github.com/heltonmc/LightPropagation.git` in your terminal.
+Launch Julia and open Julia's package manager by typing `]` in the REPL. You should see the command line change from `julia>` to `(@v1.5) pkg>`. (The @v1.x will display your current version) Once the package has clones, backspace to bring back the `julia>` in your REPL and type `using LightPropagation` as shown below.
+
+```julia
+(@v1.5) pkg> add "https://github.com/heltonmc/LightPropagation.git"
+```
+
 
 Launch julia and in the REPL cd into the LightPropagation folder you just cloned. You can check your current working directory using `pwd()` in the julia REPL.
 ```julia
