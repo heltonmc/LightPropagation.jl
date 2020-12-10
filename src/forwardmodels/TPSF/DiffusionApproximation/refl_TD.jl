@@ -24,7 +24,7 @@ The semi-infinite medium is described by retaining the first of the dipole sourc
 =#
 
 """
-    DA_semiinf(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
+    TPSF_DA_semiinf_refl(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
 
 Compute the time-domain reflectance from a semi-infinite medium. 
 
@@ -38,7 +38,7 @@ Compute the time-domain reflectance from a semi-infinite medium.
 
 # Examples
 ```jldoctest
-julia> DA_semiinf(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0)
+julia> TPSF_DA_semiinf_refl(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0)
 6-element Array{Float64,1}:
  0.0
  0.0001440103022493725
@@ -48,7 +48,7 @@ julia> DA_semiinf(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0)
  1.9657536202689858e-11
 ```
 """
-function DA_semiinf(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
+function TPSF_DA_semiinf_refl(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
 
 
     n::Float64 = nmed/ndet
@@ -101,7 +101,7 @@ The number of sources considered in the summation can be changed with xs. Larger
 =#
 
 """
-    DA_reflslab(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
+    TPSF_DA_slab_refl(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
 
 Compute the time-domain reflectance from a slab geometry (x,y->inf, z-> finite). 
 
@@ -117,7 +117,7 @@ Compute the time-domain reflectance from a slab geometry (x,y->inf, z-> finite).
 
 # Examples
 ```jldoctest
-julia> DA_reflslab(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0, 2.0)
+julia> TPSF_DA_slab_refl(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0, 2.0)
 6-element Array{Float64,1}:
  0.0
  0.00011885510267563147
@@ -129,7 +129,7 @@ julia> DA_reflslab(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0, 2.0)
 
 ```
 """
-function DA_reflslab(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
+function TPSF_DA_slab_refl(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
 	#s is slab thickness
 
 	  n::Float64 = nmed/ndet
@@ -194,7 +194,7 @@ The fluence is given by equation 6 in Kienle 2005. The reflectance as calculated
 =#
 
 """
-DA_reflparalpip(t, β::Array{Float64,1}, ndet::Float64, nmed::Float64, rd::Array{Float64,1}, rs::Array{Float64,1}, L::Array{Float64,1})
+TPSF_DA_paralpip_refl(t, β::Array{Float64,1}, ndet::Float64, nmed::Float64, rd::Array{Float64,1}, rs::Array{Float64,1}, L::Array{Float64,1})
 
 Compute the time-domain reflectance from a parallelepiped [lx, ly, lz]. 
 
@@ -212,7 +212,7 @@ Compute the time-domain reflectance from a parallelepiped [lx, ly, lz].
 
 # Examples
 ```jldoctest
-julia> DA_reflparalpip(0:1:5, [0.1,10.0], 1.0, 1.0, [2.5,5.0], [5.0,5.0], [10.0,10.0,10.0])
+julia> TPSF_DA_paralpip_refl(0:1:5, [0.1,10.0], 1.0, 1.0, [2.5,5.0], [5.0,5.0], [10.0,10.0,10.0])
 6-element Array{Float64,1}:
  0.0
  3.872453933271761e-5
@@ -224,7 +224,7 @@ julia> DA_reflparalpip(0:1:5, [0.1,10.0], 1.0, 1.0, [2.5,5.0], [5.0,5.0], [10.0,
 
 ```
 """
-function DA_reflparalpip(t, β::Array{Float64,1}, ndet::Float64, nmed::Float64, rd::Array{Float64,1}, rs::Array{Float64,1}, L::Array{Float64,1})
+function TPSF_DA_paralpip_refl(t, β::Array{Float64,1}, ndet::Float64, nmed::Float64, rd::Array{Float64,1}, rs::Array{Float64,1}, L::Array{Float64,1})
 
 	n::Float64 = nmed/ndet
 	μa::Float64 = β[1]

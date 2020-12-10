@@ -431,3 +431,96 @@ function jacob_semiinf(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed
 
 
 
+
+
+ 
+
+
+
+function get_fit_window(counts, risefactor, tailfactor)
+
+    maxval = maximum(counts)
+    ind1::Int = findfirst(x -> x > maxval*risefactor, counts)
+    ind2::Int =  findlast(x -> x >maxval*tailfactor, counts)
+    
+    return ind1, ind2
+end
+
+
+function pads(u::Array{Float64,1})
+    outsize = 2 .* length(u) .- 1
+    out = zeros(eltype(u), nextfastfft(outsize))
+    copyto!(out, u)
+end
+
+function compute_plans(IRFpad)
+    pl = plan_rfft(IRFpad)
+    fftIRF = pl * IRFpad
+    pli = plan_irfft(fftIRF, length(IRFpad))
+
+    return pl, fftIRF, pli
+end
+
+
+
+function conv_DT(t, β::Array{Float64,1}, data::fitDTOF, out, fftIRF, pl, pli;
+    RtDT = Array{Float64}(undef, length(data.IRF))
+    )
+
+
+        RtDT = TPSF_DA_semiinf_refl(data.t, β, data.ρ, data.nmed, data.ndet) 
+        RtDT = RtDT./maximum(RtDT)
+        copyto!(out, RtDT)
+
+        fftRtDT = pl * out
+        fftRtDT .*= fftIRF
+        out = pli * fftRtDT
+
+        out = out./maximum(out)
+
+	    tidx = findfirst(x -> x == t[1], data.t)
+
+	    out = out[tidx:tidx+length(t)-1]
+	return log.(out)
+end
+
+
+
+function _getfit(data::fitDTOF, model_params::DTOF_fitparams, TPSF_DA_semiinf_refl::Function)
+     ## get FFT padding and plans
+     out = pads(data.IRF)
+
+     pl, fftIRF, pli = compute_plans(out)
+
+
+
+    #get fit windows
+    ind1, ind2 = get_fit_window(data.DTOF, model_params.risefactor, model_params.tailfactor)
+
+
+    curve_fit((t, β) -> conv_DT(t, β, data, out, fftIRF, pl, pli), data.t[ind1:ind2], log.(data.DTOF[ind1:ind2]),
+    model_params.initparams, lower=model_params.lb, upper=model_params.ub; autodiff=:finiteforward)
+
+end
+
+
+function _getfit(data::fitDTOF, model_params::DTOF_fitparams, TPSF_DA_slab_refl::Function)
+
+end
+
+
+
+function _getfit(data::fitDTOF, model_params::DTOF_fitparams, TPSF_DA_paralpip_refl::Function)
+
+end
+
+
+
+
+
+function getfit(data::fitDTOF, model_params::DTOF_fitparams)
+    _getfit(data::fitDTOF, model_params::DTOF_fitparams, model_params.model)
+end
+
+
+

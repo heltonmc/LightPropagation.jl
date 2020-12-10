@@ -3,7 +3,6 @@
 #filename = "/home/heltonmc/Desktop/IRF.asc"
 
 
-t, IRF, DTOF = load_asc_data(filename, filename1)
 
 function load_asc_data(IRFfilename, DTOFfilename)
 
@@ -28,3 +27,4 @@ end
 
 
 
+#t, IRF, DTOF = load_asc_data(filename, filename1)
