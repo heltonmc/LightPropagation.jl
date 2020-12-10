@@ -16,18 +16,10 @@ Launch Julia and open Julia's package manager by typing `]` in the REPL. You sho
 
 ```julia
 (@v1.5) pkg> add "https://github.com/heltonmc/LightPropagation.git"
+
+julia> using LightPropagation
+
 ```
-
-
-Launch julia and in the REPL cd into the LightPropagation folder you just cloned. You can check your current working directory using `pwd()` in the julia REPL.
-```julia
-cd("...\LightPropagation")
-] activate .
-using LightPropagation
-```
-Once your current directory is the LightPropagation repository you can activate it as shown above. In julia you can activate the package manager by typing `]` into the julia repl and then typing `activate .`. You can also use shell commands by typing `;` into the repl. To go back to the julia environment simplay backspace.
-To load packages in julia type `using LightPropagation` in the julia repl.
-
 ## Tutorials
 
 ## Documentation
