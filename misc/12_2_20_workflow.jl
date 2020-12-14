@@ -247,7 +247,7 @@ end
 
 
 
-function DT_model3(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
+function DT_model(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
 	#optimzed semi-infinite model
 
     n::Float64 = nmed/ndet
@@ -524,3 +524,209 @@ end
 
 
 
+
+
+
+
+
+function DT_model1(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
+
+    n::Float64 = nmed/ndet
+    μa::Float64 = β[1]
+    μsp::Float64 = β[2]
+    D::Float64 = 1/3μsp
+  	ν::Float64 = 29.9792345/nmed
+
+    Rt = Array{Float64}(undef, length(t))
+
+
+	  if n > 1.0
+		  A = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 +
+		  5507.53041n^4 - 2463.357945n^5 + 610.956547n^6 - 64.8047n^7
+	  elseif n < 1.0
+		  A = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3
+	  else 
+		  A = 1.0
+	  end
+
+	  zs::Float64 = 1/μsp
+	  ze::Float64 = 2A*D
+
+	  z3m::Float64 = - zs
+    z4m::Float64 = 2ze +zs
+
+    Threads.@threads for n in eachindex(t)
+
+        Rt[n] = -(ρ^2/(4D*ν*t[n]))
+        Rt[n] = Rt[n] - μa*ν*t[n]
+        Rt[n] = -exp(Rt[n])/(2*(4π*D*ν)^(3/2)*sqrt(t[n]*t[n]*t[n]*t[n]*t[n]))
+
+        Rt[n] = Rt[n]*(z3m*exp(-(z3m^2/(4D*ν*t[n]))) - z4m*exp(-(z4m^2/(4D*ν*t[n]))))
+
+        if isnan(Rt[n])
+            Rt[n] = 0
+        end
+     
+    end
+ 
+     return Rt
+
+end
+
+
+
+
+function DT_model2(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
+
+    n::Float64 = nmed/ndet
+    μa::Float64 = β[1]
+    μsp::Float64 = β[2]
+    D::Float64 = 1/3μsp
+  	ν::Float64 = 29.9792345/nmed
+
+    Rt = Array{Float64}(undef, length(t))
+
+
+	  if n > 1.0
+		  A = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 +
+		  5507.53041n^4 - 2463.357945n^5 + 610.956547n^6 - 64.8047n^7
+	  elseif n < 1.0
+		  A = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3
+	  else 
+		  A = 1.0
+	  end
+
+	  zs::Float64 = 1/μsp
+	  ze::Float64 = 2A*D
+
+	  z3m::Float64 = - zs
+    z4m::Float64 = 2ze +zs
+
+    for n in eachindex(t)
+
+        Rt[n] = -(ρ^2/(4D*ν*t[n]))
+        Rt[n] = Rt[n] - μa*ν*t[n]
+
+        Rt[n] = Rt[n]*(z3m*exp(-(z3m^2/(4D*ν*t[n]))) - z4m*exp(-(z4m^2/(4D*ν*t[n]))))
+
+        
+    end
+ 
+     return Rt
+
+
+end
+
+
+
+
+# steady-state solution Kienle 2 layer 1998
+
+@. D = 1/3musp
+
+function fluence_spatial_freq(z, s, μa, μsp, l)
+
+    D = @. 1/3*μsp
+    α = @. sqrt((D*s^2 + μa)/D)
+    A = 1
+    zb = 2*A*D[1]
+    z0 = 1/(μsp[1] + μa[1])
+
+    ϕ = BigFloat(0.0)
+
+    if z < l && z >= 0
+
+        ϕ = 1/(D[1]*α[1]*cosh(α[1]*(l + zb)) + D[2]*α[2]*sinh(α[1]*(l + zb)))
+
+        ϕ = ϕ*sinh(α[1]*(zb + z0))/(D[1]* α[1])
+        ϕ = ϕ*(D[1]*α[1]*cosh(α[1]*(l - z)) + D[2]*α[2]*sinh(α[1]*(l - z)))
+
+        if z < z0
+            ϕ  = ϕ - sinh(α[1]*(z0 - z))/(D[1]*α[1])
+        end
+
+    else
+        ϕ = sinh(α[1]*(zb + z0))*exp(α[2]*(l - z))
+        ϕ = ϕ/(D[1]*α[1]*cosh(α[1]*(l + zb)) + D[2]*α[2]*sinh(α[1]*(l + zb)))
+    end
+
+    return ϕ
+end
+
+
+function fluence_steadystate(ρ, z, μa, μsp, l)
+
+
+    ϕ_sf = fluence_spatial_freq(z, s, μa, μsp, l)
+
+    ϕ_sf*s*besselj0(ρ*s)
+
+    function compute_integral(z, s, μa, μsp, l, ρ)
+        return fluence_spatial_freq(z, s, μa, μsp, l)*s*besselj0(ρ*s)
+    end
+
+
+    (s) -> fluence_spatial_freq(z, s, μa, μsp, l)
+
+end
+
+quadgk((s) -> compute_integral(z, s, μa, μsp, l, ρ), 0, 50)
+# 1/2π * integral from 0 to inf ϕ*s*besselj0(ρ*s) ds
+
+
+
+sinh(2x)*(0.1*x*cosh(2x) + 0.1*x*sinh(2x))/(0.1*x*(0.1*x*cosh(3x) + 0.1*x*sinh(3x)))
+
+
+
+function fluence_spatial_freq(z, s, μa, μsp, l)
+    D = @. 1/3*μsp
+    α = @. sqrt((D*s^2 + μa)/D)
+    A = 1
+    zb = 2*A*D[1]
+    z0 = 1/(μsp[1] + μa[1])
+
+    if isnan(fluence_spatial_freq_small(z, α, zb, z0, l, D))
+        ϕ = fluence_spatial_freq_large(z, α, z0, l, D)
+    
+    else
+        ϕ = fluence_spatial_freq_small(z, α, zb, z0, l, D)
+    end
+
+end
+
+
+function fluence_spatial_freq_small(z, α, zb, z0, l, D)
+
+    if z < l && z >= 0
+
+        ϕ = sinh(α[1]*(zb + z0))/(D[1]*α[1])
+        ϕ = ϕ*(D[1]*α[1]*cosh(α[1]*(l - z)) + D[2]*α[2]*sinh(α[1]*(l - z)))
+        ϕ = ϕ/(D[1]*α[1]*cosh(α[1]*(l + zb)) + D[2]*α[2]*sinh(α[1]*(l + zb)))
+
+        if z < z0
+            ϕ  = ϕ - sinh(α[1]*(z0 - z))/(D[1]*α[1])
+        end
+
+    else
+        ϕ = sinh(α[1]*(zb + z0))*exp(α[2]*(l - z))
+        ϕ = ϕ/(D[1]*α[1]*cosh(α[1]*(l + zb)) + D[2]*α[2]*sinh(α[1]*(l + zb)))
+    end
+
+    return ϕ
+end
+
+
+function fluence_spatial_freq_large(z, α, z0, l, D)
+
+    if z < z0
+        ϕ = 0.0
+
+    elseif z < l && z >= z0
+        ϕ = exp(α[1]*z0 - α[1]*z)/(2*D[1]*α[1])
+
+    else
+        ϕ = exp(α[1]*z0 + α[2]*l - α[2]*z - α[1]*l)/(D[1]*α[1] + D[2]*α[2])
+    end
+
+end
