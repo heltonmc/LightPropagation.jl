@@ -657,16 +657,8 @@ end
 function fluence_steadystate(ρ, z, μa, μsp, l)
 
 
-    ϕ_sf = fluence_spatial_freq(z, s, μa, μsp, l)
-
-    ϕ_sf*s*besselj0(ρ*s)
-
-    function compute_integral(z, s, μa, μsp, l, ρ)
-        return fluence_spatial_freq(z, s, μa, μsp, l)*s*besselj0(ρ*s)
-    end
-
-
-    (s) -> fluence_spatial_freq(z, s, μa, μsp, l)
+   ϕ = quadgk((s) -> compute_integral(z, s, μa, μsp, l, ρ), 0, 400)
+   return ϕ[1]/2π
 
 end
 
@@ -678,6 +670,10 @@ quadgk((s) -> compute_integral(z, s, μa, μsp, l, ρ), 0, 50)
 sinh(2x)*(0.1*x*cosh(2x) + 0.1*x*sinh(2x))/(0.1*x*(0.1*x*cosh(3x) + 0.1*x*sinh(3x)))
 
 
+
+function compute_integral(z, s, μa, μsp, l, ρ)
+    return fluence_spatial_freq(z, s, μa, μsp, l)*s*besselj0(ρ*s)
+end
 
 function fluence_spatial_freq(z, s, μa, μsp, l)
     D = @. 1/3*μsp
@@ -713,6 +709,10 @@ function fluence_spatial_freq_small(z, α, zb, z0, l, D)
         ϕ = ϕ/(D[1]*α[1]*cosh(α[1]*(l + zb)) + D[2]*α[2]*sinh(α[1]*(l + zb)))
     end
 
+    if isinf(ϕ)
+        return NaN
+    end
+    
     return ϕ
 end
 
