@@ -1,6 +1,30 @@
 using SpecialFunctions, QuadGK, ForwardDiff
 
 
+##### Diffusion approximation for 2-layered medium with matched index of refraction #####
+
+
+
+
+"""
+    fluence_spatial_freq(z, s, μa, μsp, l)
+
+Compute the spatial frequency components of the fluence for 2-layered model 
+
+# Arguments
+- `z`: depth (z=0 at the surface, z=l at interface of two layers). 
+- `s`: spatial frequency component s^2 = sx^2 + sy^2
+- `μa`: absorption coefficient of both layers [μa1, μa2]
+- `μsp`: reduced scattering coefficient of both layers [μsp1, μsp2]
+- `l`: thickness of first layer
+
+
+# Examples
+```jldoctest
+julia> fluence_spatial_freq(0., 1,  [0.005,0.1], [10,100.], 1)
+0.8647044203305079
+```
+"""
 function fluence_spatial_freq(z, s, μa, μsp, l)
 
     #get numerical instabillity at large s
@@ -94,8 +118,8 @@ end
 a = map((ρ) -> refl_steadystate(ρ, [0.02,0.01], [1.3,1.2], 2), 0.5:0.5:20)
 b = map((ρ) -> refl_steadystate(ρ, [0.02,0.01], [1.3,0.7], 2), 0.5:0.5:20)
 
-plot(0.5:0.5:20, a*2, yscale=:log10, lw = 2, label = "crosses", xlabel = "distance [mm]", ylabel = "reflectance")
-plot!(0.5:0.5:20, b*2, yscale=:log10, lw = 2, label = "circles")
+plot(0.5:0.5:20, a, yscale=:log10, lw = 2, label = "crosses", xlabel = "distance [mm]", ylabel = "reflectance")
+plot!(0.5:0.5:20, b, yscale=:log10, lw = 2, label = "circles")
 
 ##reproduce Figure 3 Kienle 98
 b = map((ρ) -> refl_steadystate(ρ, [0.005,0.01], [1.3,1.0], 6), 0.5:0.5:20)
@@ -108,8 +132,6 @@ plot!(0.5:0.5:20, b, yscale=:log10, lw = 2, label = "circles")
 ##compare to semi-infinite model from Kienle 97 as l gets large
 a = map((ρ) -> fluence_steadystate(ρ, 0, [0.02,0.02], [1.3,1.3], 10), 0.5:0.5:20)
 b = map((ρ) -> ss_compare(ρ, 0, 0.02, 1.3), 0.5:0.5:20)
-
-
 
 plot(0.5:0.5:20, a, yscale=:log10, lw = 2, label = "2-layer", xlabel = "distance [mm]", ylabel = "reflectance")
 plot!(0.5:0.5:20, b, yscale=:log10, lw = 2, label = "semi-inf", alpha = 0.7)
