@@ -36,8 +36,6 @@ function model(t, β::Array{Float64,1}, ρ::Float64)
 end
 
 
-t = 0:0.01:10
-It = [Vector(1:length(t)/2); length(t)/2+1:-1:1]
 
 
 
