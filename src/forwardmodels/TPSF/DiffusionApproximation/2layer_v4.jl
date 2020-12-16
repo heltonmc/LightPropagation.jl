@@ -22,11 +22,13 @@ function fluence_spatial_freq(z, s, μa, μsp, l)
 
 
         else
+            
             ϕ = D[1]*α[1]*(1 + exp(-2*α[1]*(l - z))) +  D[2]*α[2]*(1 - exp(-2*α[1]*(l - z)))
             ϕ = ϕ/(D[1]*α[1]*(1 + exp(-2*α[1]*(l + zb))) +  D[2]*α[2]*(1 - exp(-2*α[1]*(l + zb))))
-            ϕ = ϕ*(1 + exp(-2*α[1]*(zb + z0)))/(2*D[1]*α[1])
+            ϕ = ϕ*(1 - exp(-2*α[1]*(zb + z0)))/(2*D[1]*α[1])
             ϕ = ϕ*exp(α[1]*z0 - α[1]*z)
             ϕ = ϕ - ((exp(α[1]*(z0 - z))*(1 - exp(-2*α[1]*(z0 - z))))/(2*D[1]*α[1]))
+            
         end
 
     ## equation 12
@@ -57,7 +59,7 @@ end
 
 # numerically integrate equation 14
 function fluence_steadystate(ρ, z, μa, μsp, l)
-    return quadgk((s) -> compute_integral(ρ, z, s, μa, μsp, l), 0, Inf, rtol=1e-8)[1]/2π 
+    return (quadgk((s) -> compute_integral(ρ, z, s, μa, μsp, l), 0, Inf, rtol=1e-6)[1])/2π 
  end
 
 # Eqn 16 to compute reflectance (use auto diff)
@@ -67,7 +69,7 @@ function refl_steadystate(ρ, μa, μsp, l)
     return 0.118*fluence_steadystate(ρ, 0, μa, μsp, l) + 0.306/(3*(μa[1] + μsp[1]))*g(0)
 end
 
-#compare semi-infinite fluence
+# Eqn 3 Kienle 97 for spatial fluence semi-infinite (use as comparison for l -> ∞)
 function ss_compare(ρ, z, μa, μsp)
     D = 1/(3(μsp + μa))
     A = 0.493
@@ -86,3 +88,29 @@ function refl_steadystate1(ρ, μa, μsp, l)
     g(z) = ForwardDiff.derivative(z -> f(z), z)
     return 0.118*ss_compare(ρ, 0, μa, μsp) + 0.306/(3*(μa[1] + μsp[1]))*g(0)
 end
+
+
+##reproduce Figure 2 Kienle 98 *seem to be slightly off by some factor
+a = map((ρ) -> refl_steadystate(ρ, [0.02,0.01], [1.3,1.2], 2), 0.5:0.5:20)
+b = map((ρ) -> refl_steadystate(ρ, [0.02,0.01], [1.3,0.7], 2), 0.5:0.5:20)
+
+plot(0.5:0.5:20, a*2, yscale=:log10, lw = 2, label = "crosses", xlabel = "distance [mm]", ylabel = "reflectance")
+plot!(0.5:0.5:20, b*2, yscale=:log10, lw = 2, label = "circles")
+
+##reproduce Figure 3 Kienle 98
+b = map((ρ) -> refl_steadystate(ρ, [0.005,0.01], [1.3,1.0], 6), 0.5:0.5:20)
+a = map((ρ) -> refl_steadystate(ρ, [0.005,0.022], [1.3,1.0], 6), 0.5:0.5:20)
+
+plot(0.5:0.5:20, a, yscale=:log10, lw = 2, label = "crosses", xlabel = "distance [mm]", ylabel = "reflectance")
+plot!(0.5:0.5:20, b, yscale=:log10, lw = 2, label = "circles")
+
+
+##compare to semi-infinite model from Kienle 97 as l gets large
+a = map((ρ) -> fluence_steadystate(ρ, 0, [0.02,0.02], [1.3,1.3], 10), 0.5:0.5:20)
+b = map((ρ) -> ss_compare(ρ, 0, 0.02, 1.3), 0.5:0.5:20)
+
+
+
+plot(0.5:0.5:20, a, yscale=:log10, lw = 2, label = "2-layer", xlabel = "distance [mm]", ylabel = "reflectance")
+plot!(0.5:0.5:20, b, yscale=:log10, lw = 2, label = "semi-inf", alpha = 0.7)
+
