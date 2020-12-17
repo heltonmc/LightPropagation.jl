@@ -1,5 +1,5 @@
 #push!(LOAD_PATH,"/home/heltonmc/git-hub/LightPropagation/src")
-push!(LOAD_PATH,"/Users/michaelhelton/LightPropagation/src")
+#push!(LOAD_PATH,"/Users/michaelhelton/LightPropagation/src")
 
 using Documenter
 using LightPropagation
