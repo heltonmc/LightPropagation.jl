@@ -3,6 +3,7 @@
 
 using LightPropagation
 
+import Pkg; Pkg.add("Documenter")
 using Documenter
 #=
 makedocs(
