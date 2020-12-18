@@ -1,5 +1,11 @@
 # LightPropagation
 
+
+| **Documentation** |
+|:------------ |
+| [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://heltonmc.github.io/LightPropagation/dev/) |
+
+
 ## Purpose
 
 LightPropagation provides a set of tools to model and analyze the propagation of light in turbid media written in the [Julia programming language](https://julialang.org/).
