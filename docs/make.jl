@@ -12,6 +12,7 @@ makedocs(
     format = Documenter.HTML(),
     pages = [ 
                 "Home" => "index.md",
+                "Getting Started" => "getting-started.md",
                 "Forward Models" => Any[
                     "Diffusion Approximation" => Any[
                     "Slab" => "DA_slab_semiinfgeom.md"
