@@ -5,21 +5,6 @@ using LightPropagation
 
 import Pkg; Pkg.add("Documenter")
 using Documenter
-#=
-makedocs(
-    sitename = "LightPropagation.jl",
-    doctest = true,
-    build = "build",
-    clean = true,
-    source = "src",
-    modules= Module[LightPropagation],
-    repo = "github.com/heltonmc/LightPropagation.git",
-    pages = [
-    "Home" => "index.md"
-]
-)
-=#
-
 
 makedocs(
     modules = [LightPropagation],
@@ -28,9 +13,10 @@ makedocs(
     pages = [ 
                 "Home" => "index.md",
                 "Forward Models" => Any[
-                    "SDA" => "DA_slab_semiinfgeom.md"
-                ]
-
+                    "Diffusion Approximation" => Any[
+                    "Slab" => "DA_slab_semiinfgeom.md"
+                     ],
+                ],
     ]
 )
 
