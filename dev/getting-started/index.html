@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Getting Started · LightPropagation.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">LightPropagation.jl</span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><span class="tocitem">Forward Models</span><ul><li><input class="collapse-toggle" id="menuitem-2-1" type="checkbox"/><label class="tocitem" for="menuitem-2-1"><span class="docs-label">Diffusion Approximation</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../DA_slab_semiinfgeom/">Slab</a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Getting Started</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Getting Started</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/heltonmc/LightPropagation/blob/master/docs/src/getting-started.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Getting-Started"><a class="docs-heading-anchor" href="#Getting-Started">Getting Started</a><a id="Getting-Started-1"></a><a class="docs-heading-anchor-permalink" href="#Getting-Started" title="Permalink"></a></h1><h2 id="Installation-requirements"><a class="docs-heading-anchor" href="#Installation-requirements">Installation requirements</a><a id="Installation-requirements-1"></a><a class="docs-heading-anchor-permalink" href="#Installation-requirements" title="Permalink"></a></h2><p>LightPropagation is tested on MacOS and Linux, but it should be also possible to use it on Windows since it is written exclusively in Julia and it only depends on registered Julia packages.</p><h2 id="Installation"><a class="docs-heading-anchor" href="#Installation">Installation</a><a id="Installation-1"></a><a class="docs-heading-anchor-permalink" href="#Installation" title="Permalink"></a></h2><p>The easiest way to install julia is by <a href="https://julialang.org/downloads/">downloading julia</a> from the offical site and following the <a href="https://julialang.org/downloads/platform/">platform specific installations</a>. </p><p>Launch Julia and open Julia&#39;s package manager by typing <code>]</code> in the REPL. You should see the command line change from <code>julia&gt;</code> to <code>(@v1.5) pkg&gt;</code>. (The @v1.x will display your current version) Add the package as shown in the code block below. Once the package has cloned, backspace to bring back the <code>julia&gt;</code> in your REPL and type <code>using LightPropagation</code> as shown below.</p><pre><code class="language-julia">(@v1.5) pkg&gt; add &quot;https://github.com/heltonmc/LightPropagation.git&quot;
+
+julia&gt; using LightPropagation
+</code></pre><p>For further information about how to install and manage Julia packages, see the <a href="https://julialang.github.io/Pkg.jl/v1/">Pkg documentation</a>.</p><h2 id="Forward-Simulation"><a class="docs-heading-anchor" href="#Forward-Simulation">Forward Simulation</a><a id="Forward-Simulation-1"></a><a class="docs-heading-anchor-permalink" href="#Forward-Simulation" title="Permalink"></a></h2><p>To view a functions inputs and methods type <code>?</code> in the REPL and then the name of the function. Let&#39;s first look at simulating a temporal point spread function (TPSF) for a semi-infinite medium.</p><pre><code class="language-julia">help?&gt; TPSF_DA_semiinf_refl
+search: TPSF_DA_semiinf_refl
+
+  TPSF_DA_semiinf_refl(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
+
+  Compute the time-domain reflectance from a semi-infinite medium. 
+
+  Arguments
+  ≡≡≡≡≡≡≡≡≡≡≡
+
+    •    t: the time vector (ns). 
+
+    •    β::Array{Float64,1}: the optical properties μa, μs&#39; (cm⁻¹)
+
+    •    ρ::Float64: the source detector separation (cm⁻¹)
+
+    •    ndet::Float64: the boundary&#39;s index of refraction (air or
+        detector)
+
+    •    nmed::Float64: the sample medium&#39;s index of refraction
+
+  Examples
+  ≡≡≡≡≡≡≡≡≡≡
+
+  julia&gt; TPSF_DA_semiinf_refl(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0)
+  6-element Array{Float64,1}:
+   0.0
+   0.0001440103022493725
+   1.446739954231315e-6
+   2.7354735244571076e-8
+   6.794070985483474e-10
+   1.9657536202689858e-11</code></pre><p>This is a convenient way to see a brief description of the function and its arguments. Let&#39;s call this function and set it equal to a variable called TPSF. We can also plot this with the below example. </p><pre><code class="language-julia">
+julia&gt; using Plots
+
+julia&gt; t = 0:0.01:10
+julia&gt; TPSF = TPSF_DA_semiinf_refl(t, [0.1,10.0], 1.0, 1.0, 1.0)
+julia&gt; ind = TPSF .&gt; 0
+
+julia&gt; plot(t[ind], TPSF[ind], yscale=:log10, lw = 2, ylabel=&quot;Counts&quot;, xlabel=&quot;time (ns)&quot;, label=&quot;TPSF&quot;)
+</code></pre><p>There are several other forward models in different geometries. The naming scheme of the forward models follow a physicalquantity<em>approximation</em>geometry<em>measurementtype scheme. So something that simulates the reflected temporal point spread function using the diffusion approximation for a semi-infinite geometry would be `TPSF</em>DA<em>semiinf</em>refl<code>. Try simulating the TPSF for a slab and parralelepiped geometry by using</code>TPSF<em>DA</em>slab<em>refl<code>and</code>TPSF</em>DA<em>paralpip</em>refl` functions.</p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Friday 18 December 2020 03:03">Friday 18 December 2020</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
