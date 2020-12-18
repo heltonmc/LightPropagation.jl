@@ -1,4 +1,4 @@
-# LightPropagation
+# LightPropagation.jl
 
 
 | **Documentation** |
