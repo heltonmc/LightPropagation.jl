@@ -71,6 +71,7 @@ julia> ind = TPSF .> 0
 julia> plot(t[ind], TPSF[ind], yscale=:log10, lw = 2, ylabel="Counts", xlabel="time (ns)", label="TPSF")
 
 ```
-There are several other forward models in different geometries. The naming scheme of the forward models follow a physicalquantity_approximation_geometry_measurementtype scheme. So something that simulates the reflected temporal point spread function using the diffusion approximation for a semi-infinite geometry would be `TPSF_DA_semiinf_refl`. Try simulating the TPSF for a slab and parralelepiped geometry by using `TPSF_DA_slab_refl` and `TPSF_DA_paralpip_refl` functions.
+
+There are several other forward models in different geometries. The naming scheme of the forward models follow a physicalquantity\_approximation\_geometry\_measurementtype scheme. So something that simulates the reflected temporal point spread function using the diffusion approximation for a semi-infinite geometry would be `TPSF_DA_semiinf_refl` . Try simulating the TPSF for a slab and parralelepiped geometry by using `TPSF_DA_slab_refl` and `TPSF_DA_paralpip_refl` functions.
 
 
