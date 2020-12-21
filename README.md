@@ -1,4 +1,10 @@
-# LightPropagation
+# LightPropagation.jl
+
+
+| **Documentation** |
+|:------------ |
+| [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://heltonmc.github.io/LightPropagation/dev/) |
+
 
 ## Purpose
 
