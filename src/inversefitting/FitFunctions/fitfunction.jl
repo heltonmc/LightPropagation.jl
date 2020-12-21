@@ -102,13 +102,12 @@ function getfit(data::fitDTOF, model_params::DTOF_fitparams)
 
     #get fit windows
     ind1, ind2 = get_fit_window(data.DTOF, model_params.risefactor, model_params.tailfactor)
-
+    
 
     fit = curve_fit((t, β) -> _conv_DT(t, β, data, out, fftIRF, pl, pli, Val(model_params.model)), data.t[ind1:ind2], log.(data.DTOF[ind1:ind2]),
-        model_params.initparams, lower=model_params.lb, upper=model_params.ub; autodiff=:finiteforward)
+        model_params.initparams, lower=model_params.lb, upper=model_params.ub)#; autodiff=:finiteforward)
 
 
     return fit, data.t[ind1:ind2], log.(data.DTOF[ind1:ind2]), _conv_DT(data.t[ind1:ind2], fit.param, data, out, fftIRF, pl, pli, Val(model_params.model))
 
 end
-
