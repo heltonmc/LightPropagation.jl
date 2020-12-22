@@ -13,6 +13,9 @@ makedocs(
     pages = [ 
                 "Home" => "index.md",
                 "Getting Started" => "getting-started.md",
+                "Tutorials" => Any[
+                    "When is semi-infinite semi-infinite?" => "whensemiinf.md"
+                ],
                 "Forward Models" => Any[
                     "Diffusion Approximation" => Any[
                     "Slab" => "DA_slab_semiinfgeom.md"
