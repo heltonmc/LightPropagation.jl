@@ -1,5 +1,5 @@
 """
-fluence_DA_inf_TD(t, β::Array{Float64,1}, ρ::Float64, nmed::Float64)
+    fluence_DA_inf_TD(t, β::Array{Float64,1}, ρ::Float64, nmed::Float64)
 
 Compute the time-domain fluence in an infinite medium with Eqn. 3 of Patterson. et al. 1989. 
 
@@ -36,7 +36,7 @@ function fluence_DA_inf_TD(t, β::Array{Float64,1}, ρ::Float64, nmed::Float64 =
 end
 
 """
-fluence_DA_inf_CW(ρ::Float64, β::Array{Float64,1})
+    fluence_DA_inf_CW(ρ::Float64, β::Array{Float64,1})
 
 Compute the fluence for a steady-state source in an infinite medium. 
 
