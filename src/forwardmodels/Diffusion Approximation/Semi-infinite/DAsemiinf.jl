@@ -37,7 +37,6 @@ Compute the time-domain reflectance from a semi-infinite medium from Eqn. 36 Con
 - `ndet::Float64`: the boundary's index of refraction (air or detector)
 - `nmed::Float64`: the sample medium's index of refraction
 
-
 # Examples
 ```jldoctest
 julia> refl_DA_slab_TD(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0)
@@ -169,12 +168,11 @@ Compute the steady-state fluence in a semi-infinite geometry according to Eqn. 3
 julia> fluence_DA_semiinf_CW(1.0, [0.1,10.0], 1.0,1.0, 0.0)
 """
 function fluence_DA_semiinf_CW(ρ::Float64, β::Array{Float64,1}, ndet::Float64, nmed::Float64, z::Float64)
-      n::Float64 = nmed/ndet
-      μa::Float64 = β[1]
-      μsp::Float64 = β[2]
-      D::Float64 = 1/3μsp
-      μeff::Float64 = sqrt(3*μa*μsp)
-      xs::UnitRange{Int64} = -10:10
+      n = nmed/ndet
+      μa = β[1]
+      μsp = β[2]
+      D = 1/3μsp
+      μeff = sqrt(3*μa*μsp)
 
 	  ϕ = 0.0
 
@@ -187,8 +185,8 @@ function fluence_DA_semiinf_CW(ρ::Float64, β::Array{Float64,1}, ndet::Float64,
 			A = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3
 		end
 
-		zs::Float64 = 1/μsp
-		ze::Float64 = 2A*D
+		zs = 1/μsp
+		ze = 2A*D
 
         ϕ += exp(-μeff*sqrt(ρ^2 + (z - zs)^2))/(sqrt(ρ^2 + (z - zs)^2))
         ϕ -= exp(-μeff*sqrt(ρ^2 + (z + 2*ze + zs)^2))/(sqrt(ρ^2 + (z + 2*ze + zs)^2))
