@@ -1,14 +1,39 @@
-##### Diffusion approximation for Slab Geometry (TD-fluence) #####
+##### Diffusion approximation for Slab Geometry #####
 
 #=
-The reflectance for the slab is calculated from Equation 36 from Contini 1997 for the first 11 dipoles (-10:1:10).
-The number of sources considered in the summation can be changed with xs. Larger values of m will be needed for large values of SDS and t.
+@article{contini1997photon,
+  title={Photon migration through a turbid slab described by a model based on diffusion approximation. I. Theory},
+  author={Contini, Daniele and Martelli, Fabrizio and Zaccanti, Giovanni},
+  journal={Applied optics},
+  volume={36},
+  number={19},
+  pages={4587--4599},
+  year={1997},
+  publisher={Optical Society of America}
+}
+@article{kienle1997improved,
+  title={Improved solutions of the steady-state and the time-resolved diffusion equations for reflectance from a semi-infinite turbid medium},
+  author={Kienle, Alwin and Patterson, Michael S},
+  journal={JOSA A},
+  volume={14},
+  number={1},
+  pages={246--254},
+  year={1997},
+  publisher={Optical Society of America}
+}
+@inproceedings{martelli2009light,
+  title={Light propagation through biological tissue and other diffusive media: theory, solutions, and software},
+  author={Martelli, Fabrizio and Del Bianco, Samuele and Ismaelli, Andrea},
+  year={2009},
+  organization={Society of Photo-Optical Instrumentation Engineers}
+}
 =#
 
+### Fluence TD ###
 """
-    fluence_DA_slab_TD(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
+    fluence_DA_slab_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64, s::Float64, z::Float64)
 
-Compute the time-domain reflectance from a slab geometry (x,y->inf, z-> finite). 
+Compute the time-domain fluence from a slab geometry (x, y->inf, z-> finite) with Eqn. 33 Contini 97. 
 
 # Arguments
 - `t`: the time vector (ns). 
@@ -17,25 +42,18 @@ Compute the time-domain reflectance from a slab geometry (x,y->inf, z-> finite).
 - `ndet::Float64`: the boundary's index of refraction (air or detector)
 - `nmed::Float64`: the sample medium's index of refraction
 - `s::Float64`: the thickness (z-depth) of the slab (cm)
-
-
+- `z::Float64`: the z-depth coordinate (cm)
 
 # Examples
-
-julia> fluence_DA_slab_TD(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0, 2.0)
-
+julia> fluence_DA_slab_TD(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0, 2.0, 0.0)
 """
-function fluence_DA_slab_TD(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64, z::Float64)
-	#s is slab thickness
-
+function fluence_DA_slab_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64, s::Float64, z::Float64)
 	  n::Float64 = nmed/ndet
       μa::Float64 = β[1]
       μsp::Float64 = β[2]
       D::Float64 = 1/3μsp
       ν::Float64 = 29.9792345/nmed
       xs::UnitRange{Int64} = -10:10
-
-
 
       Rt1 = Array{Float64}(undef, length(t))
 	  Rt2 = zeros(Float64, length(t))
@@ -51,11 +69,9 @@ function fluence_DA_slab_TD(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, 
 				A = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3
 			end
 
-
 			zs::Float64 = 1/μsp
 			ze::Float64 = 2A*D
 
-			
                 Threads.@threads for n in eachindex(t) 
                     Rt1[n] = @. ν*exp(-(ρ^2/(4D*ν*t[n])) - μa*ν*t[n])/((4π*D*ν*t[n])^(3/2))
 
@@ -79,15 +95,9 @@ function fluence_DA_slab_TD(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, 
 	return Rt1
 end
 
-##### Diffusion approximation for Slab Geometry (TD-reflectance) #####
-
-#=
-The reflectance for the slab is calculated from Equation 36 from Contini 1997 for the first 11 dipoles (-10:1:10).
-The number of sources considered in the summation can be changed with xs. Larger values of m will be needed for large values of SDS and t.
-=#
-
+### Reflectance TD ###
 """
-    TPSF_DA_slab_refl(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
+    refl_DA_slab_TD(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
 
 Compute the time-domain reflectance from a slab geometry (x,y->inf, z-> finite). 
 
@@ -99,33 +109,16 @@ Compute the time-domain reflectance from a slab geometry (x,y->inf, z-> finite).
 - `nmed::Float64`: the sample medium's index of refraction
 - `s::Float64`: the thickness (z-depth) of the slab (cm)
 
-
-
 # Examples
-```jldoctest
-julia> TPSF_DA_slab_refl(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0, 2.0)
-6-element Array{Float64,1}:
- 0.0
- 0.00011885510267563147
- 3.8254510325745536e-7
- 1.5189689097582458e-9
- 6.645341571314721e-12
- 3.075337855389727e-14
-
-
-```
+julia> refl_DA_slab_TD(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0, 2.0)
 """
-function TPSF_DA_slab_refl(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
-	#s is slab thickness
-
+function refl_DA_slab_TD(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
 	  n::Float64 = nmed/ndet
       μa::Float64 = β[1]
       μsp::Float64 = β[2]
       D::Float64 = 1/3μsp
       ν::Float64 = 29.9792345/nmed
       xs::UnitRange{Int64} = -10:10
-
-
 
       Rt1 = Array{Float64}(undef, length(t))
 	  Rt2 = zeros(Float64, length(t))
@@ -168,18 +161,11 @@ function TPSF_DA_slab_refl(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, n
 	return Rt1
 end
 
-
-##### Diffusion approximation for Slab Geometry (TD-transmittance) #####
-
-#=
-The transmittance for the slab is calculated from Equation 39 from Contini 1997 for the first 11 dipoles (-10:1:10).
-The number of sources considered in the summation can be changed with xs. Larger values of m will be needed for large values of SDS and t.
-=#
-
+### Transmittance TD ###
 """
     trans_DA_slab_TD(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
 
-Compute the time-domain reflectance from a slab geometry (x,y->inf, z-> finite). 
+Compute the time-domain transmittance from a slab geometry (x,y->inf, z-> finite) with Eqn. 39 from Contini 97. 
 
 # Arguments
 - `t`: the time vector (ns). 
@@ -189,33 +175,16 @@ Compute the time-domain reflectance from a slab geometry (x,y->inf, z-> finite).
 - `nmed::Float64`: the sample medium's index of refraction
 - `s::Float64`: the thickness (z-depth) of the slab (cm)
 
-
-
 # Examples
-```jldoctest
 julia> trans_DA_slab_TD(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0, 2.0)
-6-element Array{Float64,1}:
- 0.0
- 0.00011885510267563147
- 3.8254510325745536e-7
- 1.5189689097582458e-9
- 6.645341571314721e-12
- 3.075337855389727e-14
-
-
-```
 """
 function trans_DA_slab_TD(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nmed::Float64, s::Float64)
-	#s is slab thickness
-
 	  n::Float64 = nmed/ndet
       μa::Float64 = β[1]
       μsp::Float64 = β[2]
       D::Float64 = 1/3μsp
       ν::Float64 = 29.9792345/nmed
       xs::UnitRange{Int64} = -10:10
-
-
 
       Rt1 = Array{Float64}(undef, length(t))
 	  Rt2 = zeros(Float64, length(t))
@@ -231,11 +200,9 @@ function trans_DA_slab_TD(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nm
 				A = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3
 			end
 
-
 			zs::Float64 = 1/μsp
 			ze::Float64 = 2A*D
-
-			
+	
                 Threads.@threads for n in eachindex(t) 
                     Rt1[n] = @. exp(-(ρ^2/(4D*ν*t[n])) - μa*ν*t[n])/(2*(4π*D*ν)^(3/2)*t[n]^(5/2))
 
@@ -258,9 +225,7 @@ function trans_DA_slab_TD(t, β::Array{Float64,1}, ρ::Float64,ndet::Float64, nm
 	return Rt1
 end
 
-
-##### Diffusion approximation for Slab Geometry (CW-fluence) #####
-
+### Fluence CW ###
 """
     fluence_DA_slab_CW(ρ::Float64, β::Array{Float64,1}, ndet::Float64, nmed::Float64, s::Float64, z::Float64)
 
@@ -274,13 +239,8 @@ Compute the steady-state fluence from a slab geometry (x,y->inf, z-> finite).
 - `s::Float64`: the thickness (z-depth) of the slab (cm)
 - `z::Float64`: the z-depth within slab (cm)
 
-
-
-
 # Examples
-
 julia> fluence_DA_slab_CW(1.0, [0.1,10.], 1.0,1.0, 2.0, 0.)
-
 """
 function fluence_DA_slab_CW(ρ::Float64, β::Array{Float64,1}, ndet::Float64, nmed::Float64, s::Float64, z::Float64)
       
@@ -291,10 +251,7 @@ function fluence_DA_slab_CW(ρ::Float64, β::Array{Float64,1}, ndet::Float64, nm
       μeff::Float64 = sqrt(3*μa*μsp)
       xs::UnitRange{Int64} = -10:10
 
-
-
 	  ϕ = 0.0
-
 
 		if n == 1.0
 			A= 1.0
@@ -305,11 +262,9 @@ function fluence_DA_slab_CW(ρ::Float64, β::Array{Float64,1}, ndet::Float64, nm
 			A = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3
 		end
 
-
 		zs::Float64 = 1/μsp
 		ze::Float64 = 2A*D
 
-			
         Threads.@threads for m in xs 
 
 			zmp = 2m.*(s + 2*ze) .+ zs
@@ -319,12 +274,9 @@ function fluence_DA_slab_CW(ρ::Float64, β::Array{Float64,1}, ndet::Float64, nm
             ϕ -= exp(-μeff*sqrt(ρ^2 + (z - zmm)^2))/(sqrt(ρ^2 + (z - zmm)^2))
         end	
 
-
         if isnan(ϕ)
             ϕ = 0
         end
              
-
-
 	return ϕ/(4*π*D)
 end
