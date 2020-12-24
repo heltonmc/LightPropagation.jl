@@ -91,7 +91,7 @@ end
 
 ### TD Fluence ###
 """
-    fluence_DA_semiinf_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
+    fluence_DA_semiinf_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64, z::Float64)
 
 Compute the time-domain fluence in a semi-infinite medium (Eqn. 33 Contini). 
 
@@ -101,20 +101,12 @@ Compute the time-domain fluence in a semi-infinite medium (Eqn. 33 Contini).
 - `ρ::Float64`: the source detector separation (cm⁻¹)
 - `ndet::Float64`: the boundary's index of refraction (air or detector)
 - `nmed::Float64`: the sample medium's index of refraction
+- `z::Float64`: the z-depth in medium
 
 # Examples
-```jldoctest
-julia> fluence_DA_semiinf_TD(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0)
-6-element Array{Float64,1}:
- 0.0
- 0.0001440103022493725
- 1.446739954231315e-6
- 2.7354735244571076e-8
- 6.794070985483474e-10
- 1.9657536202689858e-11
-```
+julia> fluence_DA_semiinf_TD(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0, 1.0)
 """
-function fluence_DA_semiinf_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64,  z::Float64)
+function fluence_DA_semiinf_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64, z::Float64)
     n::Float64 = nmed/ndet
     μa::Float64 = β[1]
     μsp::Float64 = β[2]
