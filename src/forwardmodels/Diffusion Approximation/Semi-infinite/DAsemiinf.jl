@@ -26,7 +26,7 @@
 
 ### TD Reflectance ###
 """
-    refl_DA_slab_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
+    refl_DA_semiinf_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
 
 Compute the time-domain reflectance from a semi-infinite medium from Eqn. 36 Contini 97 (m = 0). 
 
@@ -39,7 +39,7 @@ Compute the time-domain reflectance from a semi-infinite medium from Eqn. 36 Con
 
 # Examples
 ```jldoctest
-julia> refl_DA_slab_TD(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0)
+julia> refl_DA_semiinf_TD(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0)
 6-element Array{Float64,1}:
  0.0
  0.0001440103022493725
@@ -49,7 +49,7 @@ julia> refl_DA_slab_TD(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0)
  1.9657536202689858e-11
 ```
 """
-function refl_DA_slab_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
+function refl_DA_semiinf_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
     n::Float64 = nmed/ndet
     μa::Float64 = β[1]
     μsp::Float64 = β[2]
@@ -91,7 +91,7 @@ end
 
 ### TD Fluence ###
 """
-    fluence_DA_slab_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
+    fluence_DA_semiinf_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
 
 Compute the time-domain fluence in a semi-infinite medium (Eqn. 33 Contini). 
 
@@ -104,7 +104,7 @@ Compute the time-domain fluence in a semi-infinite medium (Eqn. 33 Contini).
 
 # Examples
 ```jldoctest
-julia> fluence_DA_slab_TD(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0)
+julia> fluence_DA_semiinf_TD(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0)
 6-element Array{Float64,1}:
  0.0
  0.0001440103022493725
@@ -114,7 +114,7 @@ julia> fluence_DA_slab_TD(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0)
  1.9657536202689858e-11
 ```
 """
-function fluence_DA_slab_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64,  z::Float64)
+function fluence_DA_semiinf_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64,  z::Float64)
     n::Float64 = nmed/ndet
     μa::Float64 = β[1]
     μsp::Float64 = β[2]
