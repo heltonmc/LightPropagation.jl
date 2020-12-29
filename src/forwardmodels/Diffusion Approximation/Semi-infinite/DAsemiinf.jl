@@ -131,7 +131,7 @@ function fluence_DA_semiinf_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float
 
         Rt[n] = -(ρ^2/(4D*ν*t[n]))
         Rt[n] = Rt[n] - μa*ν*t[n]
-        Rt[n] = -exp(Rt[n])/(2*(4π*D*ν*t[n])^(3/2))
+        Rt[n] = exp(Rt[n])/(2*(4π*D*ν*t[n])^(3/2))
         Rt[n] = Rt[n]*(exp(-((z - zs)^2/(4D*ν*t[n]))) - exp(-((z + 2*ze + zs)^2/(4D*ν*t[n]))))
 
         if isnan(Rt[n])
@@ -188,4 +188,37 @@ function fluence_DA_semiinf_CW(ρ::Float64, β::Array{Float64,1}, ndet::Float64,
         end
              
 	return ϕ/(4*π*D)
+end
+
+
+function fluence_DA_semiinf_FD(ρ::Float64, β::Array{Float64,1}, ndet::Float64, nmed::Float64, z::Float64)
+    n = nmed/ndet
+    ν = 29.9792345/nmed
+    μa = β[1] + ω*im/ν
+    μsp = β[2]
+    D = 1/3μsp
+    μeff = sqrt(3*μa*μsp)
+
+    ϕ = 0.0
+
+      if n == 1.0
+          A= 1.0
+      elseif n > 1.0
+          A = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 +
+          5507.53041n^4 - 2463.357945n^5 + 610.956547n^6 - 64.8047n^7
+      else
+          A = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3
+      end
+
+      zs = 1/μsp
+      ze = 2A*D
+
+      ϕ += exp(-μeff*sqrt(ρ^2 + (z - zs)^2))/(sqrt(ρ^2 + (z - zs)^2))
+      ϕ -= exp(-μeff*sqrt(ρ^2 + (z + 2*ze + zs)^2))/(sqrt(ρ^2 + (z + 2*ze + zs)^2))
+
+      if isnan(ϕ)
+          ϕ = 0
+      end
+           
+  return ϕ/(4*π*D)
 end
