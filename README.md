@@ -4,6 +4,7 @@
 | **Documentation** |
 |:------------ |
 | [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://heltonmc.github.io/LightPropagation/dev/) |
+| [![Join the chat at https://gitter.im/LightPropagation/Lobby](https://badges.gitter.im/LightPropagation/Lobby.svg)](https://gitter.im/LightPropagation/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)|
 
 
 ## Purpose
