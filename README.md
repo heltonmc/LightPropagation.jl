@@ -87,7 +87,7 @@ There are several other forward models in different geometries. The naming schem
 
 ## LightPropagation community
 
-Currently none.
+Join the [gitter](https://gitter.im/LightPropagation/community) chat to ask questions and interact with the LightPropagation.jl community.
 
 ## Contributing to LightPropagation
 
