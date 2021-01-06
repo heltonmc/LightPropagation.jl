@@ -4,6 +4,7 @@
 | **Documentation** |
 |:------------ |
 | [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://heltonmc.github.io/LightPropagation/dev/) |
+| [![Join the chat at https://gitter.im/LightPropagation/community?source=orgpage](https://badges.gitter.im/LightPropagation/community.svg)](https://gitter.im/LightPropagation/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)|
 
 
 ## Purpose
@@ -86,7 +87,7 @@ There are several other forward models in different geometries. The naming schem
 
 ## LightPropagation community
 
-Currently none.
+Join the [gitter](https://gitter.im/LightPropagation/community) chat to ask questions and interact with the LightPropagation.jl community.
 
 ## Contributing to LightPropagation
 
