@@ -1,5 +1,7 @@
 # Solutions of the Diffusion Equation for the Slab Geometry
 
+This is some test code, let me know if you see it! ~Sam
+
 The following describes the light propagation through turbid media bounded by parallel planes. 
 
 The described derivations follow the methods from [Contini 1997](https://www.osapublishing.org/ao/abstract.cfm?uri=ao-36-19-4587).[^1]
