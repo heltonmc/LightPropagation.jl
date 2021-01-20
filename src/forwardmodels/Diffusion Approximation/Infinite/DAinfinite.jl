@@ -118,3 +118,26 @@ function computeTD_fromFD(t, β, ρ, ub, N)
    
 return Rt
 end
+
+
+function computeTD_fromFD2(t, β, ρ, ub, N)	
+
+    Rt = zeros(Float64, length(t))
+    freqcomp = zeros(Float64, N)
+    x, w = gausslegendre(N)
+
+
+    Threads.@threads for m in eachindex(x)
+        freqcomp[m] = real(fluence_DA_inf_FD(ρ, [β[1],β[2]], x[m]*ub/2 +ub/2))*w[m]*ub/pi
+    end
+
+	
+    Threads.@threads for n in eachindex(t)
+        for m in eachindex(x)
+            Rt[n] += real(exp(im*t[n]*(x[m]*ub/2 +ub/2)))*freqcomp[m]
+        end
+    end
+   
+   
+return Rt
+end
