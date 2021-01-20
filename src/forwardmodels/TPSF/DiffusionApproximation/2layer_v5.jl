@@ -80,7 +80,7 @@ function fluence_spatial_complexfreq(z, s, μa, μsp, l, f, nmed)
     ν = 29.9792345/nmed
     ω = 2*π*f
     α = @. sqrt((D*s^2 + μa + ω*im/ν)/D)
-    A = 0.493
+    A = 1.0
     zb = 2*A*D[1]
     z0 = 1/(μsp[1] + μa[1])
     
@@ -88,7 +88,7 @@ function fluence_spatial_complexfreq(z, s, μa, μsp, l, f, nmed)
     if z < z0
 
         # have to account for exp blowing up to inf
-        if abs2(α[1]*z0 - α[1]*z) > 15
+        if real(α[1]*z0 - α[1]*z) > 15
             ϕ = exp(α[1]*(z0 - 2*l)) - exp(α[1]*(-z0 - 2*l - zb)) - exp(α[1]*(z0 - 2*l - 2*zb)) + exp(α[1]*(-z0 - 2*l - 4*zb))
             ϕ = ϕ*(D[1]*α[1] - D[2]*α[2])/(D[1]*α[1] + D[2]*α[2])
             ϕ = ϕ + exp(-α[1]*z0) - exp(-α[1]*(2*zb + z0))
@@ -128,10 +128,50 @@ end
 function compute_complexintegral(ρ, z, s, μa, μsp, l, f, nmed)
     return fluence_spatial_complexfreq(z, s, μa, μsp, l, f, nmed)*s*besselj0(ρ*s)
 end
+function compute_complexintegral(ρ, z, s, μa, μsp, l, f, nmed)
+    return fluence_spatial_complexfreq(z, s, μa, μsp, l, f, nmed)*s*besselj0(ρ*s)
+end
 
 function fluence_FD(ρ, z, μa, μsp, l, f, nmed)
     return (quadgk((s) -> compute_complexintegral(ρ, z, s, μa, μsp, l, f, nmed), 0, Inf, rtol=1e-6)[1])/2π 
 end
+
+r = map(t -> (quadgk((ω) -> exp(im*ω*t)*fluence_FD(1.0, 0.0, [0.1, 0.1], [10.0, 10.0], 1.0, ω, 1.0), -Inf, Inf))[1], [0.1, 0.5, 1.0, 2.0])
+
+function fluence_FD(ρ, z, μa, μsp, l, f, nmed)
+
+    N = 1024
+    ub = 200
+    x, w = gauss(N, 0, ub)
+    a = 0.0
+    for m in eachindex(x)
+        a =+ compute_complexintegral(ρ, z, x[m], μa, μsp, l, f, nmed) .* w[m]
+    end
+
+    return a
+end
+
+function TD_test(t, μa, μsp, ρ, z, l, nmed)
+
+    Rt = Array{Float64,1}(undef, length(t))
+    
+    N = 1024
+    ub = 1000
+    x, w = gauss(N, 0, ub)
+
+    Threads.@threads for n in eachindex(t)
+        a = 0.0   
+        for m in eachindex(x)
+            a += FD(x[m], t[n],  ρ, z, μa, μsp, l, nmed) .* w[m]
+        end
+        Rt[n] = a/pi
+    end
+
+   
+return Rt
+end
+
+FD(ω, t, ρ, z, μa, μsp, l, nmed) = real.(exp(im*ω*t)*fluence_FD(ρ, z, μa, μsp, l, ω, nmed))
 
 function fluence_TD(ρ, z, μa, μsp, l, nmed)
     fr = 0.19531 .* Vector(1:512)
