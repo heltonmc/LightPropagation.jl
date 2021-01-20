@@ -73,7 +73,7 @@ Compute the fluence for a steady-state source in an infinite medium.
 # Examples
 julia> fluence_DA_inf_FD(1.0, [0.1,10.0])
 """
-function fluence_DA_inf_FD(ρ, β, ω, nmed)
+function fluence_DA_inf_FD(ρ, β, ω, nmed = 1.0)
     μa = β[1]
     μsp = β[2]
     D = 1/3μsp
@@ -81,59 +81,40 @@ function fluence_DA_inf_FD(ρ, β, ω, nmed)
 
     ϕ = exp(-ρ*sqrt(μa/D + im*ω/(ν*D)))/(4*π*ρ*D)
 
-    if isnan(ϕ)
-        ϕ = 0
-    end
-
     return ϕ
 end
 
-N = 512
-T = 10e-12
-ω = 2*π*Vector(0:N-1)/(N*T)
+using FastGaussQuadrature
 
-ω = 0.0977*Vector(1:512)
+function computeTD_fromFD(t, β, ρ, ub, N)	
 
-map((ω) -> fluence_DA_inf_FD(1.0, [0.1,10.0], ω, 1.0), ω)
-quadgk((ω) -> exp(im*ω*1)*fluence_DA_inf_FD(1.0, [0.1,10.0], ω, 1.0), -Inf, Inf)
-
-function TD_test(t, N, ub)
-
-    Rt = Array{Float64,1}(undef, length(t))
+    Rt = zeros(Float64, length(t))
     
-    x, w = gauss(N, 0, ub)
-
-    map!(t -> sum(FD.(x, t) .* w), Rt, t)
+    x, w = gausslegendre(N)
+	
+    Threads.@threads for n in eachindex(t)
+        for m in eachindex(x)
+            Rt[n] += real(exp(im*t[n]*(x[m]*ub/2 +ub/2)))*real(fluence_DA_inf_FD(ρ, [β[1],β[2]], x[m]*ub/2 +ub/2))*w[m]*ub/pi
+        end
+    end
    
    
-return Rt./pi
+return Rt
 end
 
-FD(ω, t) = real.(exp(im*ω*t)*fluence_DA_inf_FD(1.0, [0.1,10.0], ω, 1.0))
-x, w = gauss(1000, 0, 500)
-sum(FD.(x, 1.0) .* w)
 
-a = map(ω -> fluence_DA_inf_FD(1.0, [0.1,10.0], ω, 1.0)*exp(im*ω*t), [0,1,2, 3, 4, -3, -2, -1])
+function computeTD_fromFD(t, β, ρ, ub, N)	
 
-
-r = map(t -> (quadgk((ω) -> exp(im*ω*t)*fluence_DA_inf_FD(1.0, [0.1,10.0], ω, 1.0), -Inf, Inf))[1], 0.01:0.05:3)
-
-map(t -> (quadgk((ω) -> 1/2pi*exp(im*ω*t)*fluence_DA_inf_FD(1.0, [0.1,10.0], ω, 1.0), 0, Inf))[1], 0.01:0.05:3)
-
-map(t -> (quadgk((ω) -> exp(im*ω*t)*fluence_FD(1.0, 0., [0.1,0.1], [10.,10.], 1.0, ω, 1.0), 0, Inf))[1], 0.01:0.05:3)
-r1 = map(t -> (quadgk((ω) -> exp(im*ω*t)*fluence_FD(1.0, 0., [0.1,0.1], [10.,10.], 1.0, ω, 1.0), -1000, 1000))[1], 1:1:3)
-
-map(t -> (quadgk((ω) -> exp(im*ω*t)*fluence_DA_inf_FD(1.0, [0.1,10.0], ω, 1.0), 0, 1024))[1], 0.01:0.05:3)
-
-
-function FD(ω)
-    D = 1/30
-    ν = 29.9792458 #speed of light in cm/ns
-
-    ϕ = exp(-sqrt(0.1/D + im*ω/(ν*D)))
+    Rt = zeros(Float64, length(t))
+    
+    x, w = gausslegendre(N)
+	
+    Threads.@threads for n in eachindex(t)
+        for m in eachindex(x)
+            Rt[n] += real(exp(im*t[n]*(x[m]*ub/2 +ub/2)))*real(fluence_DA_inf_FD(ρ, [β[1],β[2]], x[m]*ub/2 +ub/2))*w[m]*ub/pi
+        end
+    end
+   
+   
+return Rt
 end
-
-using QuadGK
-
-tind = 0.1:0.1:3
-r = map(t -> (quadgk((ω) -> exp(im*ω*t)*FD(ω), -Inf, Inf))[1], tind)
