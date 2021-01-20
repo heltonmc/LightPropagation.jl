@@ -1,4 +1,4 @@
-using SpecialFunctions, QuadGK, ForwardDiff
+using SpecialFunctions, QuadGK, ForwardDiff, Plots
 
 
 ##### Diffusion approximation for 2-layered medium with matched index of refraction #####
@@ -30,7 +30,7 @@ function fluence_spatial_freq(z, s, μa, μsp, l)
     #get numerical instabillity at large s
     D = @. 1/(3(μsp + μa))
     α = @. sqrt((D*s^2 + μa)/D)
-    A = 0.493
+    A = (0.493 + 1)/(1 - 0.493)
     zb = 2*A*D[1]
     z0 = 1/(μsp[1] + μa[1])
     
@@ -38,7 +38,7 @@ function fluence_spatial_freq(z, s, μa, μsp, l)
     if z < z0
 
         # have to account for exp blowing up to inf
-        if (α[1]*z0 - α[1]*z) > 15
+        if (α[1]*z0 - α[1]*z) > 10
             ϕ = exp(α[1]*(z0 - 2*l)) - exp(α[1]*(-z0 - 2*l - zb)) - exp(α[1]*(z0 - 2*l - 2*zb)) + exp(α[1]*(-z0 - 2*l - 4*zb))
             ϕ = ϕ*(D[1]*α[1] - D[2]*α[2])/(D[1]*α[1] + D[2]*α[2])
             ϕ = ϕ + exp(-α[1]*z0) - exp(-α[1]*(2*zb + z0))
@@ -129,6 +129,13 @@ plot(0.5:0.5:20, a, yscale=:log10, lw = 2, label = "crosses", xlabel = "distance
 plot!(0.5:0.5:20, b, yscale=:log10, lw = 2, label = "circles")
 
 
+##reproduce Figure 4 Kienle 98
+b = map((ρ) -> refl_steadystate(ρ, [0.005,0.01], [1.3,1.0], 10), 0.5:0.5:20)
+a = map((ρ) -> refl_steadystate(ρ, [0.005,0.022], [1.3,1.0], 10), 0.5:0.5:20)
+
+plot(0.5:0.5:20, a, yscale=:log10, lw = 2, label = "crosses", xlabel = "distance [mm]", ylabel = "reflectance")
+plot!(0.5:0.5:20, b, yscale=:log10, lw = 2, label = "circles")
+
 ##compare to semi-infinite model from Kienle 97 as l gets large
 a = map((ρ) -> fluence_steadystate(ρ, 0, [0.02,0.02], [1.3,1.3], 10), 0.5:0.5:20)
 b = map((ρ) -> ss_compare(ρ, 0, 0.02, 1.3), 0.5:0.5:20)
@@ -136,3 +143,17 @@ b = map((ρ) -> ss_compare(ρ, 0, 0.02, 1.3), 0.5:0.5:20)
 plot(0.5:0.5:20, a, yscale=:log10, lw = 2, label = "2-layer", xlabel = "distance [mm]", ylabel = "reflectance")
 plot!(0.5:0.5:20, b, yscale=:log10, lw = 2, label = "semi-inf", alpha = 0.7)
 
+
+df = DataFrames.DataFrame(mua1=[1, 2, 3, 4], mua2=[1, 2, 3, 4], musp1=[1, 2, 3, 4], musp2=[1, 2, 3, 4]strings=["Hey", "You", "Out", "There"], floats=[10.2, 20.3, 30.4, 40.5], 
+dates=[Date(2018,2,20), Date(2018,2,21), Date(2018,2,22), Date(2018,2,23)], times=[Dates.Time(19,10), Dates.Time(19,20), Dates.Time(19,30), Dates.Time(19,40)], 
+datetimes=[Dates.DateTime(2018,5,20,19,10), Dates.DateTime(2018,5,20,19,20), Dates.DateTime(2018,5,20,19,30), Dates.DateTime(2018,5,20,19,40)])
+
+df = DataFrames.DataFrame(sds=0.5:0.5:20, a = a, b = b, c = c, d = d, e = e, f = f)
+
+
+
+c = map((ρ) -> refl_steadystate(ρ, [0.005,0.01], [1.3,1.0], 6), 0.5:0.5:20)
+d = map((ρ) -> refl_steadystate(ρ, [0.005,0.022], [1.3,1.0], 6), 0.5:0.5:20)
+
+e = map((ρ) -> refl_steadystate(ρ, [0.005,0.01], [1.3,1.0], 10), 0.5:0.5:20)
+f = map((ρ) -> refl_steadystate(ρ, [0.005,0.022], [1.3,1.0], 10), 0.5:0.5:20)
