@@ -27,6 +27,7 @@ include("forwardmodels/Diffusion Approximation/Semi-infinite/DAsemiinf.jl")
 
 include("inversefitting/FitStructures/fitstructures.jl")
 include("inversefitting/FitFunctions/fitfunction.jl")
+include("inversefitting/FitFunctions/fitmodels.jl")
 
 
 
