@@ -90,6 +90,28 @@ function _conv_DT(t, β::Array{Float64,1}, data::fitDTOF, out, fftIRF, pl, pli, 
 end
 
 
+function _conv_DT(t, β::Array{Float64,1}, data::fitDTOF, out, fftIRF, pl, pli, mod::Val{fluence_DA_semiinf_TD};
+    RtDT = Array{Float64}(undef, length(data.IRF))
+    )
+
+        RtDT = fluence_DA_semiinf_TD(data.t, β, data.ρ, data.ndet, data.nmed, 0.0)
+        RtDT =RtDT./(2*get_afac(data.nmed/data.ndet))
+
+        RtDT = RtDT./maximum(RtDT)
+        copyto!(out, RtDT)
+
+        fftRtDT = pl * out
+        fftRtDT .*= fftIRF
+        out = pli * fftRtDT
+
+        out = out./maximum(out)
+
+	    tidx = findfirst(x -> x == t[1], data.t)
+
+	    out = out[tidx:tidx+length(t)-1]
+	return log.(out)
+end
+
 
 
 function getfit(data::fitDTOF, model_params::DTOF_fitparams)
