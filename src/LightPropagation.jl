@@ -13,6 +13,8 @@ export TPSF_DA_semiinf_refl
 export TPSF_DA_slab_refl
 export TPSF_DA_paralpip_refl
 
+export fluence_DA_semiinf_TD
+
 export getfit
 
 export load_asc_data
