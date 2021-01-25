@@ -191,7 +191,7 @@ function fluence_DA_semiinf_CW(ρ::Float64, β::Array{Float64,1}, ndet::Float64,
 end
 
 
-function fluence_DA_semiinf_FD(ρ::Float64, β::Array{Float64,1}, ndet::Float64, nmed::Float64, z::Float64)
+function fluence_DA_semiinf_FD(ρ::Float64, β::Array{Float64,1}, ndet::Float64, nmed::Float64, z::Float64, ω)
     n = nmed/ndet
     ν = 29.9792345/nmed
     μa = β[1] + ω*im/ν
