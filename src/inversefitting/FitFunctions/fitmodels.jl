@@ -35,4 +35,4 @@ end
 function _get_fit_model!(Rt::Array{Float64}, β::Array{Float64,1}, data::fitDTOF, mod::Val{refl_DA_paralpip_TD})
     Rt = refl_DA_paralpip_TD(data.t, β, data.ndet, data.nmed, data.rd, data.rs, data.L)
 end
-
+=#
