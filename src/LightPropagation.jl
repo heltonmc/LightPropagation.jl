@@ -21,6 +21,7 @@ export fitDTOF, DTOF_fitparams
 
 include("forwardmodels/TPSF/DiffusionApproximation/refl_TD.jl")
 include("data/loadData/loaddata.jl")
+include("forwardmodels/Diffusion Approximation/Semi-infinite/DAsemiinf.jl")
 
 include("inversefitting/FitStructures/fitstructures.jl")
 include("inversefitting/FitFunctions/fitfunction.jl")
