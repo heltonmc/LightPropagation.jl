@@ -62,6 +62,9 @@ besselj_zero_asymptotic(n, A) = π*(4*n + 3) / (4*A) # with factor A and 0 order
 besselj_zero(n, A; order=2) = Roots.fzero((x) -> SpecialFunctions.besselj0(A*x), besselj_zero_asymptotic(n, A); order=order)
 sn = map(s -> besselj_zero(s, 1; order = 2), 1:100)
 
+const besselroots = map(s -> besselj_zero(s, 1; order = 2), 0:10000)
+
+
 
 # eqn 21 fluence of finite cylinder 
 function fluence_DA_cylinder_CW(μsp, μa, lz, a, ρ)
@@ -90,10 +93,40 @@ function fluence_DA_cylinder_FD(μsp, μa, lz, a, ρ, ω)
     return sum(ϕ)/(π*(a + zb)^2)
 end
 
+#improved functions that use besselroots constant and loop over indices 
+function fluence_DA_cylinder_FD1(μsp, μa, lz, a, ρ, ω)
+
+    A = 1
+    D = 1/3μsp
+    zb = 2*A*D
+
+    ϕ = 0.0 + 0.0im
+
+    for n in eachindex(besselroots)
+        ϕ += greencylin_FD(μsp, μa, besselroots[n]/(a + zb), lz, ω)*besselj0(besselroots[n]/(a + zb)*ρ)/(besselj1(besselroots[n]))^2
+    end
+
+    return ϕ/(π*(a + zb)^2)
+end
 
 
+function fluence_DA_cylinder_CW1(μsp, μa, lz, a, ρ)
+
+    A = 1
+    D = 1/3μsp
+    zb = 2*A*D
+
+    ϕ = 0.0
+
+    for n in eachindex(besselroots)
+        ϕ += greencylin_CW(μsp, μa, besselroots[n]/(a + zb), lz)*besselj0(besselroots[n]/(a + zb)*ρ)/(besselj1(besselroots[n]))^2
+    end
+
+    return ϕ/(π*(a + zb)^2)
+end
 #### TD
-function TD_test(t, μa, μsp, lz, a, ρ)
+
+function fluence_DA_cylinder_TD(t, μa, μsp, lz, a, ρ)
     ub = 1200
 	N = 1000
 
@@ -112,13 +145,35 @@ function TD_test(t, μa, μsp, lz, a, ρ)
     return Rt./94.182542865
 end
 
-t = 0.05:0.05:3.0
-μsp = 4.0
-μa = 0.005
-ρ = 1.5
+function TD_test(t, μa, μsp, lz, a, ρ)
+    ub = 1200
+	N = 1000
+
+    Rt = zeros(Float64, length(t))
+    freqcomp = zeros(Float64, N)
+    x, w = gausslegendre(N)
+	x = x.*ub/2 .+ ub/2
+	w = w.*ub/2
+    map!(f -> real.(fluence_DA_cylinder_FD1(μsp, μa, lz, a, ρ, f)), freqcomp, x)
+    
+    Threads.@threads for n in eachindex(t)
+        for m in eachindex(x)
+            Rt[n] += real(exp(im*t[n]*(x[m])))*freqcomp[m]*w[m]
+        end
+    end
+    return Rt./94.182542865
+end
+
+t = 0.01:0.01:4.0
+μsp = 10.0
+μa = 0.1
+ρ = 3.0
+cylTD = TD_test(t, μa, μsp, 5.0, 10.0, ρ)
+inds1 = cylTD .> 0
+plot(t[inds1], cylTD[inds1], yscale =:log10)
 
 siTD = fluence_DA_semiinf_TD(t, [μa, μsp], ρ, 1.0, 1.0, 0.0)
-cylTD = TD_test(t, μa, μsp, 5.0, 10.0, 1.5)
+cylTD = TD_test(t, μa, μsp, 5.0, 10.0, ρ)
 
 plot(t, siTD, yscale=:log10, label= "Semi-inf", lw=2)
 plot!(t, cylTD, label= "Cylinder, r = 10cm", lw=2)
