@@ -151,9 +151,44 @@ function fluence_DA_4lay_cylinder_CW(μsp, μa, l, a, ρ, n)
 
     ϕ = 0.0
 
-    for ind in eachindex(besselroots[1:1000])
+    for ind in eachindex(besselroots[1:500])
         ϕ += green4cylin(μsp, μa, besselroots[ind]/(a + zb), l, n)*besselj0(besselroots[ind]/(a + zb)*ρ)/(besselj1(besselroots[ind]))^2
     end
 
     return ϕ/(π*(a + zb)^2)
+end
+
+
+function fluence_DA_4lay_cylinder_TD(t, μa, μsp, lz, a, ρ)
+    ub = 1200
+	N = 1000
+
+    μa = @. μa + ω*im/ν
+
+    Rt = zeros(Float64, length(t))
+    freqcomp = zeros(Float64, N)
+    x, w = gausslegendre(N)
+	x = x.*ub/2 .+ ub/2
+	w = w.*ub/2
+    map!(f -> real.(fluence_DA_cylinder_FD(μsp, μa, lz, a, ρ, f)), freqcomp, x)
+    
+    Threads.@threads for n in eachindex(t)
+        for m in eachindex(x)
+            Rt[n] += real(exp(im*t[n]*(x[m])))*freqcomp[m]*w[m]
+        end
+    end
+    return Rt./94.182542865
+end
+
+
+f(sn, ω)*J₀(sₙ*r)/J₁(A*sₙ)^2
+
+
+
+function a(v; mod::Val{}) 
+    println("called 3")
+end
+
+function a(v::Array{4, Float64}) 
+    println("called 4")
 end
