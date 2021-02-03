@@ -58,7 +58,7 @@ using SpecialFunctions, Roots
 
 besselj_zero_asymptotic(nu, n) = pi * (n - 1 + nu / 2 + 3//4)
 
-besselj_zero_asymptotic(n, A) = π*(4*n + 3) / (4*A) # with factor A and 0 order
+#besselj_zero_asymptotic(n, A) = π*(4*n + 3) / (4*A) # with factor A and 0 order
 besselj_zero(n, A; order=2) = Roots.fzero((x) -> SpecialFunctions.besselj0(A*x), besselj_zero_asymptotic(n, A); order=order)
 sn = map(s -> besselj_zero(s, 1; order = 2), 1:100)
 
