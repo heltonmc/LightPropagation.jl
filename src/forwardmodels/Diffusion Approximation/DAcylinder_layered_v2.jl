@@ -133,7 +133,7 @@ function fluence_DA_4lay_cylinder_lap(s, μsp, μa, l, a, ρ, n)
 
     ϕ = 0.0
 
-    for ind in eachindex(besselroots[1:500])
+    for ind in eachindex(besselroots[1:600])
         ϕ += green4cylin_lap(μsp, μa, besselroots[ind]/(a + zb), l, n, s, ν)*besselj0(besselroots[ind]/(a + zb)*ρ)/(besselj1(besselroots[ind]))^2
     end
 
