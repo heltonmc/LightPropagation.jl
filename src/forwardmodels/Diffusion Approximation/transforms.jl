@@ -97,6 +97,7 @@ function computeTD_fromFD2(t, β, ρ, ub, N)
 return Rt
 end
 
+#=
 N = 18
 v = _PWcoeffs(N)
 t = 0.01:0.01:5
@@ -105,7 +106,7 @@ Rt = fluence_DA_inf_TD(t, [0.1, 10.0], 1.0)
 
 plot(t, Rt, yscale=:log10, label = "TD analytical 'true'")
 plot!(t, abs.(lt), label = "LT Post-Widder")
-
+=#
 
 
 # Implement Laplace transfrom along a hyperbola contour

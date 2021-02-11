@@ -1,4 +1,3 @@
-
 besselroots = load("besselzeroroots.jld")["besselroots"]
 
 @with_kw struct Nlayer_cylinder
@@ -8,7 +7,7 @@ besselroots = load("besselzeroroots.jld")["besselroots"]
     n_med::Array{Float64,1} = [1.0, 1.0, 1.0, 1.0] # layers index of refraction
 
     #source, detector
-    l::Array{Float64,1} = [0.5, 0.8, 1.0, 5.0] # length of cylinder
+    l::Array{Float64,1} = [2.0, 3.0, 2.0, 5.0] # length of cylinder
     ρ::Float64 = 1.0 # 
     a::Float64 = 5.0 # radius of cylinder
 
@@ -26,16 +25,16 @@ function diffusionparams(μsp, n_med, n_ext)
     return D, ν, A, zb, z0
 end
 
-
 # Calculate β and γ coefficients 
-function _get_βγ2(α, D, n, zb, l)
+function _get_βγ(α, D, n, zb, l, ::Val{2})
     β = (1 - exp(-2*α[2]*(l[2] + zb[2])))
 
     γ = (1 + exp(-2*α[2]*(l[2] + zb[2])))
     
     return β, γ
 end
-function _get_βγ3(α, D, n, zb, l)
+
+function _get_βγ(α, D, n, zb, l, ::Val{3})
     β = D[2]*α[2]*n[2]^2*(1 + exp(-2*α[2]*l[2]))*(1 - exp(-2*α[3]*(l[3] + zb[2])))
     β += D[3]*α[3]*n[3]^2*(1 - exp(-2*α[2]*l[2]))*(1 + exp(-2*α[3]*(l[3] + zb[2])))
 
@@ -44,7 +43,8 @@ function _get_βγ3(α, D, n, zb, l)
 
     return β, γ
 end
-function _get_βγ4(α, D, n, zb, l)
+
+function _get_βγ(α, D, n, zb, l, ::Val{4})
     β_4 = D[3]*α[3]*n[3]^2*(1 + exp(-2*α[3]*l[3]))*(1 - exp(-2*α[4]*(l[4] + zb[2])))
     β_4 += D[4]*α[4]*n[4]^2*(1 - exp(-2*α[3]*l[3]))*(1 + exp(-2*α[4]*(l[4] + zb[2])))
 
@@ -57,14 +57,10 @@ function _get_βγ4(α, D, n, zb, l)
     return β, γ
 end
 
+
+# should make this only be a function of α, D, n, zb and calculate the rest prior to
 function _green_Nlaycylin(α, D, z0, zb, l, n)
-    if isequal(length(α), 4)
-        β, γ = _get_βγ4(α, D, n, zb, l)
-    elseif isequal(length(α), 3)
-        β, γ = _get_βγ3(α, D, n, zb, l)
-    elseif isequal(length(α), 2)
-        β, γ = _get_βγ2(α, D, n, zb, l)
-    end
+    β, γ = _get_βγ(α, D, n, zb, l, Val(length(α)))
 
     g = (exp(-α[1]*z0) - exp(-α[1]*(z0 + 2*zb[1]))) / (2*D[1]*α[1])
     g1 = exp(α[1]*(z0 - 2*l[1]))*(1 - exp(-2*α[1]*(z0 + zb[1])))*(1 - exp(-2*α[1]*zb[1]))
@@ -75,6 +71,7 @@ function _green_Nlaycylin(α, D, z0, zb, l, n)
 
     return g + g1
 end
+
 
 function _green_Nlaycylin_CW(sn, μa, D, z0, zb, l, n)
     α = @. sqrt(μa/D + sn^2)
@@ -88,7 +85,6 @@ function _green_Nlaycylin_Laplace(sn, μa, D, z0, zb, l, n, ν, s)
     α = @. sqrt(μa/D + sn^2 + s/(D*ν))
     return _green_Nlaycylin(α, D, z0, zb, l, n)
 end
-
 
 function fluence_DA_Nlay_cylinder_CW(data::Nlayer_cylinder, besselroots)
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
@@ -123,9 +119,9 @@ function _fluence_DA_Nlay_cylinder_Laplace(s, data::Nlayer_cylinder, besselroots
         ϕ += _green_Nlaycylin_Laplace(besselroots[ind]/(data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med, ν, s)*besselj0(besselroots[ind]/(data.a + zb[1])*data.ρ)/(besselj1(besselroots[ind]))^2
     end
 
+  
     return ϕ/(π*(data.a + zb[1])^2)
 end
-
 
 function fluence_DA_Nlay_cylinder_TD(t, N, data::Nlayer_cylinder, besselroots)
     Rt = zeros(Float64, length(t))
@@ -139,4 +135,50 @@ function fluence_DA_Nlay_cylinder_TD(t, data::Nlayer_cylinder, besselroots)
     Rt = LT_hyper_fixed(s -> _fluence_DA_Nlay_cylinder_Laplace(s, data, besselroots), 28, t)
 
     return Rt./59.958469
+end
+
+
+
+
+## work on decreasing the number of allocations in the for loop for the fluence...
+
+function _fluence_DA_Nlay_cylinder_Laplace(s, data::Nlayer_cylinder, besselroots)
+    D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
+
+    ϕ = 0.0
+    for ind in eachindex(besselroots)
+        ϕ = _green_Nlaycylin_Laplace(besselroots[ind]/(data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med, ν, s)*besselj0(besselroots[ind]/(data.a + zb[1])*data.ρ)/(besselj1(besselroots[ind]))^2
+    end
+
+  
+    return ϕ/(π*(data.a + zb[1])^2)
+end
+
+function hankelt(besselroot, data, D, z0, zb, ν, s)
+    out = _green_Nlaycylin_Laplace(besselroot/(data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med, ν, s)
+    out *= besselj0(besselroot/(data.a + zb[1])*data.ρ)
+    out /= (besselj1(besselroot))^2
+    return out
+end
+function _fluence_DA_Nlay_cylinder_Laplace2(s, data::Nlayer_cylinder, besselroots)
+    D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
+
+    ϕ = 0.0
+    @inbounds @simd for ind in eachindex(besselroots)
+        ϕ += hankelt(besselroots[ind], data, D, z0, zb, ν, s)
+    end
+
+  
+    return ϕ/(π*(data.a + zb[1])^2)
+end
+
+function _fluence_DA_Nlay_cylinder_Laplace3(s, data::Nlayer_cylinder, besselroots)
+    D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
+
+    ϕ = 0.0
+    ϕ = mapreduce(besselroots -> hankelt(besselroots, data, D, z0, zb, ν, s), +, besselroots)
+    
+
+  
+    return ϕ/(π*(data.a + zb[1])^2)
 end
