@@ -10,10 +10,12 @@
 ## Purpose
 
 LightPropagation provides a set of tools to model and analyze the propagation of light in turbid media written in the [Julia programming language](https://julialang.org/).
-The current library supports simulating the time-resolved reflectance in the forward direction under the diffusion approximation for 3 different geometries:
+The current library supports simulating the time-resolved reflectance in the forward direction under the diffusion approximation in the following geometries:
 - __Semi-infinite__ 
 - __Slabs__
 - __Parallelepipeds__
+- __Cylinders__
+- __N-layer Cylinder__
 
 ## Usage
 
