@@ -77,7 +77,7 @@ function sum_modbessel(k, μa, D, ρ, n, ρ0, ϕ)
     B1 = 0.0
     γ = @. sqrt(μa/D + k^2)
 
-    bessel_index = -10:10
+    bessel_index = -100:100
     for m in bessel_index
         A1, B1 = _get_A1_B1(m, γ, D, ρ, n, ρ0)
         a += _integrand_modbessel(m, A1, B1, γ, ρ, ϕ)
@@ -89,7 +89,7 @@ end
 
 function _greens_homogenous(μa, D, ρ, n, ρ0, ϕ, z)
 
-    g = quadgk(k -> cos(k*z)*sum_modbessel(k, μa, D, ρ, n, ρ0, ϕ), 0, 100)
+    g = quadgk(k -> cos(k*z)*sum_modbessel(k, μa, D, ρ, n, ρ0, ϕ), 0, Inf)
 
     return g[1]/(2*π^2)
 end
@@ -104,5 +104,3 @@ function _green_Nradialcyl(μa, D, ρ, n, ρ0, ϕ, z)
 
     return g + gh
 end
-
-
