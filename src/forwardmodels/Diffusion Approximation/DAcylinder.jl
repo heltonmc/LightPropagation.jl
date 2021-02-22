@@ -30,7 +30,7 @@ end
 
 function _greencylin(α, D, z, z0, zb, lz)
     g = (exp(-α*abs(z - z0)) - exp(-α*(z + z0 + 2*zb)))
-    g -= exp(α*(z0 - 2*lz - 2*zb))*(1 - exp(-2*α*(z0 + zb)))*(1 - exp(-2*α*zb))/(1 - exp(-2*α*(lz + 2*zb)))
+    g -= exp(α*(z0 + z - 2*lz - 2*zb))*(1 - exp(-2*α*(z0 + zb)))*(1 - exp(-2*α*(zb + z)))/(1 - exp(-2*α*(lz + 2*zb)))
     return g / (2*D*α)
 end
 
@@ -131,3 +131,87 @@ function fluence_DA_cylinder_CW_beam(data::cylinder_inputs, besselroots)
 
     return 2*ϕ/(data.pw*π*(data.a + zb)^2)
 end
+
+
+
+### arbitrary position
+
+
+@with_kw struct cylinder_inputs_arb3
+    μsp::Float64 = 10.0
+    μa::Float64 = 0.1 
+    n_ext::Float64 = 1.0  #surrounding index of refraction
+    n_med::Float64 = 1.4 # layers index of refraction
+
+    #source, detector
+    lz::Float64 = 5.0 # length of cylinder
+    ρ::Float64 = 5.0 # 
+    ρ0::Float64 = 5.0
+    a::Float64 = 5.0 # radius of cylinder
+    z::Float64 = 2.0
+    z0::Float64 = 3.0
+    
+    θ = 0.0
+
+    ω::Float64 = 0.0 #
+end
+
+
+function fluence_DA_cylinder_CW(data::cylinder_inputs_arb2, besselj_roots)
+   
+    D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
+
+    ϕ = 0.0
+    ϕ1 = 0.0
+
+    for m = 0:100
+        ϕ1 = 0.0
+        for bessel in besselj_roots[:, abs(m) + 1] # 1 column is 0 order, bessel roots symmetric J(-nu, x) = (-1)^2 J(nu, x)
+            ϕ1 += _greencylin_CW(bessel/(data.a + zb), data.μa, D, data.z, z0, zb, data.lz)*besselj(m, bessel/(data.a + zb)*data.ρ)*besselj(m, bessel/(data.a + zb)*data.ρ0)/(besselj(m + 1, bessel))^2
+
+        end
+        ϕ1 *= ((2 - (m == 0 ? 1 : 0))*cos(m*data.θ))
+
+        ϕ += ϕ1
+    end
+
+    return ϕ / (π*(data.a + zb)^2)
+end
+
+
+
+function fluence_DA_cylinder_CW(data::cylinder_inputs_arb3, besselj_roots)
+   
+    D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
+
+    ρ0 = data.ρ0 -  1/data.μsp[1]
+    z0 = data.z0
+
+    ϕ = 0.0
+    ϕ1 = 0.0
+
+    for m = 0:600
+        ϕ1 = 0.0
+        for bessel in besselj_roots[:, abs(m) + 1] # 1 column is 0 order, bessel roots symmetric J(-nu, x) = (-1)^2 J(nu, x)
+            ϕ1 += _greencylin_CW(bessel/(data.a + zb), data.μa, D, data.z, z0, zb, data.lz)*besselj(m, bessel/(data.a + zb)*data.ρ)*besselj(m, bessel/(data.a + zb)*ρ0)/(besselj(m + 1, bessel))^2
+
+        end
+        ϕ1 *= ((2 - (m == 0 ? 1 : 0))*cos(m*data.θ))
+
+        ϕ += ϕ1
+    end
+
+    return ϕ / (π*(data.a + zb)^2)
+end
+
+
+#=
+Calculate Bessel Roots
+
+using GSL
+
+s = 1:1000 # number of roots to calculate
+m = 0:2000 # order of besselj
+besselj_roots = [sf_bessel_zero_Jnu_e(m, s).val for s in s, m in m]
+
+=#
