@@ -1,4 +1,8 @@
+@pyimport mpmath as mpmath
 
+
+besseli(nu, x) = convert(BigFloat, mpmath.besseli(abs(nu), x))
+besselk(nu, x) = convert(BigFloat, mpmath.besselk(abs(nu), x))
 
 dIm(m, γ, ρ) = γ*besseli(m + 1, γ*ρ) + m*besseli(m, γ*ρ)/ρ
 dKm(m, γ, ρ) = -γ*besselk(m + 1, γ*ρ) + m*besselk(m, γ*ρ)/ρ
@@ -77,7 +81,7 @@ function sum_modbessel(k, μa, D, ρ, n, ρ0, ϕ)
     B1 = 0.0
     γ = @. sqrt(μa/D + k^2)
 
-    bessel_index = -100:100
+    bessel_index = -200:200
     for m in bessel_index
         A1, B1 = _get_A1_B1(m, γ, D, ρ, n, ρ0)
         a += _integrand_modbessel(m, A1, B1, γ, ρ, ϕ)
@@ -89,7 +93,7 @@ end
 
 function _greens_homogenous(μa, D, ρ, n, ρ0, ϕ, z)
 
-    g = quadgk(k -> cos(k*z)*sum_modbessel(k, μa, D, ρ, n, ρ0, ϕ), 0, Inf)
+    g = quadgk(k -> cos(k*z)*sum_modbessel(k, μa, D, ρ, n, ρ0, ϕ), 0, 500)
 
     return g[1]/(2*π^2)
 end
@@ -103,4 +107,19 @@ function _green_Nradialcyl(μa, D, ρ, n, ρ0, ϕ, z)
     gh = _greens_homogenous(μa, D, ρ, n, ρ0, ϕ, z)
 
     return g + gh
+end
+
+function _greens_homogenous(μa, D, ρ, n, ρ0, ϕ, z)
+    
+    N = 190
+    x, w = gausslegendre(N)
+    ub = 150
+
+    green = zeros(BigFloat, N)
+
+    Threads.@threads for m in eachindex(x)
+        green[m] = cos(x[m]*ub/2 +ub/2*z)*sum_modbessel(x[m]*ub/2 +ub/2, μa, D, ρ, n, ρ0, ϕ)*w[m]*ub
+    end
+
+    return sum(green)/(2*pi^2)
 end
