@@ -106,14 +106,14 @@ Compute the time-domain fluence in a semi-infinite medium (Eqn. 33 Contini).
 # Examples
 julia> fluence_DA_semiinf_TD(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0, 1.0)
 """
-function fluence_DA_semiinf_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64, z::Float64)
-    n::Float64 = nmed/ndet
-    μa::Float64 = β[1]
-    μsp::Float64 = β[2]
-    D::Float64 = 1/3μsp
-  	ν::Float64 = 29.9792345/nmed
+function fluence_DA_semiinf_TD(t, β, ρ, ndet, nmed, z)
+    n = nmed/ndet
+    μa = β[1]
+    μsp = β[2]
+    D = 1/3μsp
+  	ν = 29.9792345/nmed
 
-    Rt = Array{Float64}(undef, length(t))
+    ϕ = similar(t)
 
 	if n > 1.0
 		  A = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 +
@@ -124,23 +124,20 @@ function fluence_DA_semiinf_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float
 		  A = 1.0
 	end
 
-	zs::Float64 = 1/μsp
-	ze::Float64 = 2A*D
+	z0 = 1/μsp
+	zb = 2A*D
 
-    Threads.@threads for n in eachindex(t)
+    Threads.@threads for ind in eachindex(t)
+        ϕ[ind] = ν*exp(-μa*ν*t[ind])/(4*π*D*ν*t[ind])^(3/2)
+        ϕ[ind] *= (exp(-((z - z0)^2 + ρ^2)/(4*D*ν*t[ind])) - exp(-((z + z0 + 2*zb)^2 + ρ^2)/(4*D*ν*t[ind])))
 
-        Rt[n] = -(ρ^2/(4D*ν*t[n]))
-        Rt[n] = Rt[n] - μa*ν*t[n]
-        Rt[n] = exp(Rt[n])/(2*(4π*D*ν*t[n])^(3/2))
-        Rt[n] = Rt[n]*(exp(-((z - zs)^2/(4D*ν*t[n]))) - exp(-((z + 2*ze + zs)^2/(4D*ν*t[n]))))
-
-        if isnan(Rt[n])
-            Rt[n] = 0
+        if isnan(ϕ[ind])
+            ϕ[ind] = 0
         end
      
     end
  
-     return Rt
+     return ϕ
 end
 
 ### CW Fluence ###
