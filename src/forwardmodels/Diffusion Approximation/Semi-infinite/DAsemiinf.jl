@@ -26,16 +26,16 @@
 
 ### TD Reflectance ###
 """
-    refl_DA_semiinf_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
+    refl_DA_semiinf_TD(t, β, ρ, ndet, nmed)
 
 Compute the time-domain reflectance from a semi-infinite medium from Eqn. 36 Contini 97 (m = 0). 
 
 # Arguments
 - `t`: the time vector (ns). 
-- `β::Array{Float64,1}`: the optical properties [μa, μs'] (cm⁻¹)
-- `ρ::Float64`: the source detector separation (cm⁻¹)
-- `ndet::Float64`: the boundary's index of refraction (air or detector)
-- `nmed::Float64`: the sample medium's index of refraction
+- `β`: the optical properties [μa, μs'] (cm⁻¹)
+- `ρ`: the source detector separation (cm⁻¹)
+- `ndet`: the boundary's index of refraction (air or detector)
+- `nmed`: the sample medium's index of refraction
 
 # Examples
 ```jldoctest
@@ -49,14 +49,14 @@ julia> refl_DA_semiinf_TD(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0)
  1.9657536202689858e-11
 ```
 """
-function refl_DA_semiinf_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64)
-    n::Float64 = nmed/ndet
-    μa::Float64 = β[1]
-    μsp::Float64 = β[2]
-    D::Float64 = 1/3μsp
-  	ν::Float64 = 29.9792345/nmed
+function refl_DA_semiinf_TD(t, β, ρ, ndet, nmed)
+    n = nmed/ndet
+    μa = β[1]
+    μsp = β[2]
+    D = 1/3μsp
+  	ν = 29.9792345/nmed
 
-    Rt = Array{Float64}(undef, length(t))
+    Rt = Array{eltype(ρ)}(undef, length(t))
 
 	if n > 1.0
 		  A = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 +
@@ -67,11 +67,11 @@ function refl_DA_semiinf_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64,
 		  A = 1.0
 	end
 
-	zs::Float64 = 1/μsp
-	ze::Float64 = 2A*D
+	zs = 1/μsp
+	ze = 2A*D
 
-	z3m::Float64 = - zs
-    z4m::Float64 = 2ze +zs
+	z3m = - zs
+    z4m = 2ze +zs
 
     Threads.@threads for n in eachindex(t)
 
@@ -91,17 +91,17 @@ end
 
 ### TD Fluence ###
 """
-    fluence_DA_semiinf_TD(t, β::Array{Float64,1}, ρ::Float64, ndet::Float64, nmed::Float64, z::Float64)
+    fluence_DA_semiinf_TD(t, β, ρ, ndet, nmed, z)
 
 Compute the time-domain fluence in a semi-infinite medium (Eqn. 33 Contini). 
 
 # Arguments
 - `t`: the time vector (ns). 
-- `β::Array{Float64,1}`: the optical properties [μa, μs'] (cm⁻¹)
-- `ρ::Float64`: the source detector separation (cm⁻¹)
-- `ndet::Float64`: the boundary's index of refraction (air or detector)
-- `nmed::Float64`: the sample medium's index of refraction
-- `z::Float64`: the z-depth in medium
+- `β`: the optical properties [μa, μs'] (cm⁻¹)
+- `ρ`: the source detector separation (cm⁻¹)
+- `ndet`: the boundary's index of refraction (air or detector)
+- `nmed`: the sample medium's index of refraction
+- `z`: the z-depth in medium
 
 # Examples
 julia> fluence_DA_semiinf_TD(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0, 1.0)
@@ -142,21 +142,21 @@ end
 
 ### CW Fluence ###
 """
-    fluence_DA_semiinf_CW(ρ::Float64, β::Array{Float64,1}, ndet::Float64, nmed::Float64, z::Float64)
+    fluence_DA_semiinf_CW(ρ, β, ndet, nmed, z)
 
 Compute the steady-state fluence in a semi-infinite geometry according to Eqn. 3 of Kienle 1997. 
 
 # Arguments
-- `ρ::Float64`: the source detector separation (cm⁻¹)
-- `β::Array{Float64,1}`: the optical properties [μa, μs'] (cm⁻¹)
-- `ndet::Float64`: the boundary's index of refraction (air or detector)
-- `nmed::Float64`: the sample medium's index of refraction
-- `z::Float64`: the z-depth within slab (cm)
+- `ρ`: the source detector separation (cm⁻¹)
+- `β`: the optical properties [μa, μs'] (cm⁻¹)
+- `ndet`: the boundary's index of refraction (air or detector)
+- `nmed`: the sample medium's index of refraction
+- `z`: the z-depth within slab (cm)
 
 # Examples
 julia> fluence_DA_semiinf_CW(1.0, [0.1,10.0], 1.0,1.0, 0.0)
 """
-function fluence_DA_semiinf_CW(ρ::Float64, β::Array{Float64,1}, ndet::Float64, nmed::Float64, z::Float64)
+function fluence_DA_semiinf_CW(ρ, β, ndet, nmed, z)
       n = nmed/ndet
       μa = β[1]
       μsp = β[2]
@@ -188,7 +188,7 @@ function fluence_DA_semiinf_CW(ρ::Float64, β::Array{Float64,1}, ndet::Float64,
 end
 
 
-function fluence_DA_semiinf_FD(ρ::Float64, β::Array{Float64,1}, ndet::Float64, nmed::Float64, z::Float64, ω)
+function fluence_DA_semiinf_FD(ρ, β, ndet, nmed, z, ω)
     n = nmed/ndet
     ν = 29.9792345/nmed
     μa = β[1] + ω*im/ν
