@@ -81,7 +81,7 @@ function refl_DA_semiinf_TD(t, β, ρ, ndet, nmed)
         Rt[n] = Rt[n]*(z3m*exp(-(z3m^2/(4D*ν*t[n]))) - z4m*exp(-(z4m^2/(4D*ν*t[n]))))
 
         if isnan(Rt[n])
-            Rt[n] = 0
+            Rt[n] = 0.0
         end
      
     end
@@ -132,7 +132,7 @@ function fluence_DA_semiinf_TD(t, β, ρ, ndet, nmed, z)
         ϕ[ind] *= (exp(-((z - z0)^2 + ρ^2)/(4*D*ν*t[ind])) - exp(-((z + z0 + 2*zb)^2 + ρ^2)/(4*D*ν*t[ind])))
 
         if isnan(ϕ[ind])
-            ϕ[ind] = 0
+            ϕ[ind] = 0.0
         end
      
     end
@@ -157,33 +157,21 @@ Compute the steady-state fluence in a semi-infinite geometry according to Eqn. 3
 julia> fluence_DA_semiinf_CW(1.0, [0.1,10.0], 1.0,1.0, 0.0)
 """
 function fluence_DA_semiinf_CW(ρ, β, ndet, nmed, z)
-      n = nmed/ndet
-      μa = β[1]
-      μsp = β[2]
-      D = 1/3μsp
-      μeff = sqrt(3*μa*μsp)
+    n = nmed/ndet
+    μa = β[1]
+    μsp = β[2]
+    D = 1/3μsp
+    μeff = sqrt(3*μa*μsp)
 
-	  ϕ = 0.0
+    ϕ = 0.0
 
-		if n == 1.0
-			A= 1.0
-		elseif n > 1.0
-			A = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 +
-			5507.53041n^4 - 2463.357945n^5 + 610.956547n^6 - 64.8047n^7
-		else
-			A = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3
-		end
+    A = get_afac(n)
+	z0 = 1/μsp
+	zb = 2A*D
 
-		zs = 1/μsp
-		ze = 2A*D
+    ϕ += exp(-μeff*sqrt(ρ^2 + (z - z0)^2))/(sqrt(ρ^2 + (z - z0)^2))
+    ϕ -= exp(-μeff*sqrt(ρ^2 + (z + 2*zb + z0)^2))/(sqrt(ρ^2 + (z + 2*zb + z0)^2))
 
-        ϕ += exp(-μeff*sqrt(ρ^2 + (z - zs)^2))/(sqrt(ρ^2 + (z - zs)^2))
-        ϕ -= exp(-μeff*sqrt(ρ^2 + (z + 2*ze + zs)^2))/(sqrt(ρ^2 + (z + 2*ze + zs)^2))
-
-        if isnan(ϕ)
-            ϕ = 0
-        end
-             
 	return ϕ/(4*π*D)
 end
 
@@ -214,7 +202,7 @@ function fluence_DA_semiinf_FD(ρ, β, ndet, nmed, z, ω)
       ϕ -= exp(-μeff*sqrt(ρ^2 + (z + 2*ze + zs)^2))/(sqrt(ρ^2 + (z + 2*ze + zs)^2))
 
       if isnan(ϕ)
-          ϕ = 0
+          ϕ = 0.0
       end
            
   return ϕ/(4*π*D)
