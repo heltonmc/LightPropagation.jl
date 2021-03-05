@@ -151,7 +151,7 @@ Compute the steady-state fluence in a semi-infinite geometry according to Eqn. 3
 - `β`: the optical properties [μa, μs'] (cm⁻¹)
 - `ndet`: the boundary's index of refraction (air or detector)
 - `nmed`: the sample medium's index of refraction
-- `z`: the z-depth within slab (cm)
+- `z`: the z-depth orthogonal from the boundary (cm)
 
 # Examples
 julia> fluence_DA_semiinf_CW(1.0, [0.1,10.0], 1.0,1.0, 0.0)
@@ -163,7 +163,7 @@ function fluence_DA_semiinf_CW(ρ, β, ndet, nmed, z)
     D = 1/3μsp
     μeff = sqrt(3*μa*μsp)
 
-    ϕ = 0.0
+    ϕ = zero(eltype(ρ))
 
     A = get_afac(n)
 	z0 = 1/μsp
@@ -175,7 +175,6 @@ function fluence_DA_semiinf_CW(ρ, β, ndet, nmed, z)
 	return ϕ/(4*π*D)
 end
 
-
 function fluence_DA_semiinf_FD(ρ, β, ndet, nmed, z, ω)
     n = nmed/ndet
     ν = 29.9792345/nmed
@@ -184,26 +183,19 @@ function fluence_DA_semiinf_FD(ρ, β, ndet, nmed, z, ω)
     D = 1/3μsp
     μeff = sqrt(3*μa*μsp)
 
-    ϕ = 0.0
+    ϕ = zero(Complex{eltype(ρ)})
 
-      if n == 1.0
-          A= 1.0
-      elseif n > 1.0
-          A = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 +
-          5507.53041n^4 - 2463.357945n^5 + 610.956547n^6 - 64.8047n^7
-      else
-          A = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3
-      end
+    A = get_afac(n)
 
-      zs = 1/μsp
-      ze = 2A*D
+    zs = 1/μsp
+    ze = 2A*D
 
-      ϕ += exp(-μeff*sqrt(ρ^2 + (z - zs)^2))/(sqrt(ρ^2 + (z - zs)^2))
-      ϕ -= exp(-μeff*sqrt(ρ^2 + (z + 2*ze + zs)^2))/(sqrt(ρ^2 + (z + 2*ze + zs)^2))
+    ϕ += exp(-μeff*sqrt(ρ^2 + (z - zs)^2))/(sqrt(ρ^2 + (z - zs)^2))
+    ϕ -= exp(-μeff*sqrt(ρ^2 + (z + 2*ze + zs)^2))/(sqrt(ρ^2 + (z + 2*ze + zs)^2))
 
-      if isnan(ϕ)
-          ϕ = 0.0
-      end
+    if isnan(ϕ)
+        ϕ = zero(Complex{eltype(ρ)})
+    end
            
   return ϕ/(4*π*D)
 end
