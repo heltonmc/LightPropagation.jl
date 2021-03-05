@@ -1,7 +1,7 @@
 
 besselroots = load("besselzeroroots.jld")["besselroots"]
 
-@with_kw struct cylinder_inputs1
+@with_kw struct cylinder_inputs
     μsp::Float64 = 10.0
     μa::Float64 = 0.1 
     n_ext::Float64 = 1.0  #surrounding index of refraction
@@ -54,7 +54,7 @@ function fluence_DA_cylinder_CW(data::cylinder_inputs, besselroots)
    
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
 
-    ϕ = 0.0
+    ϕ = zero(eltype(data.ρ))
     for bessel in besselroots
         ϕ += _greencylin_CW(bessel/(data.a + zb), data.μa, D, data.z, z0, zb, data.lz)*besselj0(bessel/(data.a + zb)*data.ρ)/(besselj1(bessel))^2
     end
@@ -67,7 +67,7 @@ function fluence_DA_cylinder_FD(data::cylinder_inputs, besselroots)
 
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
 
-    ϕ = 0.0 + 0.0im
+    ϕ = zero(Complex{eltype(data.ρ)})
 
     for n in eachindex(besselroots)
         ϕ += _greencylin_FD(besselroots[n]/(data.a + zb), data.μa, D, data.z, z0, zb, data.lz, ν, data.ω)*besselj0(besselroots[n]/(data.a + zb)*data.ρ)/(besselj1(besselroots[n]))^2
@@ -83,7 +83,7 @@ function _fluence_DA_cylinder_Laplace(s, data::cylinder_inputs, besselroots)
 
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
 
-    ϕ = 0.0
+    ϕ = zero(eltype(data.ρ))
 
     for bessel in besselroots
         ϕ += _greencylin_Laplace(bessel/(data.a + zb), data.μa, D, data.z, z0, zb, data.lz, ν, s)*besselj0(bessel/(data.a + zb)*data.ρ)/(besselj1(bessel))^2
@@ -99,7 +99,7 @@ function fluence_DA_cylinder_TD(t, N, data::cylinder_inputs, besselroots)
     Rt = zeros(Float64, length(t))
     Rt = LT_hyperbola(s -> _fluence_DA_cylinder_Laplace(s, data, besselroots), N, t)
 
-    return Rt./59.958469
+    return Rt
 end
 
 # use fixed contour for every time point
@@ -112,7 +112,7 @@ function fluence_DA_cylinder_TD(t, N, data::cylinder_inputs, besselroots)
     Rt = zeros(Float64, length(t))
     Rt = LT_hyper_fixed(s -> _fluence_DA_cylinder_Laplace(s, data, besselroots), N, t)
 
-    return Rt./59.958469
+    return Rt
 end
 
 
@@ -123,8 +123,9 @@ function fluence_DA_cylinder_CW_beam(data::cylinder_inputs1, besselroots)
    
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
 
-    ϕ = 0.0
-    sn = 0.0
+    ϕ = zero(eltype(data.ρ))
+    sn = zero(eltype(data.ρ))
+
     for n in eachindex(besselroots)
         sn = besselroots[n]/(data.a + zb)
         ϕ += _greencylin_CW(sn, data.μa, D, data.z, z0, zb, data.lz)*besselj0(sn*data.ρ)*besselj1(sn*data.pw)/(sn*(besselj1(sn*(data.a + zb))^2))
@@ -136,9 +137,9 @@ end
 function _fluence_DA_cylinder_Laplace_beam(s, data::cylinder_inputs1, besselroots)
 
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
-    ϕ = 0.0
+    ϕ = zero(eltype(data.ρ))
 
-    sn = 0.0
+    sn = zero(eltype(data.ρ))
     for n in eachindex(besselroots)
         sn = besselroots[n]/(data.a + zb)
         ϕ += _greencylin_Laplace(sn, data.μa, D, data.z, z0, zb, data.lz, ν, s)*besselj0(sn*data.ρ)*besselj1(sn*data.pw)/(sn*(besselj1(sn*(data.a + zb))^2))
@@ -151,7 +152,7 @@ function fluence_DA_cylinder_TD_beam(t, N, data::cylinder_inputs1, besselroots)
     Rt = zeros(Float64, length(t))
     Rt = LT_hyper_fixed(s -> _fluence_DA_cylinder_Laplace_beam(s, data, besselroots), N, t)
 
-    return Rt./59.958469
+    return Rt
 end
 
 ### arbitrary position
@@ -181,8 +182,8 @@ function fluence_DA_cylinder_CW(data::cylinder_inputs_arb2, besselj_roots)
    
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
 
-    ϕ = 0.0
-    ϕ1 = 0.0
+    ϕ = zero(eltype(data.ρ))
+    ϕ1 = zero(eltype(data.ρ))
 
     for m = 0:100
         ϕ1 = 0.0
@@ -299,7 +300,7 @@ function fluence_DA_cylinder_TD(t, N, data::cylinder_inputs_arb3, besselroots)
     Rt = zeros(Float64, length(t))
     Rt = LT_hyper_fixed(s -> _fluence_DA_cylinder_Laplace(s, data, besselroots), N, t)
 
-    return Rt./59.958469
+    return Rt
 end
 #=
 Calculate Bessel Roots
