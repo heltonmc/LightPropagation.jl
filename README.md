@@ -85,7 +85,6 @@ julia> plot(t[ind], TPSF[ind], yscale=:log10, lw = 2, ylabel="Counts", xlabel="t
 
 ```
 There are several other forward models in different geometries. The naming scheme of the forward models follow a physicalquantity_approximation_geometry_measurementtype scheme. So something that simulates the reflected temporal point spread function using the diffusion approximation for a semi-infinite geometry would be `TPSF_DA_semiinf_refl`. Try simulating the TPSF for a slab and parralelepiped geometry by using `TPSF_DA_slab_refl` and `TPSF_DA_paralpip_refl` functions.
-## Documentation
 
 ## LightPropagation community
 
@@ -94,10 +93,6 @@ Join the [gitter](https://gitter.im/LightPropagation/community) chat to ask ques
 ## Contributing to LightPropagation
 
 LightPropgation is a collaborative project open to contributions and discussion.
-
-## How to cite LightPropagation
-
-In order to give credit to the `LightPropagation` contributors, we ask you to cite the reference below in any publication in which you have made use of `LightPropagation` packages:
 
 ## Contact
 
