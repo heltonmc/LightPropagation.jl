@@ -83,7 +83,7 @@ function _fluence_DA_cylinder_Laplace(s, data::cylinder_inputs, besselroots)
 
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
 
-    ϕ = zero(eltype(data.ρ))
+    ϕ = zero(eltype(s))
 
     for bessel in besselroots
         ϕ += _greencylin_Laplace(bessel/(data.a + zb), data.μa, D, data.z, z0, zb, data.lz, ν, s)*besselj0(bessel/(data.a + zb)*data.ρ)/(besselj1(bessel))^2
