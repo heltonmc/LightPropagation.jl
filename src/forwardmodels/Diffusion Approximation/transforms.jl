@@ -162,12 +162,10 @@ function fixed_sk(f::Function, N, t::AbstractArray)
     μ, h = LT_hyper_coef(N, t)
     a = Array{Complex{Float64}}(undef, N)
     sk = similar(a)
-    ind = 1
-    for k in 0:N-1
-        sk[ind] = s_fixed((k + 1/2)*h, μ)
+    Threads.@threads for k in 0:N-1
+        sk[k+1] = s_fixed((k + 1/2)*h, μ)
         dsk = ds_fixed((k + 1/2)*h, μ)
-        a[ind] = f(sk[ind])*dsk
-        ind += 1
+        a[k+1] = f(sk[k+1])*dsk
     end
     return a, sk, h
 end
