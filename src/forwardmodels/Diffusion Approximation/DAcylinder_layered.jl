@@ -93,7 +93,7 @@ end
 function fluence_DA_Nlay_cylinder_CW(data::Nlayer_cylinder, besselroots)
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
 
-    ϕ = 0.0
+    ϕ = zero(eltype(data.ρ))
 
     for ind in eachindex(besselroots)
         ϕ += _green_Nlaycylin_CW(besselroots[ind]/(data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med)*besselj0(besselroots[ind]/(data.a + zb[1])*data.ρ)/(besselj1(besselroots[ind]))^2
@@ -105,7 +105,7 @@ end
 function fluence_DA_Nlay_cylinder_FD(data::Nlayer_cylinder, besselroots)
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
 
-    ϕ = 0.0
+    ϕ = zero(Complex{eltype(data.ρ)})
 
     for ind in eachindex(besselroots)
         ϕ += _green_Nlaycylin_FD(besselroots[ind]/(data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med, ν, ω)*besselj0(besselroots[ind]/(data.a + zb[1])*data.ρ)/(besselj1(besselroots[ind]))^2
@@ -117,7 +117,7 @@ end
 function _fluence_DA_Nlay_cylinder_Laplace(s, data::Nlayer_cylinder, besselroots)
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
 
-    ϕ = 0.0
+    ϕ = zero(eltype(s))
 
     for ind in eachindex(besselroots)
         ϕ += _green_Nlaycylin_Laplace(besselroots[ind]/(data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med, ν, s)*besselj0(besselroots[ind]/(data.a + zb[1])*data.ρ)/(besselj1(besselroots[ind]))^2
@@ -128,15 +128,15 @@ end
 
 
 function fluence_DA_Nlay_cylinder_TD(t, N, data::Nlayer_cylinder, besselroots)
-    Rt = zeros(Float64, length(t))
+    Rt = zeros(eltype(t), length(t))
     Rt = LT_hyperbola(s -> _fluence_DA_Nlay_cylinder_Laplace(s, data, besselroots), N, t)
 
-    return Rt./59.958469
+    return Rt
 end
 
-function fluence_DA_Nlay_cylinder_TD(t, data::Nlayer_cylinder, besselroots)
-    Rt = zeros(Float64, length(t))
-    Rt = LT_hyper_fixed(s -> _fluence_DA_Nlay_cylinder_Laplace(s, data, besselroots), 28, t)
+function fluence_DA_Nlay_cylinder_TD(t, data::Nlayer_cylinder, besselroots; N = 28)
+    Rt = zeros(eltype(t), length(t))
+    Rt = LT_hyper_fixed(s -> _fluence_DA_Nlay_cylinder_Laplace(s, data, besselroots), N, t)
 
-    return Rt./59.958469
+    return Rt
 end
