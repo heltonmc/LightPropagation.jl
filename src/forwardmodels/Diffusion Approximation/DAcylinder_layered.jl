@@ -19,7 +19,7 @@ function diffusionparams(μsp, n_med, n_ext)
     ## Diffusion parameters
     D = @. 1/3μsp
     ν = @. 29.9792345/n_med
-    A = 1.0 #@. get_afac(n_ext/n_med) # need to calculate reflection between layers and surrounding medium
+    A = @. get_afac(n_ext/n_med) # need to calculate reflection between layers and surrounding medium
     zb = @. 2*A*D
     z0 = 1/(μsp[1])
 
@@ -69,8 +69,8 @@ function _green_Nlaycylin(α, D, z0, zb, l, n)
     g = (exp(-α[1]*z0) - exp(-α[1]*(z0 + 2*zb[1]))) / (2*D[1]*α[1])
     g1 = exp(α[1]*(z0 - 2*l[1]))*(1 - exp(-2*α[1]*(z0 + zb[1])))*(1 - exp(-2*α[1]*zb[1]))
     g1 *= (D[1]*α[1]*n[1]^2*β - D[2]*α[2]*n[2]^2*γ)
-    g1 /= D[1]*α[1]
-    g1 /= (D[1]*α[1]*n[1]^2*β*(1 + exp(-2*α[1]*(l[1] + zb[1]))) + D[2]*α[2]*n[2]^2*γ*(1 + exp(-2*α[1]*(l[1] + zb[1]))))
+    g1 /= 2*D[1]*α[1]
+    g1 /= (D[1]*α[1]*n[1]^2*β*(1 + exp(-2*α[1]*(l[1] + zb[1]))) + D[2]*α[2]*n[2]^2*γ*(1 - exp(-2*α[1]*(l[1] + zb[1]))))
 
 
     return g + g1
@@ -120,7 +120,7 @@ function _fluence_DA_Nlay_cylinder_Laplace(s, data::Nlayer_cylinder, besselroots
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
 
     ϕ = zero(eltype(s))
-    α = zeros(eltype(s), 4)
+    α = zeros(eltype(s), length(data.μa))
 
 
     for ind in eachindex(besselroots)
