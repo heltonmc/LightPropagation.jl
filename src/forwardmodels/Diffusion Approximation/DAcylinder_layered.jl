@@ -1,5 +1,4 @@
-pwd()
-const besselroots = load("LightPropagation/src/forwardmodels/Diffusion Approximation/besselzeroroots.jld")["besselroots"]
+#const besselroots = load("LightPropagation/src/forwardmodels/Diffusion Approximation/besselzeroroots.jld")["besselroots"]
 
 @with_kw struct Nlayer_cylinder{T <: AbstractFloat}
     μsp::Array{T,1} = [10.0, 10.0, 10.0, 10.0]

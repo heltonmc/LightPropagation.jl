@@ -40,6 +40,9 @@ include("forwardmodels/Diffusion Approximation/transforms.jl")
 include("forwardmodels/Diffusion Approximation/diffusionparameters.jl")
 include("forwardmodels/Diffusion Approximation/DAcylinder_layered.jl")
 
+const besselroots = load("forwardmodels/Diffusion Approximation/besselzeroroots.jld")["besselroots"]
+
+
 
        
 end
