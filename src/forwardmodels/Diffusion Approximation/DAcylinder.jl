@@ -1,20 +1,20 @@
 
 besselroots = load("besselzeroroots.jld")["besselroots"]
 
-@with_kw struct cylinder_inputs
-    μsp::Float64 = 10.0
-    μa::Float64 = 0.1 
-    n_ext::Float64 = 1.0  #surrounding index of refraction
-    n_med::Float64 = 1.4 # layers index of refraction
+@with_kw struct cylinder_inputs{T <: AbstractFloat}
+    μsp::T = 10.0
+    μa::T = 0.1 
+    n_ext::T = 1.0  #surrounding index of refraction
+    n_med::T = 1.4 # layers index of refraction
 
     #source, detector
-    lz::Float64 = 5.0 # length of cylinder
-    ρ::Float64 = 1.0 # 
-    a::Float64 = 5.0 # radius of cylinder
-    z::Float64 = 0.0
-    pw::Float64 = 0.1
+    lz::T = 5.0 # length of cylinder
+    ρ::T = 1.0 # 
+    a::T = 5.0 # radius of cylinder
+    z::T = 0.0
+    pw::T = 0.1
 
-    ω::Float64 = 0.0 #
+    ω::T = 0.0 #
 end
 
 # look at get_afac for some reason gives type instabillity

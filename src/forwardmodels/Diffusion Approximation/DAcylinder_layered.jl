@@ -1,18 +1,17 @@
+const besselroots = load("src/forwardmodels/Diffusion Approximation/besselzeroroots.jld")["besselroots"]
 
-besselroots = load("besselzeroroots.jld")["besselroots"]
-
-@with_kw struct Nlayer_cylinder
-    μsp::Array{Float64,1} = [10.0, 10.0, 10.0, 10.0]
-    μa::Array{Float64,1} = [0.1, 0.1, 0.1, 0.1] 
-    n_ext::Float64 = 1.0  #surrounding index of refraction
-    n_med::Array{Float64,1} = [1.0, 1.0, 1.0, 1.0] # layers index of refraction
+@with_kw struct Nlayer_cylinder{T <: AbstractFloat}
+    μsp::Array{T,1} = [10.0, 10.0, 10.0, 10.0]
+    μa::Array{T,1} = [0.1, 0.1, 0.1, 0.1] 
+    n_ext::T = 1.0  #surrounding index of refraction
+    n_med::Array{T,1} = [1.0, 1.0, 1.0, 1.0] # layers index of refraction
 
     #source, detector
-    l::Array{Float64,1} = [0.5, 0.8, 1.0, 5.0] # length of cylinder
-    ρ::Float64 = 1.0 # 
-    a::Float64 = 5.0 # radius of cylinder
+    l::Array{T,1} = [0.5, 0.8, 1.0, 5.0] # length of cylinder
+    ρ::T = 1.0 # 
+    a::T = 5.0;  # radius of cylinder
 
-    ω::Float64 = 0.0 #
+    ω::T = 0.0 #
 end
 
 function diffusionparams(μsp, n_med, n_ext)
@@ -25,7 +24,6 @@ function diffusionparams(μsp, n_med, n_ext)
 
     return D, ν, A, zb, z0
 end
-
 
 # Calculate β and γ coefficients 
 function _get_βγ2(α, D, n, zb, l)
