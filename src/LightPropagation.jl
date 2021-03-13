@@ -7,6 +7,8 @@ using LsqFit
 using DSP
 using FFTW
 using Parameters
+using SpecialFunctions
+using JLD
 
 
 export TPSF_DA_semiinf_refl
@@ -14,6 +16,11 @@ export TPSF_DA_slab_refl
 export TPSF_DA_paralpip_refl
 
 export fluence_DA_semiinf_TD
+
+export Nlayer_cylinder
+export fluence_DA_Nlay_cylinder_CW
+export fluence_DA_Nlay_cylinder_TD
+export besselroots
 
 export getfit
 
@@ -29,6 +36,9 @@ include("inversefitting/FitStructures/fitstructures.jl")
 include("inversefitting/FitFunctions/fitfunction.jl")
 include("inversefitting/FitFunctions/fitmodels.jl")
 
+include("forwardmodels/Diffusion Approximation/transforms.jl")
+include("forwardmodels/Diffusion Approximation/diffusionparameters.jl")
+include("forwardmodels/Diffusion Approximation/DAcylinder_layered.jl")
 
 
        
