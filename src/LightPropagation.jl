@@ -16,6 +16,7 @@ export TPSF_DA_slab_refl
 export TPSF_DA_paralpip_refl
 
 export fluence_DA_semiinf_TD
+export fluence_DA_semiinf_CW
 
 export Nlayer_cylinder
 export fluence_DA_Nlay_cylinder_CW
