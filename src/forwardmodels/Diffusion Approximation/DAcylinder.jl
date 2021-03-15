@@ -1,6 +1,4 @@
 
-besselroots = load("besselzeroroots.jld")["besselroots"]
-
 @with_kw struct cylinder_inputs{T <: AbstractFloat}
     μsp::T = 10.0
     μa::T = 0.1 
