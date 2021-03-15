@@ -1,4 +1,3 @@
-#const besselroots = load("LightPropagation/src/forwardmodels/Diffusion Approximation/besselzeroroots.jld")["besselroots"]
 
 @with_kw struct Nlayer_cylinder{T <: AbstractFloat}
     μsp::Array{T,1} = [10.0, 10.0, 10.0, 10.0]
@@ -12,17 +11,6 @@
     a::T = 5.0;  # radius of cylinder
 
     ω::T = 0.0 #
-end
-
-function diffusionparams(μsp, n_med, n_ext)
-    ## Diffusion parameters
-    D = @. 1/3μsp
-    ν = @. 29.9792345/n_med
-    A = @. get_afac(n_ext/n_med) # need to calculate reflection between layers and surrounding medium
-    zb = @. 2*A*D
-    z0 = 1/(μsp[1])
-
-    return D, ν, A, zb, z0
 end
 
 # Calculate β and γ coefficients 
@@ -74,8 +62,10 @@ function _green_Nlaycylin(α, D, z0, zb, l, n)
     return g + g1
 end
 
-function _green_Nlaycylin_CW(sn, μa, D, z0, zb, l, n)
-    α = @. sqrt(μa/D + sn^2)
+function _green_Nlaycylin_CW(α, sn, μa, D, z0, zb, l, n)
+    @inbounds for ind in 1:length(μa)
+        α[ind] = sqrt(μa[ind]/D[ind] + sn^2)
+    end
     return _green_Nlaycylin(α, D, z0, zb, l, n)
 end
 function _green_Nlaycylin_FD(sn, μa, D, z0, zb, l, n, ν, ω)
@@ -94,9 +84,10 @@ function fluence_DA_Nlay_cylinder_CW(data::Nlayer_cylinder, besselroots)
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
 
     ϕ = zero(eltype(data.ρ))
+    α = zeros(eltype(data.ρ), length(data.μa))
 
     for ind in eachindex(besselroots)
-        ϕ += _green_Nlaycylin_CW(besselroots[ind]/(data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med)*besselj0(besselroots[ind]/(data.a + zb[1])*data.ρ)/(besselj1(besselroots[ind]))^2
+        ϕ += _green_Nlaycylin_CW(α, besselroots[ind]/(data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med)*besselj0(besselroots[ind]/(data.a + zb[1])*data.ρ)/(besselj1(besselroots[ind]))^2
     end
 
   

@@ -9,3 +9,14 @@ function get_afac(n)
     end
     return A
 end
+
+function diffusionparams(μsp, n_med, n_ext)
+    ## Diffusion parameters
+    D = @. 1/3μsp
+    ν = @. 29.9792345/n_med
+    A = @. get_afac(n_ext/n_med) # need to calculate reflection between layers and surrounding medium
+    zb = @. 2*A*D
+    z0 = 1/(μsp[1])
+
+    return D, ν, A, zb, z0
+end
