@@ -26,7 +26,7 @@ Where ``a' = a + z_{b_k}``, ``\rho`` is the source-detector separation, and ``J_
 #### Green's function
 Finally, the Green's function in the first layer ``G_1(s_n, z)`` is:
 ```math
-G_1(s_n, z) = \frac{e^{-\alpha_1 |z - z_0|} - e^{-\alpha_1 (z + z_0 + 2z_{b_1})}}{2D_1 \alpha_1} + \frac{\sinh{[\alpha_1(z_0 + z_{b_1})]} \sinh{[\alpha_1(z + z_{b_1})]}}{D_1\alpha_1 e^{\alpha_1(l_1 + z_{b_1})}} \\
+G_1(s_n, z) = \frac{e^{-\alpha_1 |z - z_0|} - e^{-\alpha_1 (z + z_0 + 2z_{b_1})}}{2D_1 \alpha_1} + \frac{\sinh{[\alpha_1(z_0 + z_{b_1})]} \sinh{[\alpha_1(z + z_{b_1})]}}{D_1\alpha_1 e^{\alpha_1(l_1 + z_{b_1})}} \\[5pt]
 \times \frac{D_1\alpha_1n_1^2\beta_3 - D_2\alpha_2n_2^2\gamma_3}{D_1\alpha_1n_1^2\beta_3\cosh{\alpha_1(l_1 + z_{b_1})} + D_2\alpha_2n_2^2\gamma_3\sinh{\alpha_1(l_1 + z_{b_1})}}
 ```
 
@@ -40,7 +40,7 @@ Whereas a complex term is added in the Frequency Domain:
 ```
 As you can notice the first term of ``G_1(s_n, z)`` contains exponentially decaying functions which is great as you can see that ``\alpha`` has to be summed for very large numbers. Generally ``z, z_b, z_0`` are around 0.1 so this is easy to handle computationally. On the other hand, terms like ``\sinh{\alpha l}`` and ``\cosh{\alpha l}`` go to infinity very quickly. It is much better to define (though messier) the Green's function in terms of exponetials using ``\sinh{x} = (e^x - e^{-x})/2`` and ``\cosh{x} = (e^x + e^{-x})/2``. After some algebraic manipulation we can then define ``G_1(s_n, z)`` as:
 ```math
-G_1(s_n, z) = \frac{e^{-\alpha_1 |z - z_0|} - e^{-\alpha_1 (z + z_0 + 2z_{b_1})}}{2D_1 \alpha_1} + \frac{e^{\alpha_1(z_0 + z - 2l_1)}[1 - e^{-2\alpha_1(z_0 + z_{b_1})}]}{2D_1\alpha_1} \\
+G_1(s_n, z) = \frac{e^{-\alpha_1 |z - z_0|} - e^{-\alpha_1 (z + z_0 + 2z_{b_1})}}{2D_1 \alpha_1} + \frac{e^{\alpha_1(z_0 + z - 2l_1)}[1 - e^{-2\alpha_1(z_0 + z_{b_1})}]}{2D_1\alpha_1} \\[5pt]
 \times \frac{D_1\alpha_1n_1^2\beta_3 - D_2\alpha_2n_2^2\gamma_3}{D_1\alpha_1n_1^2\beta_3[1 + e^{-2\alpha_1(l_1 + z_{b_1})}] + D_2\alpha_2n_2^2\gamma_3[1 - e^{-2\alpha_1(l_1 + z_{b_1})}]}
 ```
 Great. So now we have expressed the Green's function in terms of exponentially decaying functions instead of dividing by exponentially growing functions so we are confident that we won't get overflow errors as ``\alpha`` goes to infinity. We are now ready to discuss the last pesky thing which are the ``\gamma_3`` and ``\beta_3`` factors. These are generally obtained from recurrence relations in [^1] by equation 17 and 18. As presented they also contain exponentially growing functions. Where before we only had ``\sinh{\alpha_1 l_1}`` now we have exponential functions of all the layers. This is especially challenging if we consider the bottom layer to be large. In general the same procedure we used prior should be used but we can't explicitly write them in terms of decaying functions because these factors actually do exponentially increase. What we can do is take advantage of the way they present in ``G_1(s_n, z)`` which is ``(\beta_3 - \gamma_3)/(\beta_3 + \gamma_3)``. We need to find a common exponentially growing factor that presents in both coefficients that we can then cancel.
@@ -49,35 +49,37 @@ After we factor a common term out we can then define the coefficients for an N-l
 
 ``N = 2``:
 ```math
-\beta_3 = 1 - e^{-2 \alpha_2 (l_2 + z_{b_2})} \\
+\beta_3 = 1 - e^{-2 \alpha_2 (l_2 + z_{b_2})} \\[5pt]
 \gamma_3 = 1 + e^{-2 \alpha_2 (l_2 + z_{b_2})}
 ```
 
 ``N = 3``:
 ```math
-\beta_3 = D_2 \alpha_2 n_2^2 (1 + e^{-2\alpha_2 l_2})(1 - e^{-2 \alpha_3 (l_3 + z_{b_2})}) + D_3 \alpha_3 n_3^2 (1 - e^{-2\alpha_2 l_2})(1 + e^{-2 \alpha_3 (l_3 + z_{b_2})}) \\
+\beta_3 = D_2 \alpha_2 n_2^2 (1 + e^{-2\alpha_2 l_2})(1 - e^{-2 \alpha_3 (l_3 + z_{b_2})}) + D_3 \alpha_3 n_3^2 (1 - e^{-2\alpha_2 l_2})(1 + e^{-2 \alpha_3 (l_3 + z_{b_2})}) \\[5pt]
 \gamma_3 = D_2 \alpha_2 n_2^2 (1 - e^{-2\alpha_2 l_2})(1 - e^{-2 \alpha_3 (l_3 + z_{b_2})}) + D_3 \alpha_3 n_3^2 (1 + e^{-2\alpha_2 l_2})(1 + e^{-2 \alpha_3 (l_3 + z_{b_2})})
 ```
 
 ``N = 4``:
 ```math
-\beta_4 = D_3 \alpha_3 n_3^2 (1 + e^{-2\alpha_3 l_3}) (1 - e^{-2\alpha_4 (l_4 + z_{b_2}}) + D_4 \alpha_4 n_4^2 (1 - e^{-2\alpha_3 l_3}) (1 + e^{-2\alpha_4 (l_4 + z_{b_2}}) \\
+\beta_4 = D_3 \alpha_3 n_3^2 (1 + e^{-2\alpha_3 l_3}) (1 - e^{-2\alpha_4 (l_4 + z_{b_2}}) + D_4 \alpha_4 n_4^2 (1 - e^{-2\alpha_3 l_3}) (1 + e^{-2\alpha_4 (l_4 + z_{b_2}}) \\[5pt]
 \gamma_4 = D_3 \alpha_3 n_3^2 (1 - e^{-2\alpha_3 l_3}) (1 - e^{-2\alpha_4 (l_4 + z_{b_2}}) + D_4 \alpha_4 n_4^2 (1 + e^{-2\alpha_3 l_3}) (1 + e^{-2\alpha_4 (l_4 + z_{b_2}}) \\
 ```
 
 ```math
-\beta_3 = D_2 \alpha_2 n_2^2 \beta_4 (1 + e^{-2\alpha_2 l_2}) + D_3 \alpha_3 n_3^2 \gamma_4 (1 - e^{-2\alpha_2 l_2}) \\
+\beta_3 = D_2 \alpha_2 n_2^2 \beta_4 (1 + e^{-2\alpha_2 l_2}) + D_3 \alpha_3 n_3^2 \gamma_4 (1 - e^{-2\alpha_2 l_2}) \\[5pt]
 \gamma_3 = D_2 \alpha_2 n_2^2 \beta_4 (1 - e^{-2\alpha_2 l_2}) + D_3 \alpha_3 n_3^2 \gamma_4 (1 + e^{-2\alpha_2 l_2})
 ```
 
 ``N > 4``: Use start values
 ```math
-\beta_N = D_{N-1} \alpha_{N-1} n_{n-1}^2 (1 + e^{-2\alpha_{N-1}l_{N-1}})(1 - e^{-2\alpha_{N-1}(l_{N-1} + z_{b_2})}) + D_{N} \alpha_{N} n_{n}^2 (1 - e^{-2\alpha_{N-1}l_{N-1}})(1 + e^{-2\alpha_{N}(l_{N} + z_{b_2})}) \\
-\gamma_N = D_{N-1} \alpha_{N-1} n_{n-1}^2 (1 - e^{-2\alpha_{N-1}l_{N-1}})(1 - e^{-2\alpha_{N-1}(l_{N-1} + z_{b_2})}) + D_{N} \alpha_{N} n_{n}^2 (1 + e^{-2\alpha_{N-1}l_{N-1}})(1 + e^{-2\alpha_{N}(l_{N} + z_{b_2})})
+\beta_N = D_{N-1} \alpha_{N-1} n_{n-1}^2 (1 + e^{-2\alpha_{N-1}l_{N-1}})(1 - e^{-2\alpha_{N-1}(l_{N-1} + z_{b_2})}) \\[5pt]
+ + D_{N} \alpha_{N} n_{n}^2 (1 - e^{-2\alpha_{N-1}l_{N-1}})(1 + e^{-2\alpha_{N}(l_{N} + z_{b_2})}) \\[10pt]
+\gamma_N = D_{N-1} \alpha_{N-1} n_{n-1}^2 (1 - e^{-2\alpha_{N-1}l_{N-1}})(1 - e^{-2\alpha_{N-1}(l_{N-1} + z_{b_2})}) \\[5pt]
+ + D_{N} \alpha_{N} n_{n}^2 (1 + e^{-2\alpha_{N-1}l_{N-1}})(1 + e^{-2\alpha_{N}(l_{N} + z_{b_2})})
 ```
 With downward recurrence relations: 
 ```math
-\beta_{k - 1} = D_{k - 2} \alpha_{k - 2} n_{k - 2}^2 (1 + e^{-2\alpha_{k - 2}l_{k - 2}}) \beta_k + D_{k - 1} \alpha_{k - 1} n_{k - 1}^2 (1 - e^{-2\alpha_{k - 2}l_{k - 2}}) \gamma_k \\
+\beta_{k - 1} = D_{k - 2} \alpha_{k - 2} n_{k - 2}^2 (1 + e^{-2\alpha_{k - 2}l_{k - 2}}) \beta_k + D_{k - 1} \alpha_{k - 1} n_{k - 1}^2 (1 - e^{-2\alpha_{k - 2}l_{k - 2}}) \gamma_k \\[5pt]
 \gamma_{k - 1} = D_{k - 2} \alpha_{k - 2} n_{k - 2}^2 (1 - e^{-2\alpha_{k - 2}l_{k - 2}}) \beta_k + D_{k - 1} \alpha_{k - 1} n_{k - 1}^2 (1 + e^{-2\alpha_{k - 2}l_{k - 2}}) \gamma_k
 ```
 
