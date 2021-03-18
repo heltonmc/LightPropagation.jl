@@ -17,6 +17,9 @@ export TPSF_DA_paralpip_refl
 
 export fluence_DA_semiinf_TD
 export fluence_DA_semiinf_CW
+export fluence_DA_slab_CW
+export fluence_DA_slab_TD
+export fluence_DA_paralpip_TD
 
 export Nlayer_cylinder
 export fluence_DA_Nlay_cylinder_CW
@@ -32,6 +35,9 @@ export fitDTOF, DTOF_fitparams
 include("forwardmodels/TPSF/DiffusionApproximation/refl_TD.jl")
 include("data/loadData/loaddata.jl")
 include("forwardmodels/Diffusion Approximation/Semi-infinite/DAsemiinf.jl")
+include("forwardmodels/Diffusion Approximation/Slab/DAslab.jl")
+include("forwardmodels/Diffusion Approximation/Parallelepiped/DAparalpip.jl")
+
 
 include("inversefitting/FitStructures/fitstructures.jl")
 include("inversefitting/FitFunctions/fitfunction.jl")
