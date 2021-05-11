@@ -33,6 +33,17 @@ function _greencylin(α, D, z, z0, zb, lz)
     return g / (2*D*α)
 end
 
+###test for z = z0
+function _greencylin(α, D, z, z0, zb, lz)
+    if z == z0
+        g = - exp(-α*(z + z0 + 2*zb))
+    else
+        g = (exp(-α*abs(z - z0)) - exp(-α*(z + z0 + 2*zb)))
+    end
+    g -= exp(α*(z0 + z - 2*lz - 2*zb))*(1 - exp(-2*α*(z0 + zb)))*(1 - exp(-2*α*(zb + z)))/(1 - exp(-2*α*(lz + 2*zb)))
+    return g / (2*D*α)
+end
+
 function _greencylin_CW(sn, μa, D, z, z0, zb, lz)
     α = sqrt(μa/D + sn^2)
     return _greencylin(α, D, z, z0, zb, lz)
