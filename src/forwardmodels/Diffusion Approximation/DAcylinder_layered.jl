@@ -81,10 +81,14 @@ function fluence_DA_Nlay_cylinder_CW(data::Nlayer_cylinder, besselroots)
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
 
     ϕ = zero(eltype(data.ρ))
+    ϕ_tmp = zero(eltype(ϕ))
     α = zeros(eltype(data.ρ), length(data.μa))
 
     for ind in eachindex(besselroots)
-        ϕ += _green_Nlaycylin_CW(α, besselroots[ind]/(data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med) * besselj0(besselroots[ind] / (data.a + zb[1]) * data.ρ) / (besselj1(besselroots[ind]))^2
+        ϕ_tmp = _green_Nlaycylin_CW(α, besselroots[ind]/(data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med)
+        ϕ_tmp *= besselj0(besselroots[ind] / (data.a + zb[1]) * data.ρ)
+        ϕ_tmp /= (besselj1(besselroots[ind]))^2
+        ϕ += ϕ_tmp
     end
 
     return ϕ / (π * (data.a + zb[1])^2)
@@ -93,9 +97,13 @@ function fluence_DA_Nlay_cylinder_FD(data::Nlayer_cylinder, besselroots)
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
 
     ϕ = zero(Complex{eltype(data.ρ)})
+    ϕ_tmp = zero(eltype(ϕ))
 
     for ind in eachindex(besselroots)
-        ϕ += _green_Nlaycylin_FD(besselroots[ind]/(data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med, ν, ω) * besselj0(besselroots[ind] / (data.a + zb[1]) * data.ρ) / (besselj1(besselroots[ind]))^2
+        ϕ_tmp = _green_Nlaycylin_FD(besselroots[ind]/(data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med, ν, ω) 
+        ϕ_tmp *= besselj0(besselroots[ind] / (data.a + zb[1]) * data.ρ) 
+        ϕ_tmp /= (besselj1(besselroots[ind]))^2
+        ϕ += ϕ_tmp
     end
   
     return ϕ / (π * (data.a + zb[1])^2)
@@ -104,10 +112,15 @@ function _fluence_DA_Nlay_cylinder_Laplace(s, data::Nlayer_cylinder, besselroots
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
 
     ϕ = zero(eltype(s))
+    ϕ_tmp = zero(eltype(ϕ))
+
     α = zeros(eltype(s), length(data.μa))
 
     for ind in eachindex(besselroots)
-        ϕ += _green_Nlaycylin_Laplace(α, besselroots[ind]/(data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med, ν, s) * besselj0(besselroots[ind] / (data.a + zb[1]) * data.ρ) / (besselj1(besselroots[ind]))^2
+        ϕ_tmp = _green_Nlaycylin_Laplace(α, besselroots[ind]/(data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med, ν, s) 
+        ϕ_tmp *= besselj0(besselroots[ind] / (data.a + zb[1]) * data.ρ) 
+        ϕ_tmp /= (besselj1(besselroots[ind]))^2
+        ϕ += ϕ_tmp
     end
 
     return ϕ / (π * (data.a + zb[1])^2)
