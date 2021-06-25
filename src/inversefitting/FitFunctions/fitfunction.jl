@@ -95,7 +95,7 @@ function _conv_DT(t, β::Array{Float64,1}, data::fitDTOF, out, fftIRF, pl, pli, 
     )
 
         RtDT = fluence_DA_semiinf_TD(data.t, β, data.ρ, data.ndet, data.nmed, 0.0)
-        RtDT =RtDT./(2*get_afac(data.nmed/data.ndet))
+        RtDT =RtDT#./(2*get_afac(data.nmed/data.ndet))
 
         RtDT = RtDT./maximum(RtDT)
         copyto!(out, RtDT)

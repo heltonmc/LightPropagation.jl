@@ -48,12 +48,10 @@ function _greencylin_CW(sn, μa, D, z, z0, zb, lz)
     α = sqrt(μa/D + sn^2)
     return _greencylin(α, D, z, z0, zb, lz)
 end
-
 function _greencylin_FD(sn, μa, D, z, z0, zb, lz, ν, ω)
     α = sqrt(μa/D + sn^2 + im*ω/(D*ν))
     return _greencylin(α, D, z, z0, zb, lz)
 end
-
 function _greencylin_Laplace(sn, μa, D, z, z0, zb, lz, ν, s)
     α = sqrt(μa/D + sn^2 + s/(D*ν))
     return _greencylin(α, D, z, z0, zb, lz)
@@ -234,6 +232,48 @@ function fluence_DA_cylinder_CW(data::cylinder_inputs_arb3, besselj_roots)
     end
 
     return ϕ / (π*(data.a + zb)^2)
+end
+
+function source_location(data, z0)
+    # source located parallel to barrel of cylinder
+    if data.ρ0 == data.a
+        if data.z0 == zero(eltype(data.z0)) || data.z0 == data.lz # check if source is on corners of cylinder
+            error("unclear source location on edge of cylinder")
+        end
+        ρ0 = data.ρ0 -  z0
+        z0 = data.z0
+    # source located on top of barrel
+    elseif data.z0 == zero(eltype(data.z0)) && data.ρ0 < data.a # can't be on edge either
+        ρ0 = data.ρ0
+        z0 = z0 # this z0 is calculated with diffusionparams that defaults to 1/μsp
+    elseif data.z0 > zero(eltype(data.z0)) && data.z0 < data.lz && data.ρ0 < data.a
+        @warn "... assuming you are manually placing source inside cylinder and not modifying location"
+        ρ0 = data.ρ0
+        z0 = data.z0
+    else # throw error if doesn't fit any conditions above. It could be that they have placed source term on bottom surface instead of top. Make z0 = 0 
+        error("Unsure where source term is located please check ... could be that source term is located on bottom surface (z0 = lz) instead of top")
+    end
+
+    return ρ0, z0
+end
+
+
+function fluence_DA_cylinder_CW1(data, besselj_roots)
+    D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
+    ρ0, z0 = source_location(data, z0)
+   
+    ϕ = zero(eltype(data.ρ))
+    ## pencil beam incident onto center of cylinder top
+    if data.ρ0 == zero(eltype(data.ρ0)) && data.z0 == zero(eltype(data.z0))
+        for bessel in besselj_roots[:, 1] # only need zero order bessel roots J0
+            ϕ += _greencylin_CW(bessel/(data.a + zb), data.μa, D, data.z, z0, zb, data.lz)*besselj0(bessel/(data.a + zb)*data.ρ)/(besselj1(bessel))^2
+        end
+        ϕ /= (π*(data.a + zb)^2)
+    #else
+       # @warn "error" 
+    end
+
+    return ϕ
 end
 
 
