@@ -1,4 +1,4 @@
-##################################################################################################################################= 
+################################################################################################################################## 
 # Implements solution to the diffusion equation in a N-layered finite cylinder as given in [1].
 # Solutions are given in the spatial, frequency, and time domains for a point source located in the middle of the cylinder top.
 #
