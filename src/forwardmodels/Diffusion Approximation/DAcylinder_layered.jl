@@ -1,18 +1,27 @@
+##################################################################################################################################= 
+# Implements solution to the diffusion equation in a N-layered finite cylinder as given in [1].
+# Solutions are given in the spatial, frequency, and time domains for a point source located in the middle of the cylinder top.
+#
+# [1] André Liemert and Alwin Kienle, "Light diffusion in a turbid cylinder. II. Layered case," Opt. Express 18, 9266-9279 (2010) 
+################################################################################################################################## 
+
 @with_kw struct Nlayer_cylinder{T <: AbstractFloat}
-    μsp::Array{T,1} = [10.0, 10.0, 10.0, 10.0]
-    μa::Array{T,1} = [0.1, 0.1, 0.1, 0.1] 
+    μsp::Array{T,1} = [10.0, 10.0, 10.0, 10.0]  # reduced scattering coefficient (1/cm)
+    μa::Array{T,1} = [0.1, 0.1, 0.1, 0.1]       # absorption coefficient (1/cm)
     n_ext::T = 1.0                              # surrounding index of refraction
     n_med::Array{T,1} = [1.0, 1.0, 1.0, 1.0]    # layers index of refraction
 
-    #source, detector
-    l::Array{T,1} = [0.5, 0.8, 1.0, 5.0]        # length of cylinder layers
-    ρ::T = 1.0                                  # source-detector separation
-    a::T = 5.0                                  # radius of cylinder
+    l::Array{T,1} = [0.5, 0.8, 1.0, 5.0]        # length of cylinder layers (cm)
+    ρ::T = 1.0                                  # source-detector separation (cm)
+    a::T = 5.0                                  # radius of cylinder (cm)
 
     ω::T = 0.0                                  # modulation frequency
 end
 
-# Calculate β and γ coefficients 
+# Calculate β and γ coefficients with eqn. 17 in [1].
+# sinh and cosh have been expanded as exponentials and factored.
+# For N = 2, 3, 4 coefficients are explicitly calculated.
+# For N > 4, β and γ are calculated recursively using eqn. 17 & 18.
 function _get_βγ2(α, D, n, zb, l)
     β = (1 - exp(-2 * α[2] * (l[2] + zb[2])))
 
@@ -42,6 +51,7 @@ function _get_βγ4(α, D, n, zb, l)
     return β, γ
 end
 
+# Calculates the Green's function G1 in the first layer using eqn. 15 from [1].
 function _green_Nlaycylin(α, D, z0, zb, l, n)
     if isequal(length(α), 4)
         β, γ = _get_βγ4(α, D, n, zb, l)
@@ -60,6 +70,8 @@ function _green_Nlaycylin(α, D, z0, zb, l, n)
     return g + g1
 end
 
+# Calculates α as given in eqn. 27 for each domain.
+# In spatial (CW) domain, ω = 0. In Hankel-Laplace space, iω -> s.
 function _green_Nlaycylin_CW(α, sn, μa, D, z0, zb, l, n)
     @inbounds for ind in 1:length(μa)
         α[ind] = sqrt(μa[ind] / D[ind] + sn^2)
@@ -77,6 +89,7 @@ function _green_Nlaycylin_Laplace(α, sn, μa, D, z0, zb, l, n, ν, s)
     return _green_Nlaycylin(α, D, z0, zb, l, n)
 end
 
+# Calculates the fluence in the first layer (G1) due to a point source that is incident onto the center top of the cylinder with eqn. [22].
 function fluence_DA_Nlay_cylinder_CW(data::Nlayer_cylinder, besselroots)
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
 
@@ -85,7 +98,7 @@ function fluence_DA_Nlay_cylinder_CW(data::Nlayer_cylinder, besselroots)
     α = zeros(eltype(data.ρ), length(data.μa))
 
     for ind in eachindex(besselroots)
-        ϕ_tmp = _green_Nlaycylin_CW(α, besselroots[ind]/(data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med)
+        ϕ_tmp = _green_Nlaycylin_CW(α, besselroots[ind] / (data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med)
         ϕ_tmp *= besselj0(besselroots[ind] / (data.a + zb[1]) * data.ρ)
         ϕ_tmp /= (besselj1(besselroots[ind]))^2
         ϕ += ϕ_tmp
@@ -100,7 +113,7 @@ function fluence_DA_Nlay_cylinder_FD(data::Nlayer_cylinder, besselroots)
     ϕ_tmp = zero(eltype(ϕ))
 
     for ind in eachindex(besselroots)
-        ϕ_tmp = _green_Nlaycylin_FD(besselroots[ind]/(data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med, ν, ω) 
+        ϕ_tmp = _green_Nlaycylin_FD(besselroots[ind] / (data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med, ν, ω) 
         ϕ_tmp *= besselj0(besselroots[ind] / (data.a + zb[1]) * data.ρ) 
         ϕ_tmp /= (besselj1(besselroots[ind]))^2
         ϕ += ϕ_tmp
@@ -117,7 +130,7 @@ function _fluence_DA_Nlay_cylinder_Laplace(s, data::Nlayer_cylinder, besselroots
     α = zeros(eltype(s), length(data.μa))
 
     for ind in eachindex(besselroots)
-        ϕ_tmp = _green_Nlaycylin_Laplace(α, besselroots[ind]/(data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med, ν, s) 
+        ϕ_tmp = _green_Nlaycylin_Laplace(α, besselroots[ind] / (data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med, ν, s) 
         ϕ_tmp *= besselj0(besselroots[ind] / (data.a + zb[1]) * data.ρ) 
         ϕ_tmp /= (besselj1(besselroots[ind]))^2
         ϕ += ϕ_tmp
@@ -126,13 +139,14 @@ function _fluence_DA_Nlay_cylinder_Laplace(s, data::Nlayer_cylinder, besselroots
     return ϕ / (π * (data.a + zb[1])^2)
 end
 
+# Calculates the fluence in the time-domain with the Laplace transform.
+# This solution is not explicitly shown in [1].
 function fluence_DA_Nlay_cylinder_TD(t, N, data::Nlayer_cylinder, besselroots)
     Rt = zeros(eltype(t), length(t))
     Rt = LT_hyperbola(s -> _fluence_DA_Nlay_cylinder_Laplace(s, data, besselroots), N, t)
 
     return Rt
 end
-
 function fluence_DA_Nlay_cylinder_TD(t, data::Nlayer_cylinder, besselroots; N = 28)
     Rt = zeros(eltype(t), length(t))
     Rt = LT_hyper_fixed(s -> _fluence_DA_Nlay_cylinder_Laplace(s, data, besselroots), N, t)
