@@ -46,8 +46,8 @@ cylinder_data = Nlayer_cylinder(a = 8.0, ρ = 0.5)
 
 si = fluence_DA_semiinf_TD(t, [0.1, 10.0], 0.5, 1.0, 1.0, 0.0)
 
-a72 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, besselroots[1:600], N = 72)
-a96 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, besselroots[1:600], N = 96)
+a72 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 72)
+a96 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 96)
 
 @test a72 ≈ si
 @test a96 ≈ si
@@ -58,8 +58,8 @@ cylinder_data = Nlayer_cylinder(a = 8.0, ρ = 3.0, l = [4.0, 4.0, 4.0, 5.0])
 
 si = fluence_DA_semiinf_TD(t, [0.1, 10.0], 3.0, 1.0, 1.0, 0.0)
 
-a72 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, besselroots[1:600], N = 72)
-a96 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, besselroots[1:600], N = 96)
+a72 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 72)
+a96 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 96)
 
 @test a72 ≈ si
 @test a96 ≈ si
@@ -70,8 +70,8 @@ cylinder_data = Nlayer_cylinder(a = 8.0, ρ = 1.5, l = [4.0, 4.0, 4.0, 5.0], μs
 
 si = fluence_DA_semiinf_TD(t, [0.1, 60.0], 1.5, 1.0, 1.0, 0.0)
 
-a72 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, besselroots[1:600], N = 72)
-a96 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, besselroots[1:600], N = 96)
+a72 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 72)
+a96 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 96)
 
 @test a72 ≈ si
 @test a96 ≈ si
