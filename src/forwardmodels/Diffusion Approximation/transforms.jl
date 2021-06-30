@@ -1,38 +1,40 @@
 # Compute Post-Widder coefficients Vk
-function _PWcoeffs(N)
-    v = zeros(N)
-    aux = 0.0
+function _PWcoeffs(N::Integer)
+    if isodd(N)
+        N += 1
+        @warn "N must be even... increment N += 1"
+    end
+    v = zeros(BigFloat, N)
+    aux = zero(eltype(v))
     for k in 1:N
-        for j in floor(Int, (k + 1)/2):minimum(Int, [k, N/2])
-            aux = big(j)^(N/2)*factorial(big(2*j))
-            aux /= factorial(big(N/2 - j))*factorial(big(j))*factorial(big(j-1))
-            aux /= factorial(big(k - j))*factorial(big(2*j - k))
+        for j in fld(k + 1, 2):minimum(Int, [k, div(N, 2)])
+            aux = big(j)^(div(N, 2)) * factorial(big(2 * j))
+            aux /= factorial(big(div(N, 2) - j)) * factorial(big(j)) * factorial(big(j - 1))
+            aux /= factorial(big(k - j)) * factorial(big(2 * j - k))
             v[k] += aux
         end
-        v[k] *= (-1)^(k + N/2) 
+        v[k] *= (-1)^(k + div(N, 2))
     end
     return v
 end
 
 # compute the laplace transform using Post-Widder for a single time pt
-function LT_postwid(f::Function, v, t::AbstractFloat)
+function postwid(func::Function, t::AbstractFloat; v = _PWcoeffs(18))
     N = length(v)
-    a = 0.0
+    a = zero(eltype(v))
     for k in 1:N
-        a += v[k]*f(k*log(2)/t)
+        bk = convert(eltype(v), k)
+        a += v[k] * func(bk * log(convert(eltype(a), 2)) / t)
     end
-    return a*log(2)/t
+    return a * log(convert(eltype(a), 2)) / t
 end
 
 # for an array of t using multithreading
-function LT_postwid(f::Function, v, t::AbstractArray)
+function postwid(f::Function, t::AbstractArray; v = _PWcoeffs(18))
     N = length(v)
-    a = zeros(length(t))
+    a = zeros(eltype(v), length(t))
     Threads.@threads for ind in eachindex(t)
-        for k in 1:N
-            a[ind] += v[k]*f(k*log(2)/t[ind])
-        end
-        a[ind] *= log(2)/t[ind]
+        a[ind] = postwid(f, t[ind], v = v)
     end
     return a
 end
@@ -114,79 +116,87 @@ plot!(t, abs.(lt), label = "LT Post-Widder")
 ## adaptive contour for each time point (can't precompute f(ω) or sk)
 
 function s(θ, N, t)
-    μ = 4.492075287*N/t
+    μ = 4.492075287 * N / t
     ϕ = 1.172104229 
-    return μ + im*μ*sinh(θ + im*ϕ)
+    return μ + im * μ * sinh(θ + im * ϕ)
 end
-
+# derivitive of hyperbola contour
 function ds(θ, N, t)
-    μ = 4.492075287*N/t
-    ϕ = 1.172104229 
-    return im*μ*cosh(θ + im*ϕ)
+    μ = 4.492075287 * N / t
+    ϕ = 1.172104229
+    return im * μ * cosh(θ + im * ϕ)
 end
 
 # compute the laplace transform along a hyperbola contour fixed time point
-function LT_hyperbola(f::Function, N, t::AbstractFloat)
-    a = 0.0 + 0.0*im
-    h = 1.081792140/N
+function hyperbola(f::Function, t::AbstractFloat; N = 16)
+    a =  zero(Complex{eltype(t)})
+    N = convert(eltype(t), N)
+    h = 1.081792140 / N
     for k in 0:N-1
-        sk = s((k + 1/2)*h, N, t)
-        dsk = ds((k + 1/2)*h, N, t)
-        a += f(sk)*exp(sk*t)*dsk
+        sk = s((k + 1/2) * h, N, t)
+        dsk = ds((k + 1/2) * h, N, t)
+        a += f(sk) * exp(sk * t) * dsk
     end
-    return imag(a)*h/pi
+    return imag(a) * h / pi
 end
 
 # loop through an entire time array with multithreads
-function LT_hyperbola(f::Function, N, t::AbstractArray)
+function hyperbola(f::Function, t::AbstractArray; N = 16)
     out = similar(t)
     Threads.@threads for ind in eachindex(t)
-        out[ind] = LT_hyperbola(f, N, t[ind])
+        out[ind] = hyperbola(f, t[ind], N = N)
     end
-    return out   
+    return out
 end
 
 #### fixed integration path (can precompute)
 # get the fixed integration components
-function LT_hyper_coef(N, t::AbstractArray; ϕ = 1.09)
-    A = acosh(((π - 2*ϕ)*t[end]/t[1] + 4*ϕ - π)/((4*ϕ - π)*sin(ϕ)))
-    μ = (4*π*ϕ - π^2)*N/t[end]/A
-    h = A/N
+
+# get the fixed integration components
+function hyper_coef(N, t::AbstractArray; ϕ = 1.09)
+    A = acosh(((π - 2 * ϕ) * t[end] / t[1] + 4 * ϕ - π) / ((4 * ϕ - π) * sin(ϕ)))
+    μ = (4 * π * ϕ - π^2) * N / t[end] / A
+    h = A / N
     return μ, h
 end
 
-s_fixed(θ, μ; ϕ = 1.09) = μ + im*μ*sinh(θ + im*ϕ)
-ds_fixed(θ, μ; ϕ = 1.09) = im*μ*cosh(θ + im*ϕ)
+# compute the fixed hyperbola contour
+s_fixed(θ, μ; ϕ = 1.09) = μ + im * μ * sinh(θ + im * ϕ)
+ds_fixed(θ, μ; ϕ = 1.09) = im * μ * cosh(θ + im * ϕ)
 
+# compute the function values over the fixed contour nodes
 function fixed_sk(f::Function, N, t::AbstractArray)
-    μ, h = LT_hyper_coef(N, t)
-    a = Array{Complex{Float64}}(undef, N)
+    μ, h = hyper_coef(N, t)
+    a = zeros(Complex{eltype(h)}, Int(N))
     sk = similar(a)
-    Threads.@threads for k in 0:N-1
-        sk[k+1] = s_fixed((k + 1/2)*h, μ)
-        dsk = ds_fixed((k + 1/2)*h, μ)
-        a[k+1] = f(sk[k+1])*dsk
+    Threads.@threads for k in 0:Int(N)-1
+        sk[k+1] = s_fixed((k + 1/2) * h, μ)
+        dsk = ds_fixed((k + 1/2) * h, μ)
+        a[k+1] = f(sk[k + 1]) * dsk
     end
     return a, sk, h
 end
 
-function LT_hyper_fixed(a, sk, h, t::AbstractFloat)
-    b = 0.0 + 0.0*im
+function hyper_fixed_points(a, sk, h, t::AbstractFloat)
+    b = zero(eltype(a))
     for ind in eachindex(sk)
-        b += a[ind]*exp(sk[ind]*t)
+        b += a[ind] * exp(sk[ind] * t)
     end
-    return imag(b)*h/π
+    return imag(b) * h / π
 end
 
 
-function LT_hyper_fixed(f::Function, N, t::AbstractArray)
+
+function hyper_fixed(f::Function, t::AbstractArray; N = 24)
+    N = convert(eltype(t), N)
     a, sk, h = fixed_sk(f, N, t)
-    out = similar(t)
+    out = zeros(eltype(h), length(t))
     Threads.@threads for ind in eachindex(t)
-        out[ind] = LT_hyper_fixed(a, sk, h, t[ind])
+        out[ind] = hyper_fixed_points(a, sk, h, t[ind])
     end
     return out
 end
 
 # run as
 # LT_hyper_fixed(s -> fluence_DA_inf_FD(1.0, [0.1, 10.0], s),28, t)
+
