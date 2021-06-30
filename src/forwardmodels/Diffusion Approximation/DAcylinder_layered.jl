@@ -161,15 +161,15 @@ end
 
 # Calculates the fluence in the time-domain with the Laplace transform.
 # This solution is not explicitly shown in [1].
-function fluence_DA_Nlay_cylinder_TD(t, N, data::Nlayer_cylinder, besselroots)
+function fluence_DA_Nlay_cylinder_TD(t::AbstractFloat, data::Nlayer_cylinder; bessels = besselroots, N = 16)
     Rt = zeros(eltype(t), length(t))
-    Rt = LT_hyperbola(s -> _fluence_DA_Nlay_cylinder_Laplace(s, data, besselroots), N, t)
+    Rt = hyperbola(s -> _fluence_DA_Nlay_cylinder_Laplace(s, data, bessels), t, N = N)
 
     return Rt
 end
-function fluence_DA_Nlay_cylinder_TD(t, data::Nlayer_cylinder, besselroots; N = 28)
+function fluence_DA_Nlay_cylinder_TD(t::AbstractArray, data::Nlayer_cylinder; bessels = besselroots, N = 28)
     Rt = zeros(eltype(t), length(t))
-    Rt = LT_hyper_fixed(s -> _fluence_DA_Nlay_cylinder_Laplace(s, data, besselroots), N, t)
+    Rt = hyper_fixed(s -> _fluence_DA_Nlay_cylinder_Laplace(s, data, bessels), t, N = N)
 
     return Rt
 end
