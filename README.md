@@ -76,7 +76,7 @@ The values default to the same optical properties in both layers to allow for co
 julia> fluence_DA_semiinf_CW(1.0, [0.1, 10.0], 1.0, 1.0, 0.0) # inputs are (ρ, [μa, μsp], n_ext, n_med, z)
 0.024035998288332954
 ```
-A few notes: `besselroots` contains the first 1000000 roots of `J0`. Generally `<1000` roots are needed to reach adequate convergence. In the both above example you can see that the semi-inf and layered solution have `rel_error ~ 1e-7`. You can increase the size of the cylinder radius and layer thickness to better approximate semi-infinite. Generally, the number of roots needed to reach convergence is related to the inputs `a`, `l`, and `μsp`. 
+A few notes: `besselroots` contains the first 1000000 roots of `J0`. Generally `<1000` roots are needed to reach adequate convergence. In the above example you can see that the semi-inf and layered solution have `rel_error ~ 1e-7`. You can increase the size of the cylinder radius and layer thickness to better approximate semi-infinite. Generally, the number of roots needed to reach convergence is directly related to the inputs `a`, `l`, and `μsp`. 
 It is recommended to keep `a` and `l` reasonable for your applications. `a = 10` and `l = [1.0, 10.0]` will approximate an infinite bottom layer and laterally infinite sides well. If you have large scattering coefficients you will need to increase number of roots. All units are in `cm`.
 Due to floating point arithmetic and the limited precision of the besselroots, you can expect absolute errors on the order of `~1e-14` once converged. This means that to simulate a fluence value less than `1e-15`, you will need to use higher precision calculations. Though, for practical measurements such low values aren't usually detectable.
 #### Time-domain
@@ -102,7 +102,7 @@ Again, we are limited by the precision of the besselroots in our calculation. Ut
 
 #Performance notes#: For the best performance you will need to start julia in your terminal with multiple threads. See https://docs.julialang.org/en/v1/manual/multi-threading/ for start up help. 
 
-
+(OLD VERSION/DEPRECATED)
 #### Forward Simulation
 
 To view a functions inputs and methods type `?` in the REPL and then the name of the function. Let's first look at simulating a temporal point spread function (TPSF) for a semi-infinite medium.
