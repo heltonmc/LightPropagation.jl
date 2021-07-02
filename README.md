@@ -33,6 +33,37 @@ julia> using LightPropagation
 
 You should now have access to all of the exported functions of the package.
 
+### N-layered media
+
+The n-layered solutions take the structure `Nlayer_cylinder` as an input argument. We can define the input structure as follows with default arguments:
+
+```julia
+julia> data = Nlayer_cylinder()
+Nlayer_cylinder{Float64}
+  μsp: Array{Float64}((4,)) [10.0, 10.0, 10.0, 10.0]
+  μa: Array{Float64}((4,)) [0.1, 0.1, 0.1, 0.1]
+  n_ext: Float64 1.0
+  n_med: Array{Float64}((4,)) [1.0, 1.0, 1.0, 1.0]
+  l: Array{Float64}((4,)) [0.5, 0.8, 1.0, 5.0]
+  ρ: Float64 1.0
+  a: Float64 5.0
+  ω: Float64 0.0  
+```
+`ρ` is the source-detector separation in cylindrical coordinates,  `a` is the cylinder radius, `l` is the thickness of each layer.
+If we wanted to explicitly define our optical properties for a 2-layered media we can define our input structure using keyword arguments:
+```julia
+julia> data = Nlayer_cylinder(ρ = 1.0, μsp = [10.0, 11.1], μa = [0.1, 0.18], l = [1.2, 10.0], n_med = [1.0, 1.0])
+Nlayer_cylinder{Float64}
+  μsp: Array{Float64}((2,)) [10.0, 11.1]
+  μa: Array{Float64}((2,)) [0.1, 0.18]
+  n_ext: Float64 1.0
+  n_med: Array{Float64}((2,)) [1.0, 1.0]
+  l: Array{Float64}((2,)) [1.2, 10.0]
+  ρ: Float64 1.0
+  a: Float64 5.0
+  ω: Float64 0.0
+```
+
 #### Forward Simulation
 
 To view a functions inputs and methods type `?` in the REPL and then the name of the function. Let's first look at simulating a temporal point spread function (TPSF) for a semi-infinite medium.
