@@ -37,6 +37,12 @@ cylinder_2 = Nlayer_cylinder(ρ = 1.0, μsp = [10.0, 10.0], μa = [0.1, 0.1], l 
 cylinder_data = Nlayer_cylinder(ρ = 1.0, μsp = [60.0, 60.0, 60.0, 60.0], μa = [0.1, 0.1, 0.1, 0.1], l = [2.0, 2.0, 2.0, 2.0], n_med = [1.0, 1.0, 1.0, 1.0], a = 20.0)
 @test fluence_DA_semiinf_CW(1.0, [0.1, 60.0], 1.0, 1.0, 0.0) ≈ fluence_DA_Nlay_cylinder_CW(cylinder_data, besselroots)
 
+### test for varying index of refractions
+cyl_2 = Nlayer_cylinder(ρ = 1.0, μsp = [10.0, 10.0], μa = [0.1, 0.1], l = [10.0, 10.0], n_med = [1.5, 1.5], n_ext = 1.4, a = 20.0)
+cyl_3 = Nlayer_cylinder(ρ = 1.0, μsp = [10.0, 10.0, 10.0], μa = [0.1, 0.1, 0.1], l = [10.0, 10.0, 10.0], n_med = [1.5, 1.5, 1.5], n_ext = 1.4, a = 20.0)
+cyl_4 = Nlayer_cylinder(ρ = 1.0, μsp = [10.0, 10.0, 10.0, 10.0], μa = [0.1, 0.1, 0.1, 0.1], l = [10.0, 10.0, 10.0, 10.0], n_med = [1.5, 1.5, 1.5, 1.5], n_ext = 1.4, a = 20.0)
+@test fluence_DA_Nlay_cylinder_CW(cyl_4, besselroots) ≈ fluence_DA_Nlay_cylinder_CW(cyl_3, besselroots) ≈ fluence_DA_Nlay_cylinder_CW(cyl_2, besselroots) ≈ fluence_DA_semiinf_CW(1.0, [0.1, 10.0], 1.5, 1.4, 0.0)
+
 
 # TD
 
