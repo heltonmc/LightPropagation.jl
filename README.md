@@ -64,6 +64,23 @@ Nlayer_cylinder{Float64}
   ω: Float64 0.0
 ```
 
+#### Steady-State
+To simulate the fluence in the steady-state we can simply run:
+```julia
+julia> data = Nlayer_cylinder()
+julia> fluence_DA_Nlay_cylinder_CW(data, besselroots[1:600])
+0.02403599777515162
+```
+The values default to the same optical properties in both layers to allow for comparison to homogoenous media. For example, to compare to the semi-infinite approximation you can run:
+```julia
+julia> fluence_DA_semiinf_CW(1.0, [0.1, 10.0], 1.0, 1.0, 0.0) # inputs are (ρ, [μa, μsp], n_ext, n_med, z)
+0.024035998288332954
+```
+A few notes: `besselroots` contains the first 1000000 roots of `J0`. Generally `<1000' roots are needed to reach adequate convergence. In the both above example you can see that the semi-inf and layered solution have `rel_error ~ 1e-7`. You can increase the size of the cylinder radius and layer thickness to better approximate semi-infinite. Generally, the number of roots needed to reach convergence is related to the inputs `a`, `l`, and `μsp`. It is recommended to keep `a` and `l` reasonable for your applications. `a = 10` and `l = [1.0, 10.0]` will approximate an infinite bottom layer and laterally infinite sides well. If you have large scattering coefficients you will need to increase number of roots.
+
+
+
+
 #### Forward Simulation
 
 To view a functions inputs and methods type `?` in the REPL and then the name of the function. Let's first look at simulating a temporal point spread function (TPSF) for a semi-infinite medium.
