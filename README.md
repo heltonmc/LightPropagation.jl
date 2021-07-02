@@ -100,7 +100,7 @@ phi_lay52 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[
 ```
 Again, we are limited by the precision of the besselroots in our calculation. Utilizing double precision we are not able to generate fluence values below the machine precision `~2.2e-16`. If you want values lower than this you can use quad precision calculation to generate lower values. This occurs in the time-domain much more frequently than the spatial domain at long times and high absorption values.
 
-Performance notes: For the best performance you will need to start julia in your terminal with multiple threads. See [this page] (https://docs.julialang.org/en/v1/manual/multi-threading/) for help.
+#Performance notes#: For the best performance you will need to start julia in your terminal with multiple threads. See https://docs.julialang.org/en/v1/manual/multi-threading/ for start up help. 
 
 
 #### Forward Simulation
