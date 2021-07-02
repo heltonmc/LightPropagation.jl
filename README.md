@@ -79,7 +79,7 @@ julia> fluence_DA_semiinf_CW(1.0, [0.1, 10.0], 1.0, 1.0, 0.0) # inputs are (ρ, 
 A few notes: `besselroots` contains the first 1000000 roots of `J0`. Generally `<1000` roots are needed to reach adequate convergence. In the both above example you can see that the semi-inf and layered solution have `rel_error ~ 1e-7`. You can increase the size of the cylinder radius and layer thickness to better approximate semi-infinite. Generally, the number of roots needed to reach convergence is related to the inputs `a`, `l`, and `μsp`. 
 It is recommended to keep `a` and `l` reasonable for your applications. `a = 10` and `l = [1.0, 10.0]` will approximate an infinite bottom layer and laterally infinite sides well. If you have large scattering coefficients you will need to increase number of roots. All units are in `cm`.
 Due to floating point arithmetic and the limited precision of the besselroots, you can expect absolute errors on the order of `~1e-14` once converged. This means that to simulate a fluence value less than `1e-15`, you will need to use higher precision calculations. Though, for practical measurements such low values aren't usually detectable.
-#### Steady-State
+#### Time-domain
 To simulate the fluence in the time-domain we can simply run:
 ```julia
 julia> t = range(0.03, 5.0, length = 120) # nanoseconds
