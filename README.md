@@ -76,9 +76,31 @@ The values default to the same optical properties in both layers to allow for co
 julia> fluence_DA_semiinf_CW(1.0, [0.1, 10.0], 1.0, 1.0, 0.0) # inputs are (ρ, [μa, μsp], n_ext, n_med, z)
 0.024035998288332954
 ```
-A few notes: `besselroots` contains the first 1000000 roots of `J0`. Generally `<1000' roots are needed to reach adequate convergence. In the both above example you can see that the semi-inf and layered solution have `rel_error ~ 1e-7`. You can increase the size of the cylinder radius and layer thickness to better approximate semi-infinite. Generally, the number of roots needed to reach convergence is related to the inputs `a`, `l`, and `μsp`. It is recommended to keep `a` and `l` reasonable for your applications. `a = 10` and `l = [1.0, 10.0]` will approximate an infinite bottom layer and laterally infinite sides well. If you have large scattering coefficients you will need to increase number of roots.
+A few notes: `besselroots` contains the first 1000000 roots of `J0`. Generally `<1000` roots are needed to reach adequate convergence. In the both above example you can see that the semi-inf and layered solution have `rel_error ~ 1e-7`. You can increase the size of the cylinder radius and layer thickness to better approximate semi-infinite. Generally, the number of roots needed to reach convergence is related to the inputs `a`, `l`, and `μsp`. 
+It is recommended to keep `a` and `l` reasonable for your applications. `a = 10` and `l = [1.0, 10.0]` will approximate an infinite bottom layer and laterally infinite sides well. If you have large scattering coefficients you will need to increase number of roots. All units are in `cm`.
+Due to floating point arithmetic and the limited precision of the besselroots, you can expect absolute errors on the order of `~1e-14` once converged. This means that to simulate a fluence value less than `1e-15`, you will need to use higher precision calculations. Though, for practical measurements such low values aren't usually detectable.
+#### Steady-State
+To simulate the fluence in the time-domain we can simply run:
+```julia
+julia> t = range(0.03, 5.0, length = 120) # nanoseconds
+julia> phi_lay = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600])
+## to compare to semi-infinite 
+julia> SI = fluence_DA_semiinf_TD(t, [0.1, 10.0], 1.0, 1.0, 1.0, 0.0)
 
+## you can then plot like
+using Plots
+julia> plot(t, log10.(abs.(phi_lay)), label="layered solution")
+julia> plot!(t, log10.(SI), label="semi-inf")
+```
 
+So what is happening after `4ns`? The layered solution can take two keyword arguments: `besselroots` which is the number of roots to consider in the sum and `N` which is the number of Hankel-Laplace calculations in the inversion from the Hankel-Laplace space to the time-domain. The number of calculations needed depends on the dynamic range of the time-domain signal you want. Try different values of N like below and see how the signal is reconstructed:
+```julia
+phi_lay12 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 12)
+phi_lay52 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 52)
+```
+Again, we are limited by the precision of the besselroots in our calculation. Utilizing double precision we are not able to generate fluence values below the machine precision `~2.2e-16`. If you want values lower than this you can use quad precision calculation to generate lower values. This occurs in the time-domain much more frequently than the spatial domain at long times and high absorption values.
+
+Performance notes: For the best performance you will need to start julia in your terminal with multiple threads. See [this page] (https://docs.julialang.org/en/v1/manual/multi-threading/) for help.
 
 
 #### Forward Simulation
