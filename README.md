@@ -102,6 +102,24 @@ Again, we are limited by the precision of the besselroots in our calculation. Ut
 
 #Performance notes#: For the best performance you will need to start julia in your terminal with multiple threads. See https://docs.julialang.org/en/v1/manual/multi-threading/ for start up help. 
 
+### Calculation in higher precision
+As mentioned previously, we are limited to absolute errors on the order of machine precision. So we can't expect to simulate any fluence values below eps. To simulate in arbitrary precision (down to at least absolute errors ~`1e-77` we need to load bessel roots in arbitrary precision. Unzip the file `besselzeroroots_big.jld.zip` located in the `src/forwardmodels/Diffusion Approximation/` folder. You will then need to load the file like:
+```julia
+using JLD
+bessel_arb = load("besselzeroroots_big.jld")["big_besselroots"]
+cylinder_data = Nlayer_cylinder(ρ = big(15.0), μsp = big.([20.0,20.0,20.0,20.0]),μa = big.([0.3,0.3,0.3,0.3]), n_ext = big(1.0), n_med = big.([1.0, 1.0, 1.0, 1.0]), a = big(25.0), ω = big(0.0), l = big.([1.0, 2.0, 3.0, 10.0])) # convert inputs to arbitrary floats
+julia> cyl = fluence_DA_Nlay_cylinder_CW(cylinder_data, bessel_arb[1:12000])
+1.166981416744208493461258014108689524878588065968633120335354050360868699344118e-31
+julia> fluence_DA_semiinf_CW(15.0, [0.3, 20.0], 1.0, 1.0, 0.0) ### check against semi-infinite solution
+1.1669489849622033e-31
+```
+Using arbitrary floats requires signficinatly more time to compute. Using Float128 values gives absolute errors at eps `~1.92592994438723e-34` while being much faster. Example below:
+```julia
+using Quadmath # gives us Float128 values
+cylinder_data = Nlayer_cylinder(ρ = Float128(15.0), μsp = Float128.([20.0,20.0,20.0,20.0]),μa = Float128.([0.3,0.3,0.3,0.3]), n_ext = Float128(1.0), n_med = Float128.([1.0, 1.0, 1.0, 1.0]), a = Float128(25.0), ω = Float128(0.0), l = Float128.([1.0, 2.0, 3.0, 10.0])) # convert inputs to arbitrary floats
+julia> cyl = fluence_DA_Nlay_cylinder_CW(cylinder_data, Float128.(bessel_arb[1:12000]))
+```
+
 (OLD VERSION/DEPRECATED)
 #### Forward Simulation
 
