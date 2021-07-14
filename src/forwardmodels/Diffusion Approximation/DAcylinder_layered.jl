@@ -14,7 +14,7 @@
     l::Array{T,1} = [0.5, 0.8, 1.0, 5.0]        # length of cylinder layers (cm)
     ρ::T = 1.0                                  # source-detector separation (cm)
     a::T = 5.0                                  # radius of cylinder (cm)
-    z::T = 0.0                                  # detector depth (cm)
+    z = 0.0                                  # detector depth (cm)
 
     ω::T = 0.0                                  # modulation frequency
 end
