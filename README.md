@@ -107,7 +107,7 @@ As mentioned previously, we are limited to absolute errors on the order of machi
 ```julia
 using JLD
 bessel_arb = load("besselzeroroots_big.jld")["big_besselroots"]
-cylinder_data = Nlayer_cylinder(ρ = big(15.0), μsp = big.([20.0,20.0,20.0,20.0]),μa = big.([0.3,0.3,0.3,0.3]), n_ext = big(1.0), n_med = big.([1.0, 1.0, 1.0, 1.0]), a = big(25.0), ω = big(0.0), l = big.([1.0, 2.0, 3.0, 10.0])) # convert inputs to arbitrary floats
+cylinder_data = Nlayer_cylinder{BigFloat}(ρ = 15.0, μsp = [20.0,20.0,20.0,20.0],μa = [0.3,0.3,0.3,0.3], a = 25.0, ω = 0.0, l = [1.0, 2.0, 3.0, 10.0]) # convert inputs to arbitrary floats
 julia> cyl = fluence_DA_Nlay_cylinder_CW(cylinder_data, bessel_arb[1:12000])
 1.166981416744208493461258014108689524878588065968633120335354050360868699344118e-31
 julia> fluence_DA_semiinf_CW(15.0, [0.3, 20.0], 1.0, 1.0, 0.0) ### check against semi-infinite solution
@@ -116,7 +116,7 @@ julia> fluence_DA_semiinf_CW(15.0, [0.3, 20.0], 1.0, 1.0, 0.0) ### check against
 Using arbitrary floats requires signficinatly more time to compute. Using Float128 values gives absolute errors at eps `~1.92592994438723e-34` while being much faster. Example below:
 ```julia
 using Quadmath # gives us Float128 values
-cylinder_data = Nlayer_cylinder(ρ = Float128(15.0), μsp = Float128.([20.0,20.0,20.0,20.0]),μa = Float128.([0.3,0.3,0.3,0.3]), n_ext = Float128(1.0), n_med = Float128.([1.0, 1.0, 1.0, 1.0]), a = Float128(25.0), ω = Float128(0.0), l = Float128.([1.0, 2.0, 3.0, 10.0])) # convert inputs to arbitrary floats
+cylinder_data = Nlayer_cylinder{Float128}(ρ = 15.0, μsp = [20.0,20.0,20.0,20.0],μa = [0.3,0.3,0.3,0.3], a = 25.0, ω = 0.0, l = [1.0, 2.0, 3.0, 10.0]) # convert inputs to Float128 
 julia> cyl = fluence_DA_Nlay_cylinder_CW(cylinder_data, Float128.(bessel_arb[1:12000]))
 ```
 
