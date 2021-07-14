@@ -5,7 +5,7 @@
 # [1] André Liemert and Alwin Kienle, "Light diffusion in a turbid cylinder. II. Layered case," Opt. Express 18, 9266-9279 (2010) 
 ################################################################################################################################## 
 
-@with_kw struct Nlayer_cylinder{T <: AbstractFloat}
+@with_kw struct Nlayer_cylinder{T <: Real}
     μsp::Array{T,1} = [10.0, 10.0, 10.0, 10.0]  # reduced scattering coefficient (1/cm)
     μa::Array{T,1} = [0.1, 0.1, 0.1, 0.1]       # absorption coefficient (1/cm)
     n_ext::T = 1.0                              # surrounding index of refraction
@@ -14,7 +14,7 @@
     l::Array{T,1} = [0.5, 0.8, 1.0, 5.0]        # length of cylinder layers (cm)
     ρ::T = 1.0                                  # source-detector separation (cm)
     a::T = 5.0                                  # radius of cylinder (cm)
-    z = 0.0                                  # detector depth (cm)
+    z::T = 0.0                                  # detector depth (cm)
 
     ω::T = 0.0                                  # modulation frequency
 end
