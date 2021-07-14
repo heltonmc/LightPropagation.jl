@@ -14,6 +14,7 @@
     l::Array{T,1} = [0.5, 0.8, 1.0, 5.0]        # length of cylinder layers (cm)
     ρ::T = 1.0                                  # source-detector separation (cm)
     a::T = 5.0                                  # radius of cylinder (cm)
+    z::T = 0.0                                  # detector depth (cm)
 
     ω::T = 0.0                                  # modulation frequency
 end
@@ -66,7 +67,7 @@ function _get_βγ4(α, D, n, zb, l)
 end
 
 # Calculates the Green's function G1 in the first layer using eqn. 15 from [1].
-function _green_Nlaycylin(α, D, z0, zb, l, n)
+function _green_Nlaycylin(α, D, z, z0, zb, l, n)
     if isequal(length(α), 4)
         β, γ = _get_βγ4(α, D, n, zb, l)
     elseif isequal(length(α), 3)
@@ -75,38 +76,35 @@ function _green_Nlaycylin(α, D, z0, zb, l, n)
         β, γ = _get_βγ2(α, D, n, zb, l)
     end
 
-    tmp1 = D[1] * α[1] * n[1]^2
-    tmp2 = D[2] * α[2] * n[2]^2
+    tmp1 = D[1] * α[1] * n[1]^2 * β
+    tmp2 = D[2] * α[2] * n[2]^2 * γ
     tmp3 = exp(-2 * α[1] * (l[1] + zb[1]))
-    tmp4 = (2 * D[1] * α[1])
-    tmp5 = exp(-2 * α[1] * zb[1])
 
-    g   = exp(-α[1] * z0) * (1 - tmp5) / tmp4
-    g1  = exp(α[1] * (z0 - 2 * l[1])) * (1 - exp(-2 * α[1] * z0) * tmp5) * (1 - tmp5)
-    g1 *= (tmp1 * β - tmp2 * γ)
-    g1 /= tmp4
-    g1 /= (tmp1 * β * (1 + tmp3) + tmp2 * γ * (1 - tmp3))
+    g  = (exp(-α[1] * abs(z - z0)) - exp(-α[1] * (z + z0 + 2 * zb[1])))
+    g1 = exp(α[1] * (z + z0 - 2 * l[1])) * (1 - exp(-2 * α[1] * (z0 + zb[1]))) * (1 - exp(-2 * α[1] * (z + zb[1])))
+    g1 *= (tmp1 - tmp2)
+    g1 /= (tmp1 * (1 + tmp3) + tmp2 * (1 - tmp3))
 
-    return g + g1
+    return (g + g1) / (2 * D[1] * α[1])
 end
 
 # Calculates α as given in eqn. 27 for each domain.
 # In spatial (CW) domain, ω = 0. In Hankel-Laplace space, iω -> s.
-function _green_Nlaycylin_CW(α, sn, μa, D, z0, zb, l, n)
+function _green_Nlaycylin_CW(α, sn, μa, D, z, z0, zb, l, n)
     @inbounds for ind in 1:length(μa)
         α[ind] = sqrt(μa[ind] / D[ind] + sn^2)
     end
-    return _green_Nlaycylin(α, D, z0, zb, l, n)
+    return _green_Nlaycylin(α, D, z, z0, zb, l, n)
 end
-function _green_Nlaycylin_FD(sn, μa, D, z0, zb, l, n, ν, ω)
+function _green_Nlaycylin_FD(sn, μa, D, z, z0, zb, l, n, ν, ω)
     α = @. sqrt(μa / D + sn^2 + im * ω / (D * ν))
-    return _green_Nlaycylin(α, D, z0, zb, l, n)
+    return _green_Nlaycylin(α, D, z, z0, zb, l, n)
 end
-function _green_Nlaycylin_Laplace(α, sn, μa, D, z0, zb, l, n, ν, s)
+function _green_Nlaycylin_Laplace(α, sn, μa, D, z, z0, zb, l, n, ν, s)
     for ind in 1:length(μa)
         α[ind] = sqrt(μa[ind] / D[ind] + sn^2 + s / (D[ind] * ν[ind]))
     end
-    return _green_Nlaycylin(α, D, z0, zb, l, n)
+    return _green_Nlaycylin(α, D, z, z0, zb, l, n)
 end
 
 # Calculates the fluence in the first layer (G1) due to a point source that is incident onto the center top of the cylinder with eqn. [22].
@@ -118,7 +116,7 @@ function fluence_DA_Nlay_cylinder_CW(data::Nlayer_cylinder, besselroots)
     α = zeros(eltype(data.ρ), length(data.μa))
 
     for ind in eachindex(besselroots)
-        ϕ_tmp = _green_Nlaycylin_CW(α, besselroots[ind] / (data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med)
+        ϕ_tmp = _green_Nlaycylin_CW(α, besselroots[ind] / (data.a + zb[1]), data.μa, D, data.z, z0, zb, data.l, data.n_med)
         ϕ_tmp *= besselj0(besselroots[ind] / (data.a + zb[1]) * data.ρ)
         ϕ_tmp /= (besselj1(besselroots[ind]))^2
         ϕ += ϕ_tmp
@@ -133,7 +131,7 @@ function fluence_DA_Nlay_cylinder_FD(data::Nlayer_cylinder, besselroots)
     ϕ_tmp = zero(eltype(ϕ))
 
     for ind in eachindex(besselroots)
-        ϕ_tmp = _green_Nlaycylin_FD(besselroots[ind] / (data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med, ν, ω) 
+        ϕ_tmp = _green_Nlaycylin_FD(besselroots[ind] / (data.a + zb[1]), data.μa, D, data.z, z0, zb, data.l, data.n_med, ν, ω) 
         ϕ_tmp *= besselj0(besselroots[ind] / (data.a + zb[1]) * data.ρ) 
         ϕ_tmp /= (besselj1(besselroots[ind]))^2
         ϕ += ϕ_tmp
@@ -150,7 +148,7 @@ function _fluence_DA_Nlay_cylinder_Laplace(s, data::Nlayer_cylinder, besselroots
     α = zeros(eltype(s), length(data.μa))
 
     for ind in eachindex(besselroots)
-        ϕ_tmp = _green_Nlaycylin_Laplace(α, besselroots[ind] / (data.a + zb[1]), data.μa, D, z0, zb, data.l, data.n_med, ν, s) 
+        ϕ_tmp = _green_Nlaycylin_Laplace(α, besselroots[ind] / (data.a + zb[1]), data.μa, D, data.z, z0, zb, data.l, data.n_med, ν, s) 
         ϕ_tmp *= besselj0(besselroots[ind] / (data.a + zb[1]) * data.ρ) 
         ϕ_tmp /= (besselj1(besselroots[ind]))^2
         ϕ += ϕ_tmp
