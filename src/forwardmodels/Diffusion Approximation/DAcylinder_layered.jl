@@ -5,7 +5,7 @@
 # [1] André Liemert and Alwin Kienle, "Light diffusion in a turbid cylinder. II. Layered case," Opt. Express 18, 9266-9279 (2010) 
 ################################################################################################################################## 
 
-@with_kw struct Nlayer_cylinder{T <: Real}
+@with_kw struct Nlayer_cylinder{T <: AbstractFloat}
     μsp::Array{T,1} = [10.0, 10.0, 10.0, 10.0]  # reduced scattering coefficient (1/cm)
     μa::Array{T,1} = [0.1, 0.1, 0.1, 0.1]       # absorption coefficient (1/cm)
     n_ext::T = 1.0                              # surrounding index of refraction
@@ -14,7 +14,7 @@
     l::Array{T,1} = [0.5, 0.8, 1.0, 5.0]        # length of cylinder layers (cm)
     ρ::T = 1.0                                  # source-detector separation (cm)
     a::T = 5.0                                  # radius of cylinder (cm)
-    z::Union{T, Real} = 0.0                                  # detector depth (cm)
+    z::T = 0.0                                  # detector depth (cm)
 
     ω::T = 0.0                                  # modulation frequency
 end
@@ -108,7 +108,7 @@ function _green_Nlaycylin_Laplace(α, sn, μa, D, z, z0, zb, l, n, ν, s)
 end
 
 # Calculates the fluence in the first layer (G1) due to a point source that is incident onto the center top of the cylinder with eqn. [22].
-function fluence_DA_Nlay_cylinder_CW(data::Nlayer_cylinder, besselroots)
+function fluence_DA_Nlay_cylinder_CW(data, besselroots)
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
 
     ϕ = zero(eltype(data.ρ))
@@ -124,7 +124,7 @@ function fluence_DA_Nlay_cylinder_CW(data::Nlayer_cylinder, besselroots)
 
     return ϕ / (π * (data.a + zb[1])^2)
 end
-function fluence_DA_Nlay_cylinder_FD(data::Nlayer_cylinder, besselroots)
+function fluence_DA_Nlay_cylinder_FD(data, besselroots)
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
 
     ϕ = zero(Complex{eltype(data.ρ)})
@@ -139,7 +139,7 @@ function fluence_DA_Nlay_cylinder_FD(data::Nlayer_cylinder, besselroots)
   
     return ϕ / (π * (data.a + zb[1])^2)
 end
-function _fluence_DA_Nlay_cylinder_Laplace(s, data::Nlayer_cylinder, besselroots)
+function _fluence_DA_Nlay_cylinder_Laplace(s, data, besselroots)
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
 
     ϕ = zero(eltype(s))
@@ -159,13 +159,13 @@ end
 
 # Calculates the fluence in the time-domain with the Laplace transform.
 # This solution is not explicitly shown in [1].
-function fluence_DA_Nlay_cylinder_TD(t::AbstractFloat, data::Nlayer_cylinder; bessels = besselroots, N = 16)
+function fluence_DA_Nlay_cylinder_TD(t::AbstractFloat, data; bessels = besselroots, N = 16)
     Rt = zeros(eltype(t), length(t))
     Rt = hyperbola(s -> _fluence_DA_Nlay_cylinder_Laplace(s, data, bessels), t, N = N)
 
     return Rt
 end
-function fluence_DA_Nlay_cylinder_TD(t::AbstractArray, data::Nlayer_cylinder; bessels = besselroots, N = 28)
+function fluence_DA_Nlay_cylinder_TD(t::AbstractArray, data; bessels = besselroots, N = 28)
     Rt = zeros(eltype(t), length(t))
     Rt = hyper_fixed(s -> _fluence_DA_Nlay_cylinder_Laplace(s, data, bessels), t, N = N)
 
