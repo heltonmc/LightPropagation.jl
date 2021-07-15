@@ -109,20 +109,24 @@ end
 
 # Calculates the fluence in the first layer (G1) due to a point source that is incident onto the center top of the cylinder with eqn. [22].
 function fluence_DA_Nlay_cylinder_CW(data, besselroots)
-    D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
+    @unpack μsp, μa, n_ext, n_med, l, ρ, a, z = data
+    return fluence_DA_Nlay_cylinder_CW(μsp, μa, n_ext, n_med, l, ρ, a, z, besselroots)
+end
+function fluence_DA_Nlay_cylinder_CW(μsp, μa, n_ext, n_med, l, ρ, a, z, besselroots)
+    D, _, _, zb, z0 = diffusionparams(μsp, n_med, n_ext)
 
-    ϕ = zero(eltype(data.ρ))
+    ϕ = zero(eltype(a))
     ϕ_tmp = zero(eltype(ϕ))
-    α = zeros(eltype(data.ρ), length(data.μa))
+    α = zeros(eltype(a), length(μa))
 
     for ind in eachindex(besselroots)
-        ϕ_tmp = _green_Nlaycylin_CW(α, besselroots[ind] / (data.a + zb[1]), data.μa, D, data.z, z0, zb, data.l, data.n_med)
-        ϕ_tmp *= besselj0(besselroots[ind] / (data.a + zb[1]) * data.ρ)
+        ϕ_tmp = _green_Nlaycylin_CW(α, besselroots[ind] / (a + zb[1]), μa, D, z, z0, zb, l, n_med)
+        ϕ_tmp *= besselj0(besselroots[ind] / (a + zb[1]) * ρ)
         ϕ_tmp /= (besselj1(besselroots[ind]))^2
         ϕ += ϕ_tmp
     end
 
-    return ϕ / (π * (data.a + zb[1])^2)
+    return ϕ / (π * (a + zb[1])^2)
 end
 function fluence_DA_Nlay_cylinder_FD(data, besselroots)
     D, ν, A, zb, z0 = diffusionparams(data.μsp, data.n_med, data.n_ext)
