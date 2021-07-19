@@ -10,5 +10,6 @@ using Test
 
 @time @testset "DA_Nlayer" begin include("DA_NlayerTests/runtests.jl") end
 
+@time @testset "DAinf" begin include("DAinfTests/runtests.jl") end
 
 end
