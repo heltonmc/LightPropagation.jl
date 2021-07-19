@@ -10,6 +10,9 @@ function get_afac(n)
     return A
 end
 
+@inline D_coeff(μsp, μa) = 1 / (3 * μsp)
+@inline ν_coeff(n_med) = 29.9792458 / n_med
+
 function diffusionparams(μsp, n_med, n_ext)
     ## Diffusion parameters
     D = @. 1/3μsp
