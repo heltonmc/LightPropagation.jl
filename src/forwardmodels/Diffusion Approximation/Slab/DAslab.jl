@@ -70,6 +70,7 @@ julia> fluence_DA_slab_CW(1.0, [0.1,10.], 1.0,1.0, 2.0, 0.)
     return exp(-((z - zmp)^2 / tmp1)) - exp(-((z - zmm)^2 / tmp1))
 end
 @inline function _kernel_fluence_DA_slab_TD(D, ν, t, ρ, μa, s, zb, z0, z, maxiter, rtol)
+	@assert t > zero(eltype(D))
     tmp1 = 4 * D * ν * t
     ϕ = ν * exp(-(ρ^2 / tmp1) - μa * ν * t)
     ϕ /= (π * tmp1)^(3/2)

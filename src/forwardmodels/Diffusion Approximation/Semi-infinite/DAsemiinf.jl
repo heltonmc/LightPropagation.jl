@@ -45,6 +45,7 @@ end
 
 ### TD Fluence ###
 @inline function _kernel_fluence_DA_semiinf_TD(D, ν, t, μa, z, z0, ρ, zb)
+    @assert t > zero(eltype(D))
     tmp1 = 4 * D * ν * t
     ϕ = ν * exp(-μa * ν * t) / (π * tmp1)^(3/2)
     ϕ *= (exp(-((z - z0)^2 + ρ^2) / tmp1) - exp(-((z + z0 + 2*zb)^2 + ρ^2) / tmp1))
