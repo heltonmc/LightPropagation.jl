@@ -29,13 +29,13 @@ function fluence_DA_slab_CW(ρ, μa, μsp, n_det, n_med, s, z; rtol = 1e-20, max
     ϕ_new = zero(eltype(ϕ))
 
     for m in 1:maxiter
-	    tmp = _kernel_fluence_DA_slab_CW(m, s, zb, z0, ρ, z, μeff)
-	    tmp += _kernel_fluence_DA_slab_CW(-m, s, zb, z0, ρ, z, μeff)
-	    ϕ_new += tmp
+        tmp = _kernel_fluence_DA_slab_CW(m, s, zb, z0, ρ, z, μeff)
+        tmp += _kernel_fluence_DA_slab_CW(-m, s, zb, z0, ρ, z, μeff)
+        ϕ_new += tmp
 
-	    if abs(tmp) / (abs(ϕ_new))  < rtol
+        if abs(tmp) / (abs(ϕ_new))  < rtol
             break
-	    end
+        end
     end
              
     return (ϕ + ϕ_new) / (4 * π * D)
