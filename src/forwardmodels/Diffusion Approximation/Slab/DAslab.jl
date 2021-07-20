@@ -12,36 +12,36 @@
     zmp = tmp1 + z0
     zmm = tmp1 - 2 * zb - z0
 
-	tmp2 = sqrt(ρ^2 + (z - zmp)^2)
-	tmp3 = sqrt(ρ^2 + (z - zmm)^2)
-	ϕ = exp(-μeff * tmp2) / tmp2
-	ϕ -= exp(-μeff * tmp3) / tmp3
+    tmp2 = sqrt(ρ^2 + (z - zmp)^2)
+    tmp3 = sqrt(ρ^2 + (z - zmm)^2)
+    ϕ = exp(-μeff * tmp2) / tmp2
+    ϕ -= exp(-μeff * tmp3) / tmp3
 end
 function fluence_DA_slab_CW(ρ, μa, μsp, n_det, n_med, s, z; rtol = 1e-20, maxiter = 1e5)
     D = D_coeff(μsp, μa)
-	μeff = sqrt(3 * μa * μsp)
-	A = get_afac(n_med / n_det)
+    μeff = sqrt(3 * μa * μsp)
+    A = get_afac(n_med / n_det)
 	
-	z0 = z0_coeff(μsp)
-	zb = zb_coeff(A, D)
+    z0 = z0_coeff(μsp)
+    zb = zb_coeff(A, D)
 
-	ϕ = _kernel_fluence_DA_slab_CW(0, s, zb, z0, ρ, z, μeff)
-	ϕ_new = zero(eltype(ϕ))
+    ϕ = _kernel_fluence_DA_slab_CW(0, s, zb, z0, ρ, z, μeff)
+    ϕ_new = zero(eltype(ϕ))
 
-	for m in 1:maxiter
-		tmp = _kernel_fluence_DA_slab_CW(m, s, zb, z0, ρ, z, μeff)
-		tmp += _kernel_fluence_DA_slab_CW(-m, s, zb, z0, ρ, z, μeff)
-		ϕ_new += tmp
+    for m in 1:maxiter
+	    tmp = _kernel_fluence_DA_slab_CW(m, s, zb, z0, ρ, z, μeff)
+	    tmp += _kernel_fluence_DA_slab_CW(-m, s, zb, z0, ρ, z, μeff)
+	    ϕ_new += tmp
 
-		if abs(tmp) / (abs(ϕ_new))  < rtol
-			break
-		end
-	end
+	    if abs(tmp) / (abs(ϕ_new))  < rtol
+            break
+	    end
+    end
              
-	return (ϕ + ϕ_new) / (4 * π * D)
+    return (ϕ + ϕ_new) / (4 * π * D)
 end
 function fluence_DA_slab_CW(data)
-	return fluence_DA_slab_CW(data.ρ, data.μa, data.μsp, data.n_det, data.n_med, data.s, data.z)
+    return fluence_DA_slab_CW(data.ρ, data.μa, data.μsp, data.n_det, data.n_med, data.s, data.z)
 end
 @doc """
     fluence_DA_slab_CW(ρ, μa, μsp, n_det, n_med, s, z; rtol, maxiter)
