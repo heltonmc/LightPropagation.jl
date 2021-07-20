@@ -7,7 +7,9 @@
 #     Vol. 10. No. 3.824746. Bellingham: SPIE press, 2010.
 #########################################################################################################################################
 
-### CW Fluence ###
+#####################################
+# Steady-State Fluence 
+#####################################
 """
     fluence_DA_semiinf_CW(ρ, μa, μsp, ndet, nmed, z)
 
@@ -27,60 +29,26 @@ julia> fluence_DA_semiinf_CW(1.0, 0.1, 10.0, 1.0, 1.0, 0.0)
 function fluence_DA_semiinf_CW(ρ, μa, μsp, n_ext, n_med, z)
     D = D_coeff(μsp, μa)
     μeff = sqrt(3 * μa * μsp)
-    A = get_afac(n_med / n_ext)
+    A = A_coeff(n_med / n_ext)
 	
     z0 = z0_coeff(μsp)
     zb = zb_coeff(A, D)
 
     μeff = sqrt(3 * μa * μsp)
 
+    return _kernel_fluence_DA_semiinf_CW(μeff, ρ, z, z0, zb, D)
+end
+@inline function _kernel_fluence_DA_semiinf_CW(μeff, ρ, z, z0, zb, D)
     ϕ = exp(-μeff * sqrt(ρ^2 + (z - z0)^2)) / (sqrt(ρ^2 + (z - z0)^2))
     ϕ -= exp(-μeff * sqrt(ρ^2 + (z + 2 * zb + z0)^2)) / (sqrt(ρ^2 + (z + 2 * zb + z0)^2))
 
     return ϕ / (4 * π * D)
 end
-function fluence_DA_semiinf_CW(data)
-    return fluence_DA_semiinf_CW(data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.z)
-end
 
-### TD Fluence ###
-@inline function _kernel_fluence_DA_semiinf_TD(D, ν, t, μa, z, z0, ρ, zb)
-    @assert t > zero(eltype(D))
-    tmp1 = 4 * D * ν * t
-    ϕ = ν * exp(-μa * ν * t) / (π * tmp1)^(3/2)
-    ϕ *= (exp(-((z - z0)^2 + ρ^2) / tmp1) - exp(-((z + z0 + 2*zb)^2 + ρ^2) / tmp1))
-
-    return ϕ
-end
-function fluence_DA_semiinf_TD(t::AbstractFloat, ρ, μa, μsp, n_ext, n_med, z)
-    D = D_coeff(μsp, μa)
-    A = get_afac(n_med / n_ext)
-    ν = ν_coeff(n_med)
-	
-    z0 = z0_coeff(μsp)
-    zb = zb_coeff(A, D)
-
-     return _kernel_fluence_DA_semiinf_TD(D, ν, t, μa, z, z0, ρ, zb)
-end
-function fluence_DA_semiinf_TD(t::AbstractArray, ρ, μa, μsp, n_ext, n_med, z)
-    D = D_coeff(μsp, μa)
-    A = get_afac(n_med / n_ext)
-    ν = ν_coeff(n_med)
-
-    z0 = z0_coeff(μsp)
-    zb = zb_coeff(A, D)
-
-    ϕ = zeros(eltype(ρ), length(t))
-    for ind in eachindex(t) # can use @threads or @batch here: @threads better for large t dims
-    	ϕ[ind] = _kernel_fluence_DA_semiinf_TD(D, ν, t[ind], μa, z, z0, ρ, zb)
-    end
-
-    return ϕ
-end
-function fluence_DA_semiinf_TD(data)
-    return fluence_DA_semiinf_TD(data.t, data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.z)
-end
-@doc """
+#####################################
+# Time-Domain Fluence 
+#####################################
+"""
     fluence_DA_semiinf_TD(t, ρ, μa, μsp, ndet, nmed, z)
 
 Compute the time-domain fluence in a semi-infinite medium (Eqn. 33 Contini). 
@@ -96,9 +64,36 @@ Compute the time-domain fluence in a semi-infinite medium (Eqn. 33 Contini).
 
 # Examples
 julia> fluence_DA_semiinf_TD(0.1:0.1:1.0, 1.0, 0.1, 10.0, 1.0, 1.0, 0.0)
-""" fluence_DA_semiinf_TD
+"""
+function fluence_DA_semiinf_TD(t, ρ, μa, μsp, n_ext, n_med, z)
+    D = D_coeff(μsp, μa)
+    A = A_coeff(n_med / n_ext)
+    ν = ν_coeff(n_med)
+	
+    z0 = z0_coeff(μsp)
+    zb = zb_coeff(A, D)
 
-### FD Fluence
+    if isa(t, AbstractFloat)
+		return _kernel_fluence_DA_semiinf_TD(D, ν, t, μa, z, z0, ρ, zb)
+	elseif isa(t, AbstractArray)
+		ϕ = zeros(eltype(ρ), length(t))
+        @inbounds Threads.@threads for ind in eachindex(t)
+    		ϕ[ind] = _kernel_fluence_DA_semiinf_TD(D, ν, t[ind], μa, z, z0, ρ, zb)
+    	end
+    	return ϕ
+	end
+end
+@inline function _kernel_fluence_DA_semiinf_TD(D, ν, t, μa, z, z0, ρ, zb)
+    @assert t > zero(eltype(D))
+    tmp1 = 4 * D * ν * t
+    ϕ = ν * exp(-μa * ν * t) / (π * tmp1)^(3/2)
+    ϕ *= (exp(-((z - z0)^2 + ρ^2) / tmp1) - exp(-((z + z0 + 2*zb)^2 + ρ^2) / tmp1))
+
+    return ϕ
+end
+#####################################
+# Frequency-Domain Fluence 
+#####################################
 """
 fluence_DA_semiinf_FD(ρ, μa, μsp, n_ext, n_med, z, ω)
 
@@ -117,23 +112,10 @@ Compute the frequency domain fluence in a semi-infinite geometry.
 julia> fluence_DA_semiinf_FD(1.0, 0.1, 10.0, 1.0, 1.0, 0.0, 0.0)
 """
 function fluence_DA_semiinf_FD(ρ, μa, μsp, n_ext, n_med, z, ω)
-    D = D_coeff(μsp, μa)
-    A = get_afac(n_med / n_ext)
     ν = ν_coeff(n_med)
-	
-    z0 = z0_coeff(μsp)
-    zb = zb_coeff(A, D)
-
     μa_complex = μa + ω * im / ν
-    μeff = sqrt(3 * μa_complex * μsp)
 
-    ϕ = exp(-μeff * sqrt(ρ^2 + (z - z0)^2)) / (sqrt(ρ^2 + (z - z0)^2))
-    ϕ -= exp(-μeff * sqrt(ρ^2 + (z + 2 * zb + z0)^2)) / (sqrt(ρ^2 + (z + 2 * zb + z0)^2))
-
-  return ϕ / (4 * π * D)
-end
-function fluence_DA_semiinf_FD(data)
-    return fluence_DA_semiinf_FD(data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.z, data.ω)
+    return fluence_DA_semiinf_CW(ρ, μa_complex, μsp, n_ext, n_med, z)
 end
 
 ### TD Reflectance ###
@@ -162,7 +144,7 @@ julia> refl_DA_semiinf_TD(0.2:0.6:2.0, 1.0, 0.1, 10.0, 1.0, 1.0)
 """
 function refl_DA_semiinf_TD(t, ρ, μa, μsp, n_ext, n_med)
     D = D_coeff(μsp, μa)
-    A = get_afac(n_med / n_ext)
+    A = A_coeff(n_med / n_ext)
     ν = ν_coeff(n_med)
 	
     z0 = z0_coeff(μsp)
