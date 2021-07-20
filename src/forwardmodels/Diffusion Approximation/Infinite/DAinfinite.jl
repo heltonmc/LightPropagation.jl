@@ -46,17 +46,26 @@ function fluence_DA_inf_TD(t, ρ, μa, μsp, n_med = 1.0)
     D = D_coeff(μsp, μa)
     ν = ν_coeff(n_med)
 
-    ϕ = Array{eltype(ρ)}(undef, length(t))
-
-    for n in eachindex(t)
-        @assert t[n] > zero(eltype(t)) "t must be greater than zero"
-        tmp1 = 4 * D * ν * t[n]
-        ϕ[n] = exp(-(ρ^2 / tmp1) - μa * ν * t[n])
-        ϕ[n] *= ν / ((tmp1 * π )^(3 / 2))
-    end
+    if isa(t, AbstractFloat)
+        ϕ = _kernel_fluence_DA_inf_TD(t, D, ν, ρ, μa)
+		return ϕ
+	elseif isa(t, AbstractArray)
+		ϕ = zeros(eltype(ρ), length(t))
+        Threads.@threads for ind in eachindex(t)
+    		ϕ[ind] = _kernel_fluence_DA_inf_TD(t[ind], D, ν, ρ, μa)
+    	end
+    	return ϕ
+	end
 
     return ϕ
 end
+function _kernel_fluence_DA_inf_TD(t, D, ν, ρ, μa)
+    @assert t > zero(eltype(t)) "t must be greater than zero"
+    tmp1 = 4 * D * ν * t
+    ϕ = exp(-(ρ^2 / tmp1) - μa * ν * t)
+    ϕ *= ν / ((tmp1 * π )^(3/2))
+end
+
 
 """
     fluence_DA_inf_FD(ρ, μa, μsp, ω, n_med)
