@@ -6,6 +6,9 @@
 #     Appl. Opt. 28, 2331-2336 (1989)
 #####################################################################################################################################
 
+#####################################
+# Steady-State Fluence 
+#####################################
 """
     fluence_DA_inf_CW(ρ, μa, μsp)
 
@@ -22,9 +25,13 @@ julia> fluence_DA_inf_CW(1.0, 0.1, 10.0)
 function fluence_DA_inf_CW(ρ, μa, μsp)
     @assert ρ > zero(eltype(ρ)) "ρ must be greater than zero"
     D = D_coeff(μsp, μa)
+
     return exp(-sqrt(3 * μsp * μa) * ρ) / (4 * π * ρ * D)
 end
 
+#####################################
+# Time-Domain Fluence 
+#####################################
 """
     fluence_DA_inf_TD(t, β::Array{Float64,1}, ρ::Float64, nmed::Float64)
 
@@ -59,14 +66,16 @@ function fluence_DA_inf_TD(t, ρ, μa, μsp, n_med = 1.0)
 
     return ϕ
 end
-function _kernel_fluence_DA_inf_TD(t, D, ν, ρ, μa)
+@inline function _kernel_fluence_DA_inf_TD(t, D, ν, ρ, μa)
     @assert t > zero(eltype(t)) "t must be greater than zero"
     tmp1 = 4 * D * ν * t
     ϕ = exp(-(ρ^2 / tmp1) - μa * ν * t)
     ϕ *= ν / ((tmp1 * π )^(3/2))
 end
 
-
+#####################################
+# Frequency-Domain Fluence 
+#####################################
 """
     fluence_DA_inf_FD(ρ, μa, μsp, ω, n_med)
 
@@ -83,10 +92,8 @@ Compute the fluence for a frequency modulated source in an infinite medium.
 julia> fluence_DA_inf_FD(1.0, 0.1, 10.0, 1.0)
 """
 function fluence_DA_inf_FD(ρ, μa, μsp, ω, n_med = 1.0)
-    @assert ρ > zero(eltype(ρ)) "ρ must be greater than zero"
-    D = D_coeff(μsp, μa)
     ν = ν_coeff(n_med)
+    μa_complex = μa + ω * im / ν
 
-    ϕ = exp(-ρ * sqrt(μa / D + im * ω / (ν * D))) / (4 * π * ρ * D)
-    return ϕ
+    return fluence_DA_inf_CW(ρ, μa_complex, μsp)
 end
