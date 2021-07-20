@@ -8,9 +8,9 @@
 
 # Steady-State Fluence
 @inline function _kernel_fluence_DA_slab_CW(m, s, zb, z0, ρ, z, μeff)
-	tmp1 = 2 * m * (s + 2 * zb)
+    tmp1 = 2 * m * (s + 2 * zb)
     zmp = tmp1 + z0
-	zmm = tmp1 - 2 * zb - z0
+    zmm = tmp1 - 2 * zb - z0
 
 	tmp2 = sqrt(ρ^2 + (z - zmp)^2)
 	tmp3 = sqrt(ρ^2 + (z - zmm)^2)
