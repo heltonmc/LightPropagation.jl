@@ -33,7 +33,7 @@ end
 # Time-Domain Fluence 
 #####################################
 """
-    fluence_DA_inf_TD(t, β::Array{Float64,1}, ρ::Float64, nmed::Float64)
+    fluence_DA_inf_TD(t, ρ, μa, μsp; nmed)
 
 Compute the time-domain fluence in an infinite medium with Eqn. 3 of Patterson. et al. 1989. 
 
@@ -42,7 +42,6 @@ Compute the time-domain fluence in an infinite medium with Eqn. 3 of Patterson. 
 - `ρ`: source-detector separation (cm⁻¹)
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
-- `ω`: modulation frequency (1/ns)
 - `n_med::Float64`: medium's index of refraction
 
 # Examples
@@ -77,7 +76,7 @@ end
 # Frequency-Domain Fluence 
 #####################################
 """
-    fluence_DA_inf_FD(ρ, μa, μsp, ω, n_med)
+    fluence_DA_inf_FD(ρ, μa, μsp, ω; n_med)
 
 Compute the fluence for a frequency modulated source in an infinite medium. 
 
