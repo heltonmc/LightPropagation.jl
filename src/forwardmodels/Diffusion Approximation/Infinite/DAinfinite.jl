@@ -1,6 +1,6 @@
 #####################################################################################################################################
 # Implements solution to the diffusion equation in an infinite medium as given in [1].
-# Solutions are given in the spatial, frequency, and time domains for a point source located in the middle of the cylinder top.
+# Solutions are given in the steady-state, frequency, and time domains for an isotroptic source.
 #
 # [1] Patterson et. al., "Time resolved reflectance and transmittance for the noninvasive measurement of tissue optical properties," 
 #     Appl. Opt. 28, 2331-2336 (1989)
@@ -57,7 +57,7 @@ function fluence_DA_inf_TD(t, ρ, μa, μsp, n_med = 1.0)
 		return ϕ
 	elseif isa(t, AbstractArray)
 		ϕ = zeros(eltype(ρ), length(t))
-        Threads.@threads for ind in eachindex(t)
+        @inbounds Threads.@threads for ind in eachindex(t)
     		ϕ[ind] = _kernel_fluence_DA_inf_TD(t[ind], D, ν, ρ, μa)
     	end
     	return ϕ
