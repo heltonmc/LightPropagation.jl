@@ -1,19 +1,12 @@
-##### Diffusion approximation for a turbid parallelepiped #####
+#= 
+Implements solution to the diffusion equation in the time-domain through a turbid parallelpiped [1]
 
-#=
-@article{kienle2005light,
-  title={Light diffusion through a turbid parallelepiped},
-  author={Kienle, Alwin},
-  journal={JOSA A},
-  volume={22},
-  number={9},
-  pages={1883--1888},
-  year={2005},
-  publisher={Optical Society of America}
-}
+[1] Alwin Kienle, "Light diffusion through a turbid parallelepiped," J. Opt. Soc. Am. A 22, 1883-1888 (2005) 
 =#
 
-### TD Fluence ###
+######################
+# Time-Domain Fluence 
+######################
 
 @inline function _kernel_fluence_DA_paralpip_TD!(ϕ1, ϕ2, ϕ3, ϕ4, D, ν, t, μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
     tmp = 4 * D * ν * t
@@ -38,7 +31,7 @@
       
 	return ϕ1 * ϕ2 * ϕ3 * ϕ4
 end
-function fluence_DA_paralpip_TD(t::AbstractFloat, μa, μsp, n_ext, n_med, rd, rs, L; xs = -10:10)
+function fluence_DA_paralpip_TD(t, μa, μsp, n_ext, n_med, rd, rs, L; xs = -10:10)
     D = D_coeff(μsp, μa)
     A = get_afac(n_med / n_ext)
     ν = ν_coeff(n_med)
@@ -59,37 +52,18 @@ function fluence_DA_paralpip_TD(t::AbstractFloat, μa, μsp, n_ext, n_med, rd, r
 	ϕ2 = zero(eltype(L)) 
 	ϕ3 = zero(eltype(L)) 
 	ϕ4 = zero(eltype(L)) 
-      
-	return _kernel_fluence_DA_paralpip_TD!(ϕ1, ϕ2, ϕ3, ϕ4, D, ν, t, μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
+
+	if isa(t, AbstractFloat)
+		return _kernel_fluence_DA_paralpip_TD!(ϕ1, ϕ2, ϕ3, ϕ4, D, ν, t, μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
+	elseif isa(t, AbstractArray)
+		ϕ = zeros(eltype(L), length(t))
+        Threads.@threads for ind in eachindex(t)
+    		ϕ[ind] =_kernel_fluence_DA_paralpip_TD!(ϕ1, ϕ2, ϕ3, ϕ4, D, ν, t[ind], μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
+    	end
+    	return ϕ
+	end
 end
-function fluence_DA_paralpip_TD(t::AbstractArray, μa, μsp, n_ext, n_med, rd, rs, L; xs = -10:10)
-	D = D_coeff(μsp, μa)
-    A = get_afac(n_med / n_ext)
-    ν = ν_coeff(n_med)
-	
-    z0 = z0_coeff(μsp)
-    zb = zb_coeff(A, D)
 
-    x = rd[1]
-	y = rd[2]
-	z = rd[3]
-	xu = rs[1]
-	yu = rs[2]
-	lx = L[1]
-	ly = L[2]
-	lz = L[3]
-
-	ϕ1 = zero(eltype(L)) 
-	ϕ2 = zero(eltype(L)) 
-	ϕ3 = zero(eltype(L)) 
-	ϕ4 = zero(eltype(L)) 
-
-    ϕ = zeros(eltype(L), length(t))
-    for ind in eachindex(t) # can use @threads or @batch here: @threads better for large t dims
-    	ϕ[ind] =_kernel_fluence_DA_paralpip_TD!(ϕ1, ϕ2, ϕ3, ϕ4, D, ν, t[ind], μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
-    end
-    return ϕ
-end
 @doc """
     fluence_DA_paralpip_TD(t, μa, μsp, n_ext, n_med, rd, rs, L; xs)
 
