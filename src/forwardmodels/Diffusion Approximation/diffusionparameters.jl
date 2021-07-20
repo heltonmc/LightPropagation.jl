@@ -12,6 +12,8 @@ end
 
 @inline D_coeff(μsp, μa) = 1 / (3 * μsp)
 @inline ν_coeff(n_med) = 29.9792458 / n_med
+@inline z0_coeff(μsp) = 1 / μsp
+@inline zb_coeff(A, D) = 2 * A * D
 
 function diffusionparams(μsp, n_med, n_ext)
     ## Diffusion parameters
