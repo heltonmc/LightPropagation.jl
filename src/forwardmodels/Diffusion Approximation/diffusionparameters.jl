@@ -1,4 +1,4 @@
-function get_afac(n)
+@inline function A_coeff(n)
     if n > 1.0
         A = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 +
         5507.53041n^4 - 2463.357945n^5 + 610.956547n^6 - 64.8047n^7
@@ -9,7 +9,6 @@ function get_afac(n)
     end
     return A
 end
-
 @inline D_coeff(μsp, μa) = 1 / (3 * μsp)
 @inline ν_coeff(n_med) = 29.9792458 / n_med
 @inline z0_coeff(μsp) = 1 / μsp
