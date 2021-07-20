@@ -17,17 +17,17 @@ Compute the steady-state fluence in a semi-infinite geometry according to Eqn. 3
 - `ρ`: the source detector separation (cm⁻¹)
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
-- `n_det`: the boundary's index of refraction (air or detector)
+- `n_ext`: the boundary's index of refraction (air or detector)
 - `n_med`: the sample medium's index of refraction
 - `z`: the z-depth orthogonal from the boundary (cm)
 
 # Examples
 julia> fluence_DA_semiinf_CW(1.0, 0.1, 10.0, 1.0, 1.0, 0.0)
 """
-function fluence_DA_semiinf_CW(ρ, μa, μsp, n_det, n_med, z)
+function fluence_DA_semiinf_CW(ρ, μa, μsp, n_ext, n_med, z)
     D = D_coeff(μsp, μa)
     μeff = sqrt(3 * μa * μsp)
-    A = get_afac(n_med / n_det)
+    A = get_afac(n_med / n_ext)
 	
     z0 = z0_coeff(μsp)
     zb = zb_coeff(A, D)
@@ -40,7 +40,7 @@ function fluence_DA_semiinf_CW(ρ, μa, μsp, n_det, n_med, z)
     return ϕ / (4 * π * D)
 end
 function fluence_DA_semiinf_CW(data)
-    return fluence_DA_semiinf_CW(data.ρ, data.μa, data.μsp, data.n_det, data.n_med, data.z)
+    return fluence_DA_semiinf_CW(data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.z)
 end
 
 ### TD Fluence ###
@@ -51,9 +51,9 @@ end
 
     return ϕ
 end
-function fluence_DA_semiinf_TD(t::AbstractFloat, ρ, μa, μsp, n_det, n_med, z)
+function fluence_DA_semiinf_TD(t::AbstractFloat, ρ, μa, μsp, n_ext, n_med, z)
     D = D_coeff(μsp, μa)
-    A = get_afac(n_med / n_det)
+    A = get_afac(n_med / n_ext)
     ν = ν_coeff(n_med)
 	
     z0 = z0_coeff(μsp)
@@ -61,9 +61,9 @@ function fluence_DA_semiinf_TD(t::AbstractFloat, ρ, μa, μsp, n_det, n_med, z)
 
      return _kernel_fluence_DA_semiinf_TD(D, ν, t, μa, z, z0, ρ, zb)
 end
-function fluence_DA_semiinf_TD(t::AbstractArray, ρ, μa, μsp, n_det, n_med, z)
+function fluence_DA_semiinf_TD(t::AbstractArray, ρ, μa, μsp, n_ext, n_med, z)
     D = D_coeff(μsp, μa)
-    A = get_afac(n_med / n_det)
+    A = get_afac(n_med / n_ext)
     ν = ν_coeff(n_med)
 
     z0 = z0_coeff(μsp)
@@ -77,7 +77,7 @@ function fluence_DA_semiinf_TD(t::AbstractArray, ρ, μa, μsp, n_det, n_med, z)
     return ϕ
 end
 function fluence_DA_semiinf_TD(data)
-    return fluence_DA_semiinf_TD(data.t, data.ρ, data.μa, data.μsp, data.n_det, data.n_med, data.z)
+    return fluence_DA_semiinf_TD(data.t, data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.z)
 end
 @doc """
     fluence_DA_semiinf_TD(t, ρ, μa, μsp, ndet, nmed, z)
@@ -99,7 +99,7 @@ julia> fluence_DA_semiinf_TD(0.1:0.1:1.0, 1.0, 0.1, 10.0, 1.0, 1.0, 0.0)
 
 ### FD Fluence
 """
-fluence_DA_semiinf_FD(ρ, μa, μsp, n_det, n_med, z, ω)
+fluence_DA_semiinf_FD(ρ, μa, μsp, n_ext, n_med, z, ω)
 
 Compute the frequency domain fluence in a semi-infinite geometry.
 
@@ -107,7 +107,7 @@ Compute the frequency domain fluence in a semi-infinite geometry.
 - `ρ`: the source detector separation (cm⁻¹)
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
-- `n_det`: the boundary's index of refraction (air or detector)
+- `n_ext`: the boundary's index of refraction (air or detector)
 - `n_med`: the sample medium's index of refraction
 - `z`: the z-depth orthogonal from the boundary (cm)
 - `ω`: the modulation frequency (1/ns)
@@ -115,9 +115,9 @@ Compute the frequency domain fluence in a semi-infinite geometry.
 # Examples
 julia> fluence_DA_semiinf_FD(1.0, 0.1, 10.0, 1.0, 1.0, 0.0, 0.0)
 """
-function fluence_DA_semiinf_FD(ρ, μa, μsp, n_det, n_med, z, ω)
+function fluence_DA_semiinf_FD(ρ, μa, μsp, n_ext, n_med, z, ω)
     D = D_coeff(μsp, μa)
-    A = get_afac(n_med / n_det)
+    A = get_afac(n_med / n_ext)
     ν = ν_coeff(n_med)
 	
     z0 = z0_coeff(μsp)
@@ -132,12 +132,12 @@ function fluence_DA_semiinf_FD(ρ, μa, μsp, n_det, n_med, z, ω)
   return ϕ / (4 * π * D)
 end
 function fluence_DA_semiinf_FD(data)
-    return fluence_DA_semiinf_FD(data.ρ, data.μa, data.μsp, data.n_det, data.n_med, data.z, data.ω)
+    return fluence_DA_semiinf_FD(data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.z, data.ω)
 end
 
 ### TD Reflectance ###
 """
-    refl_DA_semiinf_TD(t, ρ, μa, μsp, n_det, n_med)
+    refl_DA_semiinf_TD(t, ρ, μa, μsp, n_ext, n_med)
 
 Compute the time-domain reflectance from a semi-infinite medium from Eqn. 36 Contini 97 (m = 0). 
 
@@ -159,9 +159,9 @@ julia> refl_DA_semiinf_TD(0.2:0.6:2.0, 1.0, 0.1, 10.0, 1.0, 1.0)
  1.4467359376429123e-6
 ```
 """
-function refl_DA_semiinf_TD(t, ρ, μa, μsp, n_det, n_med)
+function refl_DA_semiinf_TD(t, ρ, μa, μsp, n_ext, n_med)
     D = D_coeff(μsp, μa)
-    A = get_afac(n_med / n_det)
+    A = get_afac(n_med / n_ext)
     ν = ν_coeff(n_med)
 	
     z0 = z0_coeff(μsp)

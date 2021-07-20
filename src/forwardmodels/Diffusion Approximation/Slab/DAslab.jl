@@ -18,10 +18,10 @@
     ϕ -= exp(-μeff * tmp3) / tmp3
 	return ϕ
 end
-function fluence_DA_slab_CW(ρ, μa, μsp, n_det, n_med, s, z; rtol = 1e-20, maxiter = 1e5)
+function fluence_DA_slab_CW(ρ, μa, μsp, n_ext, n_med, s, z; rtol = 1e-20, maxiter = 1e5)
     D = D_coeff(μsp, μa)
     μeff = sqrt(3 * μa * μsp)
-    A = get_afac(n_med / n_det)
+    A = get_afac(n_med / n_ext)
 	
     z0 = z0_coeff(μsp)
     zb = zb_coeff(A, D)
@@ -42,10 +42,10 @@ function fluence_DA_slab_CW(ρ, μa, μsp, n_det, n_med, s, z; rtol = 1e-20, max
     return (ϕ + ϕ_new) / (4 * π * D)
 end
 function fluence_DA_slab_CW(data)
-    return fluence_DA_slab_CW(data.ρ, data.μa, data.μsp, data.n_det, data.n_med, data.s, data.z)
+    return fluence_DA_slab_CW(data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.s, data.z)
 end
 @doc """
-    fluence_DA_slab_CW(ρ, μa, μsp, n_det, n_med, s, z; rtol, maxiter)
+    fluence_DA_slab_CW(ρ, μa, μsp, n_ext, n_med, s, z; rtol, maxiter)
 
 Compute the steady-state fluence from a slab geometry (x, y -> inf, z -> finite). 
 
@@ -53,7 +53,7 @@ Compute the steady-state fluence from a slab geometry (x, y -> inf, z -> finite)
 - `ρ::Float64`: the source detector separation (cm⁻¹)
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
-- `n_det::Float64`: the boundary's index of refraction (air or detector)
+- `n_ext::Float64`: the boundary's index of refraction (air or detector)
 - `n_med::Float64`: the sample medium's index of refraction
 - `s::Float64`: the thickness (z-depth) of the slab (cm)
 - `z::Float64`: the z-depth within slab (cm)
@@ -86,9 +86,9 @@ end
     end
     ϕ *= ϕ_tmp
 end
-function fluence_DA_slab_TD(t::AbstractFloat, ρ, μa, μsp, n_det, n_med, s, z; rtol = 1e-20, maxiter = 1e5)
+function fluence_DA_slab_TD(t::AbstractFloat, ρ, μa, μsp, n_ext, n_med, s, z; rtol = 1e-20, maxiter = 1e5)
     D = D_coeff(μsp, μa)
-    A = get_afac(n_med / n_det)
+    A = get_afac(n_med / n_ext)
     ν = ν_coeff(n_med)
 
     z0 = z0_coeff(μsp)
@@ -96,9 +96,9 @@ function fluence_DA_slab_TD(t::AbstractFloat, ρ, μa, μsp, n_det, n_med, s, z;
 
     return _kernel_fluence_DA_slab_TD(D, ν, t, ρ, μa, s, zb, z0, z, maxiter, rtol)
 end
-function fluence_DA_slab_TD(t::AbstractArray, ρ, μa, μsp, n_det, n_med, s, z; rtol = 1e-20, maxiter = 1e5)
+function fluence_DA_slab_TD(t::AbstractArray, ρ, μa, μsp, n_ext, n_med, s, z; rtol = 1e-20, maxiter = 1e5)
     D = D_coeff(μsp, μa)
-    A = get_afac(n_med / n_det)
+    A = get_afac(n_med / n_ext)
     ν = ν_coeff(n_med)
 
     z0 = z0_coeff(μsp)
@@ -111,10 +111,10 @@ function fluence_DA_slab_TD(t::AbstractArray, ρ, μa, μsp, n_det, n_med, s, z;
     return ϕ
 end
 function fluence_DA_slab_TD(data)
-    return fluence_DA_slab_TD(data.t, data.ρ, data.μa, data.μsp, data.n_det, data.n_med, data.s, data.z)
+    return fluence_DA_slab_TD(data.t, data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.s, data.z)
 end
 @doc """
-    fluence_DA_slab_TD(t, ρ, μa, μsp, n_det, n_med, s, z; rtol, maxiter)
+    fluence_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s, z; rtol, maxiter)
 
 Compute the time-domain fluence from a slab geometry (x, y -> inf, z -> finite). 
 
@@ -134,7 +134,7 @@ julia> fluence_DA_slab_TD(0.1:0.1:1.0, 1.0, 0.1, 10.0, 1.0, 1.0, 40.0, 0.0)
 
 ### Reflectance TD ###
 """
-    refl_DA_slab_TD(t, ρ, μa, μsp, n_det, n_med, s; xs)
+    refl_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s; xs)
 
 Compute the time-domain reflectance (flux) from a slab geometry (x,y->inf, z-> finite). 
 
@@ -150,9 +150,9 @@ Compute the time-domain reflectance (flux) from a slab geometry (x,y->inf, z-> f
 # Examples
 julia> refl_DA_slab_TD(1.0, 1.0, 0.1, 10.0, 1.0, 1.0, 1.0)
 """
-function refl_DA_slab_TD(t, ρ, μa, μsp, n_det, n_med, s; xs = -15:15)
+function refl_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s; xs = -15:15)
 	D = D_coeff(μsp, μa)
-    A = get_afac(n_med / n_det)
+    A = get_afac(n_med / n_ext)
     ν = ν_coeff(n_med)
 
     z0 = z0_coeff(μsp)
@@ -176,7 +176,7 @@ end
 
 ### Transmittance TD ###
 """
-    trans_DA_slab_TD(t, ρ, μa, μsp, n_det, n_med, s; xs)
+    trans_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s; xs)
 
 Compute the time-domain transmittance (flux) from a slab geometry (x,y -> inf, z -> finite) with Eqn. 39 from Contini 97. 
 
@@ -192,9 +192,9 @@ Compute the time-domain transmittance (flux) from a slab geometry (x,y -> inf, z
 # Examples
 julia> trans_DA_slab_TD(1.0, 1.0, 0.1, 10.0, 1.0, 1.0, 1.0)
 """
-function trans_DA_slab_TD(t, ρ, μa, μsp, n_det, n_med, s; xs = -15:15)
+function trans_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s; xs = -15:15)
 	D = D_coeff(μsp, μa)
-    A = get_afac(n_med / n_det)
+    A = get_afac(n_med / n_ext)
     ν = ν_coeff(n_med)
 
     z0 = z0_coeff(μsp)
@@ -219,10 +219,10 @@ end
 
 
 #= old version of fluence slab that is left for clarity
-function fluence_DA_slab_CW(ρ, μa, μsp, n_det, n_med, s, z; xs = -10:10)
+function fluence_DA_slab_CW(ρ, μa, μsp, n_ext, n_med, s, z; xs = -10:10)
     D = D_coeff(μsp, μa)
 	μeff = sqrt(3 * μa * μsp)
-	A = get_afac(n_med / n_det)
+	A = get_afac(n_med / n_ext)
 	
 	ϕ = zero(eltype(ρ))
 
@@ -243,9 +243,9 @@ function fluence_DA_slab_CW(ρ, μa, μsp, n_det, n_med, s, z; xs = -10:10)
 	return ϕ / (4 * π * D)
 end
 
-function fluence_DA_slab_TD(t, ρ, μa, μsp, n_det, n_med, s, z; xs = -10:10)
+function fluence_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s, z; xs = -10:10)
     D = D_coeff(μsp, μa)
-	A = get_afac(n_med / n_det)
+	A = get_afac(n_med / n_ext)
 	ν = ν_coeff(n_med)
 
 	z0 = z0_coeff(μsp)
