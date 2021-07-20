@@ -63,54 +63,54 @@ julia> fluence_DA_slab_CW(1.0, [0.1,10.], 1.0,1.0, 2.0, 0.)
 
 ### Fluence TD ###
 @inline function _images_fluence_DA_slab_TD(m, s, zb, z0, z, tmp1)
-	tmp2 = 2 * m * (s + 2 * zb)
-	zmp = tmp2 + z0
-	zmm = tmp2 - 2 * zb - z0
-	return exp(-((z - zmp)^2 / tmp1)) - exp(-((z - zmm)^2 / tmp1))
+    tmp2 = 2 * m * (s + 2 * zb)
+    zmp = tmp2 + z0
+    zmm = tmp2 - 2 * zb - z0
+    return exp(-((z - zmp)^2 / tmp1)) - exp(-((z - zmm)^2 / tmp1))
 end
 @inline function _kernel_fluence_DA_slab_TD(D, ν, t, ρ, μa, s, zb, z0, z, maxiter, rtol)
-	tmp1 = 4 * D * ν * t
-	ϕ = ν * exp(-(ρ^2 / tmp1) - μa * ν * t)
-	ϕ /= (π * tmp1)^(3/2)
-	ϕ_tmp = _images_fluence_DA_slab_TD(0, s, zb, z0, z, tmp1)
+    tmp1 = 4 * D * ν * t
+    ϕ = ν * exp(-(ρ^2 / tmp1) - μa * ν * t)
+    ϕ /= (π * tmp1)^(3/2)
+    ϕ_tmp = _images_fluence_DA_slab_TD(0, s, zb, z0, z, tmp1)
 
-	for m in 1:maxiter
-		tmp = _images_fluence_DA_slab_TD(m, s, zb, z0, z, tmp1)
-		tmp += _images_fluence_DA_slab_TD(-m, s, zb, z0, z, tmp1)
-		ϕ_tmp += tmp
+    for m in 1:maxiter
+    	tmp = _images_fluence_DA_slab_TD(m, s, zb, z0, z, tmp1)
+    	tmp += _images_fluence_DA_slab_TD(-m, s, zb, z0, z, tmp1)
+    	ϕ_tmp += tmp
 			
-		if abs(tmp) / (abs(ϕ_tmp))  < rtol
-			break
-		end
-	end
-	ϕ *= ϕ_tmp
+    	if abs(tmp) / (abs(ϕ_tmp))  < rtol
+    		break
+    	end
+    end
+    ϕ *= ϕ_tmp
 end
 function fluence_DA_slab_TD(t::AbstractFloat, ρ, μa, μsp, n_det, n_med, s, z; rtol = 1e-20, maxiter = 1e5)
     D = D_coeff(μsp, μa)
-	A = get_afac(n_med / n_det)
-	ν = ν_coeff(n_med)
+    A = get_afac(n_med / n_det)
+    ν = ν_coeff(n_med)
 
-	z0 = z0_coeff(μsp)
-	zb = zb_coeff(A, D)
+    z0 = z0_coeff(μsp)
+    zb = zb_coeff(A, D)
 
-	return _kernel_fluence_DA_slab_TD(D, ν, t, ρ, μa, s, zb, z0, z, maxiter, rtol)
+    return _kernel_fluence_DA_slab_TD(D, ν, t, ρ, μa, s, zb, z0, z, maxiter, rtol)
 end
 function fluence_DA_slab_TD(t::AbstractArray, ρ, μa, μsp, n_det, n_med, s, z; rtol = 1e-20, maxiter = 1e5)
-	D = D_coeff(μsp, μa)
-	A = get_afac(n_med / n_det)
-	ν = ν_coeff(n_med)
+    D = D_coeff(μsp, μa)
+    A = get_afac(n_med / n_det)
+    ν = ν_coeff(n_med)
 
-	z0 = z0_coeff(μsp)
-	zb = zb_coeff(A, D)
+    z0 = z0_coeff(μsp)
+    zb = zb_coeff(A, D)
 
-	ϕ = zeros(eltype(ρ), length(t))
-	for ind in eachindex(t)
-		ϕ[ind] = _kernel_fluence_DA_slab_TD(D, ν, t[ind], ρ, μa, s, zb, z0, z, maxiter, rtol)
-	end
-	return ϕ
+    ϕ = zeros(eltype(ρ), length(t))
+    for ind in eachindex(t)
+    	ϕ[ind] = _kernel_fluence_DA_slab_TD(D, ν, t[ind], ρ, μa, s, zb, z0, z, maxiter, rtol)
+    end
+    return ϕ
 end
 function fluence_DA_slab_TD(data)
-	return fluence_DA_slab_TD(data.t, data.ρ, data.μa, data.μsp, data.n_det, data.n_med, data.s, data.z)
+    return fluence_DA_slab_TD(data.t, data.ρ, data.μa, data.μsp, data.n_det, data.n_med, data.s, data.z)
 end
 @doc """
     fluence_DA_slab_TD(t, ρ, μa, μsp, n_det, n_med, s, z; rtol, maxiter)
@@ -150,50 +150,50 @@ Compute the time-domain reflectance (flux) from a slab geometry (x,y->inf, z-> f
 julia> refl_DA_slab_TD(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0, 2.0)
 """
 function refl_DA_slab_TD(t, β, ρ,ndet, nmed, s)
-	  n = nmed/ndet
-      μa = β[1]
-      μsp = β[2]
-      D = 1/3μsp
-      ν = 29.9792458/nmed
-      xs = -10:10
+	n = nmed/ndet
+	μa = β[1]
+    μsp = β[2]
+    D = 1/3μsp
+    ν = 29.9792458/nmed
+    xs = -10:10
 
-      Rt1 = Array{eltype(ρ)}(undef, length(t))
-	  Rt2 = zeros(eltype(ρ), length(t))
+    Rt1 = Array{eltype(ρ)}(undef, length(t))
+	Rt2 = zeros(eltype(ρ), length(t))
 
-		@inbounds begin
+	@inbounds begin
 
-			if n == 1.0
-				A= 1.0
-			elseif n > 1.0
-				A = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 +
-		 		5507.53041n^4 - 2463.357945n^5 + 610.956547n^6 - 64.8047n^7
-			else
-				A = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3
-			end
+		if n == 1.0
+			A= 1.0
+		elseif n > 1.0
+			A = 504.332889 - 2641.00214n + 5923.699064n^2 - 7376.355814n^3 +
+	 		5507.53041n^4 - 2463.357945n^5 + 610.956547n^6 - 64.8047n^7
+		else
+			A = 3.084635 - 6.531194n + 8.357854n^2 - 5.082751n^3
+		end
 
 
-			zs = 1/μsp
-			ze = 2A*D
+		zs = 1/μsp
+		ze = 2A*D
 
 			
-                Threads.@threads for n in eachindex(t) 
-                    Rt1[n] = @. -exp(-(ρ^2/(4D*ν*t[n])) - μa*ν*t[n])/(2*(4π*D*ν)^(3/2)*t[n]^(5/2))
+        Threads.@threads for n in eachindex(t) 
+            Rt1[n] = @. -exp(-(ρ^2/(4D*ν*t[n])) - μa*ν*t[n])/(2*(4π*D*ν)^(3/2)*t[n]^(5/2))
 
-					for m in xs
+			for m in xs
 
-						z3m = -2m*s - 4m*ze - zs
-						z4m = -2m*s - (4m - 2)*ze + zs
+				z3m = -2m*s - 4m*ze - zs
+				z4m = -2m*s - (4m - 2)*ze + zs
 
-			 			Rt2[n] += z3m*exp(-(z3m^2 / (4D*ν*t[n]))) - z4m*exp(-(z4m^2 / (4D*ν*t[n])))
-					end
-					
-					Rt1[n] *= Rt2[n]
-
-                    if isnan(Rt1[n])
-                        Rt1[n] = 0
-                    end
-				end
+	 			Rt2[n] += z3m*exp(-(z3m^2 / (4D*ν*t[n]))) - z4m*exp(-(z4m^2 / (4D*ν*t[n])))
 			end
+					
+			Rt1[n] *= Rt2[n]
+
+            if isnan(Rt1[n])
+                Rt1[n] = 0
+            end
+		    end
+		end
 
 	return Rt1
 end
