@@ -9,7 +9,7 @@
 
 ### CW Fluence ###
 """
-    fluence_DA_semiinf_CW(ρ, β, ndet, nmed, z)
+    fluence_DA_semiinf_CW(ρ, μa, μsp, ndet, nmed, z)
 
 Compute the steady-state fluence in a semi-infinite geometry according to Eqn. 3 of Kienle 1997. 
 
