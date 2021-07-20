@@ -80,20 +80,21 @@ function fluence_DA_semiinf_TD(data)
     return fluence_DA_semiinf_TD(data.t, data.ρ, data.μa, data.μsp, data.n_det, data.n_med, data.z)
 end
 @doc """
-    fluence_DA_semiinf_TD(t, β, ρ, ndet, nmed, z)
+    fluence_DA_semiinf_TD(t, ρ, μa, μsp, ndet, nmed, z)
 
 Compute the time-domain fluence in a semi-infinite medium (Eqn. 33 Contini). 
 
 # Arguments
 - `t`: the time vector (ns). 
-- `β`: the optical properties [μa, μs'] (cm⁻¹)
 - `ρ`: the source detector separation (cm⁻¹)
+- `μa`: absorption coefficient (cm⁻¹)
+- `μsp`: reduced scattering coefficient (cm⁻¹)
 - `ndet`: the boundary's index of refraction (air or detector)
 - `nmed`: the sample medium's index of refraction
 - `z`: the z-depth in medium
 
 # Examples
-julia> fluence_DA_semiinf_TD(0:1:5, [0.1,10.0], 1.0, 1.0, 1.0, 1.0)
+julia> fluence_DA_semiinf_TD(0.1:0.1:1.0, 1.0, 0.1, 10.0, 1.0, 1.0, 0.0)
 """ fluence_DA_semiinf_TD
 
 ### FD Fluence
