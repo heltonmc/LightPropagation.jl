@@ -1,16 +1,64 @@
-#= 
-Implements solution to the diffusion equation in the time-domain through a turbid parallelpiped [1]
+#########################################################################################################################################
+# Implements solution to the diffusion equation in the time-domain through a turbid parallelpiped [1]
 
-[1] Alwin Kienle, "Light diffusion through a turbid parallelepiped," J. Opt. Soc. Am. A 22, 1883-1888 (2005) 
-=#
+# [1] Alwin Kienle, "Light diffusion through a turbid parallelepiped," J. Opt. Soc. Am. A 22, 1883-1888 (2005) 
+#########################################################################################################################################
 
-######################
+#####################################
 # Time-Domain Fluence 
-######################
+#####################################
+"""
+    fluence_DA_paralpip_TD(t, μa, μsp; n_ext, n_med, rd, rs, L, xs)
 
-@inline function _kernel_fluence_DA_paralpip_TD!(ϕ1, ϕ2, ϕ3, ϕ4, D, ν, t, μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
+Compute the time-domain fluence in a parallelepiped [lx, ly, lz] with Eqn. 6 Kienle 05. 
+
+# Arguments
+- `t`: the time vector (ns). 
+- `μa`: absorption coefficient (cm⁻¹)
+- `μsp`: reduced scattering coefficient (cm⁻¹)
+- `ρ::Float64`: the source detector separation (cm⁻¹)
+- `ndet::Float64`: the boundary's index of refraction (air or detector)
+- `nmed::Float64`: the sample medium's index of refraction
+- `rd::Array{Float64,1}`: target location within medium [x,y,z] with origin x,y = 0 at corner of parallelepiped; z assumed to be 0
+- `rs::Array{Float64,1}`: the location of the source [x,y] with origin x,y = 0 at corner of parallelepiped; z assumed to be 0
+- `L::Array{Float64,1}`: the dimensions [lx, ly, lz] of the parallelepied
+
+# Examples
+julia> fluence_DA_paralpip_TD(0.1, 0.1, 10.0, 1.0, 1.0, [2.5,5.0,1.0], [5.0,5.0], [10.0,10.0,10.0])
+"""
+function fluence_DA_paralpip_TD(t, μa, μsp; n_ext = 1.0, n_med = 1.0, rd = [4.0, 5.0, 0.0], rs = [5.0, 5.0], L = [10.0, 10.0, 10.0], xs = -10:10)
+    D = D_coeff(μsp, μa)
+    A = A_coeff(n_med / n_ext)
+    ν = ν_coeff(n_med)
+	
+    z0 = z0_coeff(μsp)
+    zb = zb_coeff(A, D)
+
+    x = rd[1]
+	y = rd[2]
+	z = rd[3]
+	xu = rs[1]
+	yu = rs[2]
+	lx = L[1]
+	ly = L[2]
+	lz = L[3]
+
+	if isa(t, AbstractFloat)
+		return _kernel_fluence_DA_paralpip_TD!(D, ν, t, μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
+	elseif isa(t, AbstractArray)
+		ϕ = zeros(eltype(L), length(t))
+        @inbounds Threads.@threads for ind in eachindex(t)
+    		ϕ[ind] = _kernel_fluence_DA_paralpip_TD!(D, ν, t[ind], μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
+    	end
+    	return ϕ
+	end
+end
+@inline function _kernel_fluence_DA_paralpip_TD!(D, ν, t, μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
     tmp = 4 * D * ν * t
     ϕ1 = ν * exp(-μa * ν * t) / ((π * tmp)^(3/2))
+	ϕ2 = zero(eltype(lx)) 
+	ϕ3 = zero(eltype(lx)) 
+	ϕ4 = zero(eltype(lx)) 
 
     for m in xs
 		tmp1 = 4 * m * zb
@@ -31,58 +79,6 @@ Implements solution to the diffusion equation in the time-domain through a turbi
       
 	return ϕ1 * ϕ2 * ϕ3 * ϕ4
 end
-function fluence_DA_paralpip_TD(t, μa, μsp, n_ext, n_med, rd, rs, L; xs = -10:10)
-    D = D_coeff(μsp, μa)
-    A = get_afac(n_med / n_ext)
-    ν = ν_coeff(n_med)
-	
-    z0 = z0_coeff(μsp)
-    zb = zb_coeff(A, D)
-
-    x = rd[1]
-	y = rd[2]
-	z = rd[3]
-	xu = rs[1]
-	yu = rs[2]
-	lx = L[1]
-	ly = L[2]
-	lz = L[3]
-
-	ϕ1 = zero(eltype(L)) 
-	ϕ2 = zero(eltype(L)) 
-	ϕ3 = zero(eltype(L)) 
-	ϕ4 = zero(eltype(L)) 
-
-	if isa(t, AbstractFloat)
-		return _kernel_fluence_DA_paralpip_TD!(ϕ1, ϕ2, ϕ3, ϕ4, D, ν, t, μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
-	elseif isa(t, AbstractArray)
-		ϕ = zeros(eltype(L), length(t))
-        Threads.@threads for ind in eachindex(t)
-    		ϕ[ind] =_kernel_fluence_DA_paralpip_TD!(ϕ1, ϕ2, ϕ3, ϕ4, D, ν, t[ind], μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
-    	end
-    	return ϕ
-	end
-end
-
-@doc """
-    fluence_DA_paralpip_TD(t, μa, μsp, n_ext, n_med, rd, rs, L; xs)
-
-Compute the time-domain fluence in a parallelepiped [lx, ly, lz] with Eqn. 6 Kienle 05. 
-
-# Arguments
-- `t`: the time vector (ns). 
-- `μa`: absorption coefficient (cm⁻¹)
-- `μsp`: reduced scattering coefficient (cm⁻¹)
-- `ρ::Float64`: the source detector separation (cm⁻¹)
-- `ndet::Float64`: the boundary's index of refraction (air or detector)
-- `nmed::Float64`: the sample medium's index of refraction
-- `rd::Array{Float64,1}`: target location within medium [x,y,z] with origin x,y = 0 at corner of parallelepiped; z assumed to be 0
-- `rs::Array{Float64,1}`: the location of the source [x,y] with origin x,y = 0 at corner of parallelepiped; z assumed to be 0
-- `L::Array{Float64,1}`: the dimensions [lx, ly, lz] of the parallelepied
-
-# Examples
-julia> fluence_DA_paralpip_TD(0.1, 0.1, 10.0, 1.0, 1.0, [2.5,5.0,1.0], [5.0,5.0], [10.0,10.0,10.0])
-""" fluence_DA_paralpip_TD
 
 ### TD Reflectance ###
 """
