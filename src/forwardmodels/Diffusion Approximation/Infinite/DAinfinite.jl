@@ -45,7 +45,7 @@ Compute the time-domain fluence in an infinite medium with Eqn. 3 of Patterson. 
 - `n_med::Float64`: medium's index of refraction
 
 # Examples
-julia> fluence_DA_inf_TD(0.1:0.5:5.0, 1.0, 0.1, 10.0)
+julia> fluence_DA_inf_TD(0.1:0.5:5.0, 1.0, 0.1, 10.0, n_med = 1.4)
 """
 function fluence_DA_inf_TD(t, ρ, μa, μsp, n_med = 1.0)
     @assert ρ > zero(eltype(ρ))
@@ -88,7 +88,7 @@ Compute the fluence for a frequency modulated source in an infinite medium.
 - `n_med::Float64`: medium's index of refraction
 
 # Examples
-julia> fluence_DA_inf_FD(1.0, 0.1, 10.0, 1.0)
+julia> fluence_DA_inf_FD(1.0, 0.1, 10.0, 1.0, n_med = 1.4)
 """
 function fluence_DA_inf_FD(ρ, μa, μsp, ω, n_med = 1.0)
     ν = ν_coeff(n_med)
