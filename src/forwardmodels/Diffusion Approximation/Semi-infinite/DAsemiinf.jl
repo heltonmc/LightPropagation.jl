@@ -11,7 +11,7 @@
 # Steady-State Fluence 
 #####################################
 """
-    fluence_DA_semiinf_CW(ρ, μa, μsp, ndet, nmed, z)
+    fluence_DA_semiinf_CW(ρ, μa, μsp; n_ext, n_med, z)
 
 Compute the steady-state fluence in a semi-infinite geometry according to Eqn. 3 of Kienle 1997. 
 
@@ -24,9 +24,9 @@ Compute the steady-state fluence in a semi-infinite geometry according to Eqn. 3
 - `z`: the z-depth orthogonal from the boundary (cm)
 
 # Examples
-julia> fluence_DA_semiinf_CW(1.0, 0.1, 10.0, 1.0, 1.0, 0.0)
+julia> fluence_DA_semiinf_CW(1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, z = 0.0)
 """
-function fluence_DA_semiinf_CW(ρ, μa, μsp, n_ext, n_med, z)
+function fluence_DA_semiinf_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0)
     D = D_coeff(μsp, μa)
     μeff = sqrt(3 * μa * μsp)
     A = A_coeff(n_med / n_ext)
@@ -49,7 +49,7 @@ end
 # Time-Domain Fluence 
 #####################################
 """
-    fluence_DA_semiinf_TD(t, ρ, μa, μsp, ndet, nmed, z)
+    fluence_DA_semiinf_TD(t, ρ, μa, μsp; n_ext, n_med, z)
 
 Compute the time-domain fluence in a semi-infinite medium (Eqn. 33 Contini). 
 
@@ -58,14 +58,14 @@ Compute the time-domain fluence in a semi-infinite medium (Eqn. 33 Contini).
 - `ρ`: the source detector separation (cm⁻¹)
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
-- `ndet`: the boundary's index of refraction (air or detector)
-- `nmed`: the sample medium's index of refraction
+- `n_ext`: the boundary's index of refraction (air or detector)
+- `n_med`: the sample medium's index of refraction
 - `z`: the z-depth in medium
 
 # Examples
-julia> fluence_DA_semiinf_TD(0.1:0.1:1.0, 1.0, 0.1, 10.0, 1.0, 1.0, 0.0)
+julia> fluence_DA_semiinf_TD(0.1:0.1:1.0, 1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, z = 0.0)
 """
-function fluence_DA_semiinf_TD(t, ρ, μa, μsp, n_ext, n_med, z)
+function fluence_DA_semiinf_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0)
     D = D_coeff(μsp, μa)
     A = A_coeff(n_med / n_ext)
     ν = ν_coeff(n_med)
@@ -95,7 +95,7 @@ end
 # Frequency-Domain Fluence 
 #####################################
 """
-fluence_DA_semiinf_FD(ρ, μa, μsp, n_ext, n_med, z, ω)
+fluence_DA_semiinf_FD(ρ, μa, μsp; n_ext, n_med, z, ω)
 
 Compute the frequency domain fluence in a semi-infinite geometry.
 
@@ -109,16 +109,18 @@ Compute the frequency domain fluence in a semi-infinite geometry.
 - `ω`: the modulation frequency (1/ns)
 
 # Examples
-julia> fluence_DA_semiinf_FD(1.0, 0.1, 10.0, 1.0, 1.0, 0.0, 0.0)
+julia> fluence_DA_semiinf_FD(1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, z = 0.0, ω = 1.0)
 """
-function fluence_DA_semiinf_FD(ρ, μa, μsp, n_ext, n_med, z, ω)
+function fluence_DA_semiinf_FD(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0, ω = 1.0)
     ν = ν_coeff(n_med)
     μa_complex = μa + ω * im / ν
 
-    return fluence_DA_semiinf_CW(ρ, μa_complex, μsp, n_ext, n_med, z)
+    return fluence_DA_semiinf_CW(ρ, μa_complex, μsp, n_ext = n_ext, n_med = n_med, z = z)
 end
 
-### TD Reflectance ###
+#####################################
+# Time-Domain Reflectance (Flux) 
+#####################################
 """
     refl_DA_semiinf_TD(t, ρ, μa, μsp, n_ext, n_med)
 
