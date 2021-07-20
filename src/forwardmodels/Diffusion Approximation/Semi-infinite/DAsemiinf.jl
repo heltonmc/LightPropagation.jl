@@ -37,7 +37,7 @@ function fluence_DA_semiinf_CW(ρ, μa, μsp, n_det, n_med, z)
     ϕ = exp(-μeff * sqrt(ρ^2 + (z - z0)^2)) / (sqrt(ρ^2 + (z - z0)^2))
     ϕ -= exp(-μeff * sqrt(ρ^2 + (z + 2 * zb + z0)^2)) / (sqrt(ρ^2 + (z + 2 * zb + z0)^2))
 
-	return ϕ / (4 * π * D)
+    return ϕ / (4 * π * D)
 end
 function fluence_DA_semiinf_CW(data)
     return fluence_DA_semiinf_CW(data.ρ, data.μa, data.μsp, data.n_det, data.n_med, data.z)
