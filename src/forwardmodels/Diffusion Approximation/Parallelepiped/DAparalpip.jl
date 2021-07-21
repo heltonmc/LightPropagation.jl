@@ -1,5 +1,5 @@
 #########################################################################################################################################
-# Implements solution to the diffusion equation in the time-domain through a turbid parallelpiped [1]
+# Implements solution to the diffusion equation in the time-domain through a turbid parallelepiped [1]
 
 # [1] Alwin Kienle, "Light diffusion through a turbid parallelepiped," J. Opt. Soc. Am. A 22, 1883-1888 (2005) 
 #########################################################################################################################################
@@ -10,23 +10,24 @@
 """
     fluence_DA_paralpip_TD(t, μa, μsp; n_ext, n_med, rd, rs, L, xs)
 
-Compute the time-domain fluence in a parallelepiped [lx, ly, lz] with Eqn. 6 Kienle 05. 
+Compute the time-domain fluence in a parallelepiped [lx, ly, lz].
 
 # Arguments
 - `t`: the time vector (ns). 
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
-- `ρ::Float64`: the source detector separation (cm⁻¹)
-- `ndet::Float64`: the boundary's index of refraction (air or detector)
-- `nmed::Float64`: the sample medium's index of refraction
-- `rd::Array{Float64,1}`: target location within medium [x,y,z] with origin x,y = 0 at corner of parallelepiped; z assumed to be 0
-- `rs::Array{Float64,1}`: the location of the source [x,y] with origin x,y = 0 at corner of parallelepiped; z assumed to be 0
-- `L::Array{Float64,1}`: the dimensions [lx, ly, lz] of the parallelepied
+- `ρ`: the source detector separation (cm⁻¹)
+- `ndet`: the boundary's index of refraction (air or detector)
+- `nmed`: the sample medium's index of refraction
+- `rd`: target location within medium [x,y,z] with origin x,y = 0 at corner of parallelepiped; z assumed to be 0
+- `rs`: the location of the source [x,y] with origin x,y = 0 at corner of parallelepiped; z assumed to be 0
+- `L`: the dimensions [lx, ly, lz] of the parallelepiped
+- `xs`: the number of sources to compute in the series
 
 # Examples
 julia> fluence_DA_paralpip_TD(0.1, 0.1, 10.0, 1.0, 1.0, [2.5,5.0,1.0], [5.0,5.0], [10.0,10.0,10.0])
 """
-function fluence_DA_paralpip_TD(t, μa, μsp; n_ext = 1.0, n_med = 1.0, rd = [4.0, 5.0, 0.0], rs = [5.0, 5.0], L = [10.0, 10.0, 10.0], xs = -10:10)
+function fluence_DA_paralpip_TD(t, μa, μsp; n_ext = 1.0, n_med = 1.0, rd = [4.0, 5.0, 0.0], rs = [5.0, 5.0], L = [10.0, 10.0, 10.0], xs = 10)
     D = D_coeff(μsp, μa)
     A = A_coeff(n_med / n_ext)
     ν = ν_coeff(n_med)
@@ -44,40 +45,45 @@ function fluence_DA_paralpip_TD(t, μa, μsp; n_ext = 1.0, n_med = 1.0, rd = [4.
 	lz = L[3]
 
 	if isa(t, AbstractFloat)
-		return _kernel_fluence_DA_paralpip_TD!(D, ν, t, μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
+		return _kernel_fluence_DA_paralpip_TD(D, ν, t, μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
 	elseif isa(t, AbstractArray)
-		ϕ = zeros(eltype(L), length(t))
+		ϕ = zeros(eltype(D), length(t))
         @inbounds Threads.@threads for ind in eachindex(t)
-    		ϕ[ind] = _kernel_fluence_DA_paralpip_TD!(D, ν, t[ind], μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
+    		ϕ[ind] = _kernel_fluence_DA_paralpip_TD(D, ν, t[ind], μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
     	end
     	return ϕ
 	end
 end
-@inline function _kernel_fluence_DA_paralpip_TD!(D, ν, t, μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
+@inline function _kernel_fluence_DA_paralpip_TD(D, ν, t, μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
     tmp = 4 * D * ν * t
     ϕ1 = ν * exp(-μa * ν * t) / ((π * tmp)^(3/2))
-	ϕ2 = zero(eltype(lx)) 
-	ϕ3 = zero(eltype(lx)) 
-	ϕ4 = zero(eltype(lx)) 
+	ϕ2 = zero(eltype(ϕ1)) 
+	ϕ3 = zero(eltype(ϕ1)) 
+	ϕ4 = zero(eltype(ϕ1)) 
 
-    for m in xs
-		tmp1 = 4 * m * zb
-		tmp2 = (4 * m - 2) * zb
-		tmp3 = 2 * m
-
-		x1l = tmp3 * lx + tmp1 + xu 
-		x2l = tmp3 * lx + tmp2 - xu
-		y1m = tmp3 * ly + tmp1 + yu
-		y2m = tmp3 * ly + tmp2 - yu
-		z1n = tmp3 * lz + tmp1 + z0
-		z2n = tmp3 * lz + tmp2 - z0
-		  
-    	ϕ2 += exp(-(x - x1l)^2 / tmp) - exp(-(x - x2l)^2 / tmp)
-	    ϕ3 += exp(-(y - y1m)^2 / tmp) - exp(-(y - y2m)^2 / tmp)
-	    ϕ4 += exp(-(z - z1n)^2 / tmp) - exp(-(z - z2n)^2 / tmp)
+    for m in -xs:xs
+    	ϕ2, ϕ3, ϕ4 = _sources_DA_paralpip_TD!(ϕ2, ϕ3, ϕ4, m, zb, lx, ly, lz, xu, yu, z0, x, y, z, tmp)
     end
-      
+    
 	return ϕ1 * ϕ2 * ϕ3 * ϕ4
+end
+@inline function _sources_DA_paralpip_TD!(ϕ2, ϕ3, ϕ4, m, zb, lx, ly, lz, xu, yu, z0, x, y, z, tmp)
+	tmp1 = 4 * m * zb
+	tmp2 = (4 * m - 2) * zb
+	tmp3 = 2 * m
+
+	x1l = tmp3 * lx + tmp1 + xu 
+	x2l = tmp3 * lx + tmp2 - xu
+	y1m = tmp3 * ly + tmp1 + yu
+	y2m = tmp3 * ly + tmp2 - yu
+	z1n = tmp3 * lz + tmp1 + z0
+	z2n = tmp3 * lz + tmp2 - z0
+		  
+    ϕ2 += exp(-(x - x1l)^2 / tmp) - exp(-(x - x2l)^2 / tmp)
+	ϕ3 += exp(-(y - y1m)^2 / tmp) - exp(-(y - y2m)^2 / tmp)
+	ϕ4 += exp(-(z - z1n)^2 / tmp) - exp(-(z - z2n)^2 / tmp)
+	
+	return ϕ2, ϕ3, ϕ4
 end
 
 ### TD Reflectance ###
