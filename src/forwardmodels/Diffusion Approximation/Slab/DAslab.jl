@@ -6,46 +6,11 @@
 # [2] Martelli, Fabrizio, et al. Light propagation through biological tissue and other diffusive media: theory, solutions and software. Vol. 10. No. 3.824746. Bellingham: SPIE press, 2010.
 ################################################################################################################################## 
 
-# Steady-State Fluence
-@inline function _kernel_fluence_DA_slab_CW(m, s, zb, z0, ρ, z, μeff)
-    tmp1 = 2 * m * (s + 2 * zb)
-    zmp = tmp1 + z0
-    zmm = tmp1 - 2 * zb - z0
-
-    tmp2 = sqrt(ρ^2 + (z - zmp)^2)
-    tmp3 = sqrt(ρ^2 + (z - zmm)^2)
-    ϕ = exp(-μeff * tmp2) / tmp2
-    ϕ -= exp(-μeff * tmp3) / tmp3
-	return ϕ
-end
-function fluence_DA_slab_CW(ρ, μa, μsp, n_ext, n_med, s, z; rtol = 1e-20, maxiter = 1e5)
-    D = D_coeff(μsp, μa)
-    μeff = sqrt(3 * μa * μsp)
-    A = get_afac(n_med / n_ext)
-	
-    z0 = z0_coeff(μsp)
-    zb = zb_coeff(A, D)
-
-    ϕ = _kernel_fluence_DA_slab_CW(0, s, zb, z0, ρ, z, μeff)
-    ϕ_new = zero(eltype(ϕ))
-
-    for m in 1:maxiter
-        tmp = _kernel_fluence_DA_slab_CW(m, s, zb, z0, ρ, z, μeff)
-        tmp += _kernel_fluence_DA_slab_CW(-m, s, zb, z0, ρ, z, μeff)
-        ϕ_new += tmp
-
-        if abs(tmp) / (abs(ϕ_new))  < rtol
-            break
-        end
-    end
-             
-    return (ϕ + ϕ_new) / (4 * π * D)
-end
-function fluence_DA_slab_CW(data)
-    return fluence_DA_slab_CW(data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.s, data.z)
-end
-@doc """
-    fluence_DA_slab_CW(ρ, μa, μsp, n_ext, n_med, s, z; rtol, maxiter)
+#####################################
+# Steady-State Fluence 
+#####################################
+"""
+    fluence_DA_slab_CW(ρ, μa, μsp; n_ext, n_med, s, z, xs)
 
 Compute the steady-state fluence from a slab geometry (x, y -> inf, z -> finite). 
 
@@ -57,10 +22,38 @@ Compute the steady-state fluence from a slab geometry (x, y -> inf, z -> finite)
 - `n_med::Float64`: the sample medium's index of refraction
 - `s::Float64`: the thickness (z-depth) of the slab (cm)
 - `z::Float64`: the z-depth within slab (cm)
+- `xs`: the number of sources to compute in the series
 
 # Examples
 julia> fluence_DA_slab_CW(1.0, [0.1,10.], 1.0,1.0, 2.0, 0.)
-""" fluence_DA_slab_CW
+"""
+function fluence_DA_slab_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 1.0, z = 0.0, xs = 10)
+    D = D_coeff(μsp, μa)
+    μeff = sqrt(3 * μa * μsp)
+    A = A_coeff(n_med / n_ext)
+	
+    z0 = z0_coeff(μsp)
+    zb = zb_coeff(A, D)
+
+    ϕ = zero(eltype(μeff))
+
+    for m in -xs:xs
+        ϕ += _kernel_fluence_DA_slab_CW(m, s, zb, z0, ρ, z, μeff)
+    end
+
+    return (ϕ) / (4 * π * D)
+end
+@inline function _kernel_fluence_DA_slab_CW(m, s, zb, z0, ρ, z, μeff)
+    tmp1 = 2 * m * (s + 2 * zb)
+    zmp = tmp1 + z0
+    zmm = tmp1 - 2 * zb - z0
+
+    tmp2 = sqrt(ρ^2 + (z - zmp)^2)
+    tmp3 = sqrt(ρ^2 + (z - zmm)^2)
+    ϕ = exp(-μeff * tmp2) / tmp2
+    ϕ -= exp(-μeff * tmp3) / tmp3
+	return ϕ
+end
 
 ### Fluence TD ###
 @inline function _images_fluence_DA_slab_TD(m, s, zb, z0, z, tmp1)
@@ -89,7 +82,7 @@ end
 end
 function fluence_DA_slab_TD(t::AbstractFloat, ρ, μa, μsp, n_ext, n_med, s, z; rtol = 1e-20, maxiter = 1e5)
     D = D_coeff(μsp, μa)
-    A = get_afac(n_med / n_ext)
+    A = A_coeff(n_med / n_ext)
     ν = ν_coeff(n_med)
 
     z0 = z0_coeff(μsp)
@@ -99,7 +92,7 @@ function fluence_DA_slab_TD(t::AbstractFloat, ρ, μa, μsp, n_ext, n_med, s, z;
 end
 function fluence_DA_slab_TD(t::AbstractArray, ρ, μa, μsp, n_ext, n_med, s, z; rtol = 1e-20, maxiter = 1e5)
     D = D_coeff(μsp, μa)
-    A = get_afac(n_med / n_ext)
+    A = A_coeff(n_med / n_ext)
     ν = ν_coeff(n_med)
 
     z0 = z0_coeff(μsp)
@@ -153,7 +146,7 @@ julia> refl_DA_slab_TD(1.0, 1.0, 0.1, 10.0, 1.0, 1.0, 1.0)
 """
 function refl_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s; xs = -15:15)
 	D = D_coeff(μsp, μa)
-    A = get_afac(n_med / n_ext)
+    A = A_coeff(n_med / n_ext)
     ν = ν_coeff(n_med)
 
     z0 = z0_coeff(μsp)
@@ -195,7 +188,7 @@ julia> trans_DA_slab_TD(1.0, 1.0, 0.1, 10.0, 1.0, 1.0, 1.0)
 """
 function trans_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s; xs = -15:15)
 	D = D_coeff(μsp, μa)
-    A = get_afac(n_med / n_ext)
+    A = A_coeff(n_med / n_ext)
     ν = ν_coeff(n_med)
 
     z0 = z0_coeff(μsp)
@@ -223,7 +216,7 @@ end
 function fluence_DA_slab_CW(ρ, μa, μsp, n_ext, n_med, s, z; xs = -10:10)
     D = D_coeff(μsp, μa)
 	μeff = sqrt(3 * μa * μsp)
-	A = get_afac(n_med / n_ext)
+	A = A_coeff(n_med / n_ext)
 	
 	ϕ = zero(eltype(ρ))
 
@@ -246,7 +239,7 @@ end
 
 function fluence_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s, z; xs = -10:10)
     D = D_coeff(μsp, μa)
-	A = get_afac(n_med / n_ext)
+	A = A_coeff(n_med / n_ext)
 	ν = ν_coeff(n_med)
 
 	z0 = z0_coeff(μsp)
