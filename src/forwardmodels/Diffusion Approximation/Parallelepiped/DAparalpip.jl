@@ -57,33 +57,33 @@ end
 @inline function _kernel_fluence_DA_paralpip_TD(D, ν, t, μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
     tmp = 4 * D * ν * t
     ϕ1 = ν * exp(-μa * ν * t) / ((π * tmp)^(3/2))
-	ϕ2 = zero(eltype(ϕ1)) 
-	ϕ3 = zero(eltype(ϕ1)) 
-	ϕ4 = zero(eltype(ϕ1)) 
+    ϕ2 = zero(eltype(ϕ1)) 
+    ϕ3 = zero(eltype(ϕ1)) 
+    ϕ4 = zero(eltype(ϕ1)) 
 
     for m in -xs:xs
     	ϕ2, ϕ3, ϕ4 = _sources_DA_paralpip_TD!(ϕ2, ϕ3, ϕ4, m, zb, lx, ly, lz, xu, yu, z0, x, y, z, tmp)
     end
     
-	return ϕ1 * ϕ2 * ϕ3 * ϕ4
+    return ϕ1 * ϕ2 * ϕ3 * ϕ4
 end
 @inline function _sources_DA_paralpip_TD!(ϕ2, ϕ3, ϕ4, m, zb, lx, ly, lz, xu, yu, z0, x, y, z, tmp)
-	tmp1 = 4 * m * zb
-	tmp2 = (4 * m - 2) * zb
-	tmp3 = 2 * m
+    tmp1 = 4 * m * zb
+    tmp2 = (4 * m - 2) * zb
+    tmp3 = 2 * m
 
-	x1l = tmp3 * lx + tmp1 + xu 
-	x2l = tmp3 * lx + tmp2 - xu
-	y1m = tmp3 * ly + tmp1 + yu
-	y2m = tmp3 * ly + tmp2 - yu
-	z1n = tmp3 * lz + tmp1 + z0
-	z2n = tmp3 * lz + tmp2 - z0
-		  
+    x1l = tmp3 * lx + tmp1 + xu 
+    x2l = tmp3 * lx + tmp2 - xu
+    y1m = tmp3 * ly + tmp1 + yu
+    y2m = tmp3 * ly + tmp2 - yu
+    z1n = tmp3 * lz + tmp1 + z0
+    z2n = tmp3 * lz + tmp2 - z0
+	  
     ϕ2 += exp(-(x - x1l)^2 / tmp) - exp(-(x - x2l)^2 / tmp)
-	ϕ3 += exp(-(y - y1m)^2 / tmp) - exp(-(y - y2m)^2 / tmp)
-	ϕ4 += exp(-(z - z1n)^2 / tmp) - exp(-(z - z2n)^2 / tmp)
+    ϕ3 += exp(-(y - y1m)^2 / tmp) - exp(-(y - y2m)^2 / tmp)
+    ϕ4 += exp(-(z - z1n)^2 / tmp) - exp(-(z - z2n)^2 / tmp)
 	
-	return ϕ2, ϕ3, ϕ4
+    return ϕ2, ϕ3, ϕ4
 end
 
 
@@ -115,19 +115,19 @@ function fluence_DA_paralpip_CW(μa, μsp; n_ext = 1.0, n_med = 1.0, rd = [4.0, 
 	
     z0 = z0_coeff(μsp)
     zb = zb_coeff(A, D)
-	μeff = sqrt(3 * μa * μsp)
+    μeff = sqrt(3 * μa * μsp)
 
 
     x = rd[1]
-	y = rd[2]
-	z = rd[3]
-	xu = rs[1]
-	yu = rs[2]
-	lx = L[1]
-	ly = L[2]
-	lz = L[3]
+    y = rd[2]
+    z = rd[3]
+    xu = rs[1]
+    yu = rs[2]
+    lx = L[1]
+    ly = L[2]
+    lz = L[3]
 
-	return _kernel_fluence_DA_paralpip_CW(μeff, D, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
+    return _kernel_fluence_DA_paralpip_CW(μeff, D, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
 end
 @inline function _kernel_fluence_DA_paralpip_CW(μeff, D, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
     ϕ = zero(eltype(D))
@@ -136,31 +136,30 @@ end
     	ϕ += _sources_DA_paralpip_CW(l, m, n, x, y, z, lx, ly, lz, xu, yu, z0, zb, μeff)
     end
     
-	return ϕ / (4 * π * D)
+    return ϕ / (4 * π * D)
 end
 @inline function _sources_DA_paralpip_CW(l, m, n, x, y, z, lx, ly, lz, xu, yu, z0, zb, μeff)
 	
-	x1l = 2 * l * lx + 4 * l * zb + xu 
-	x2l = 2 * l * lx + (4 * l - 2) * zb - xu
-	y1m = 2 * m * ly + 4 * m * zb + yu
-	y2m = 2 * m * ly + (4 * m - 2) * zb - yu
-	z1n = 2 * n * lz + 4 * n * zb + z0
-	z2n = 2 * n * lz + (4 * n - 2) * zb - z0
+    x1l = 2 * l * lx + 4 * l * zb + xu 
+    x2l = 2 * l * lx + (4 * l - 2) * zb - xu
+    y1m = 2 * m * ly + 4 * m * zb + yu
+    y2m = 2 * m * ly + (4 * m - 2) * zb - yu
+    z1n = 2 * n * lz + 4 * n * zb + z0
+    z2n = 2 * n * lz + (4 * n - 2) * zb - z0
 
-	r1 = sqrt((x - x1l)^2 + (y - y1m)^2 + (z - z1n)^2)
-	r2 = sqrt((x - x1l)^2 + (y - y1m)^2 + (z - z2n)^2)
-	r3 = sqrt((x - x1l)^2 + (y - y2m)^2 + (z - z1n)^2)
-	r4 = sqrt((x - x1l)^2 + (y - y2m)^2 + (z - z2n)^2)
-	r5 = sqrt((x - x2l)^2 + (y - y1m)^2 + (z - z1n)^2)
-	r6 = sqrt((x - x2l)^2 + (y - y1m)^2 + (z - z2n)^2)
-	r7 = sqrt((x - x2l)^2 + (y - y2m)^2 + (z - z1n)^2)
-	r8 = sqrt((x - x2l)^2 + (y - y2m)^2 + (z - z2n)^2)
+    r1 = sqrt((x - x1l)^2 + (y - y1m)^2 + (z - z1n)^2)
+    r2 = sqrt((x - x1l)^2 + (y - y1m)^2 + (z - z2n)^2)
+    r3 = sqrt((x - x1l)^2 + (y - y2m)^2 + (z - z1n)^2)
+    r4 = sqrt((x - x1l)^2 + (y - y2m)^2 + (z - z2n)^2)
+    r5 = sqrt((x - x2l)^2 + (y - y1m)^2 + (z - z1n)^2)
+    r6 = sqrt((x - x2l)^2 + (y - y1m)^2 + (z - z2n)^2)
+    r7 = sqrt((x - x2l)^2 + (y - y2m)^2 + (z - z1n)^2)
+    r8 = sqrt((x - x2l)^2 + (y - y2m)^2 + (z - z2n)^2)
 
+    ϕ  = exp(-μeff * r1) / r1 - exp(-μeff * r2) / r2 - exp(-μeff * r3) / r3 + exp(-μeff * r4) / r4
+    ϕ += -exp(-μeff * r5) / r5 + exp(-μeff * r6) / r6 + exp(-μeff * r7) / r7 - exp(-μeff * r8) / r8
 
-	ϕ  = exp(-μeff * r1) / r1 - exp(-μeff * r2) / r2 - exp(-μeff * r3) / r3 + exp(-μeff * r4) / r4
-	ϕ += -exp(-μeff * r5) / r5 + exp(-μeff * r6) / r6 + exp(-μeff * r7) / r7 - exp(-μeff * r8) / r8
-
-	return ϕ
+    return ϕ
 end
 
 ### TD Reflectance ###
