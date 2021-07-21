@@ -33,8 +33,6 @@ export load_asc_data
 
 export fitDTOF, DTOF_fitparams
 
-include("data/loadData/loaddata.jl")
-
 include("forwardmodels/Diffusion Approximation/diffusionparameters.jl")
 
 include("forwardmodels/Diffusion Approximation/Infinite/DAinfinite.jl")
@@ -42,9 +40,9 @@ include("forwardmodels/Diffusion Approximation/Semi-infinite/DAsemiinf.jl")
 include("forwardmodels/Diffusion Approximation/Slab/DAslab.jl")
 include("forwardmodels/Diffusion Approximation/Parallelepiped/DAparalpip.jl")
 
-include("inversefitting/FitStructures/fitstructures.jl")
-include("inversefitting/FitFunctions/fitfunction.jl")
-include("inversefitting/FitFunctions/fitmodels.jl")
+#include("inversefitting/FitStructures/fitstructures.jl")
+#include("inversefitting/FitFunctions/fitfunction.jl")
+#include("inversefitting/FitFunctions/fitmodels.jl")
 
 include("forwardmodels/Diffusion Approximation/transforms.jl")
 include("forwardmodels/Diffusion Approximation/DAcylinder_layered.jl")
