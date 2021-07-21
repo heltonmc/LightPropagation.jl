@@ -1,8 +1,82 @@
 #########################################################################################################################################
-# Implements solution to the diffusion equation in the time-domain through a turbid parallelepiped [1]
+# Implements solution to the diffusion equation in the steady-state and time-domain through a turbid parallelepiped [1]
 
 # [1] Alwin Kienle, "Light diffusion through a turbid parallelepiped," J. Opt. Soc. Am. A 22, 1883-1888 (2005) 
 #########################################################################################################################################
+
+#####################################
+# Steady-State Fluence 
+#####################################
+"""
+    fluence_DA_paralpip_CW(μa, μsp; n_ext, n_med, rd, rs, L, xs)
+
+Compute the steady-state fluence in a parallelepiped [lx, ly, lz].
+
+# Arguments
+- `μa`: absorption coefficient (cm⁻¹)
+- `μsp`: reduced scattering coefficient (cm⁻¹)
+- `ρ`: the source detector separation (cm⁻¹)
+- `ndet`: the boundary's index of refraction (air or detector)
+- `nmed`: the sample medium's index of refraction
+- `rd`: target location within medium [x,y,z] with origin x,y = 0 at corner of parallelepiped; z assumed to be 0
+- `rs`: the location of the source [x,y] with origin x,y = 0 at corner of parallelepiped; z assumed to be 0
+- `L`: the dimensions [lx, ly, lz] of the parallelepiped
+- `xs`: the number of sources to compute in the series
+
+# Examples
+julia> fluence_DA_paralpip_CW(0.1, 10.0, n_ext = 1.0, n_med = 1.0, rd = [24.0, 25.0, 0.0], rs = [25.0,25.0], L = [50.0,50.0,50.0], xs = 20)
+"""
+function fluence_DA_paralpip_CW(μa, μsp; n_ext = 1.0, n_med = 1.0, rd = [4.0, 5.0, 0.0], rs = [5.0, 5.0], L = [10.0, 10.0, 10.0], xs = 10)
+    D = D_coeff(μsp, μa)
+    A = A_coeff(n_med / n_ext)
+	
+    z0 = z0_coeff(μsp)
+    zb = zb_coeff(A, D)
+    μeff = sqrt(3 * μa * μsp)
+
+    x = rd[1]
+    y = rd[2]
+    z = rd[3]
+    xu = rs[1]
+    yu = rs[2]
+    lx = L[1]
+    ly = L[2]
+    lz = L[3]
+
+    return _kernel_fluence_DA_paralpip_CW(μeff, D, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
+end
+@inline function _kernel_fluence_DA_paralpip_CW(μeff, D, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
+    ϕ = zero(eltype(D))
+
+    for l in -xs:xs, m in -xs:xs, n in -xs:xs
+    	ϕ += _sources_DA_paralpip_CW(l, m, n, x, y, z, lx, ly, lz, xu, yu, z0, zb, μeff)
+    end
+    
+    return ϕ / (4 * π * D)
+end
+@inline function _sources_DA_paralpip_CW(l, m, n, x, y, z, lx, ly, lz, xu, yu, z0, zb, μeff)
+	
+    x1l = 2 * l * lx + 4 * l * zb + xu 
+    x2l = 2 * l * lx + (4 * l - 2) * zb - xu
+    y1m = 2 * m * ly + 4 * m * zb + yu
+    y2m = 2 * m * ly + (4 * m - 2) * zb - yu
+    z1n = 2 * n * lz + 4 * n * zb + z0
+    z2n = 2 * n * lz + (4 * n - 2) * zb - z0
+
+    r1 = sqrt((x - x1l)^2 + (y - y1m)^2 + (z - z1n)^2)
+    r2 = sqrt((x - x1l)^2 + (y - y1m)^2 + (z - z2n)^2)
+    r3 = sqrt((x - x1l)^2 + (y - y2m)^2 + (z - z1n)^2)
+    r4 = sqrt((x - x1l)^2 + (y - y2m)^2 + (z - z2n)^2)
+    r5 = sqrt((x - x2l)^2 + (y - y1m)^2 + (z - z1n)^2)
+    r6 = sqrt((x - x2l)^2 + (y - y1m)^2 + (z - z2n)^2)
+    r7 = sqrt((x - x2l)^2 + (y - y2m)^2 + (z - z1n)^2)
+    r8 = sqrt((x - x2l)^2 + (y - y2m)^2 + (z - z2n)^2)
+
+    ϕ  = exp(-μeff * r1) / r1 - exp(-μeff * r2) / r2 - exp(-μeff * r3) / r3 + exp(-μeff * r4) / r4
+    ϕ += -exp(-μeff * r5) / r5 + exp(-μeff * r6) / r6 + exp(-μeff * r7) / r7 - exp(-μeff * r8) / r8
+
+    return ϕ
+end
 
 #####################################
 # Time-Domain Fluence 
@@ -84,80 +158,6 @@ end
     ϕ4 += exp(-(z - z1n)^2 / tmp) - exp(-(z - z2n)^2 / tmp)
 	
     return ϕ2, ϕ3, ϕ4
-end
-
-#####################################
-# Steady-State Fluence 
-#####################################
-"""
-    fluence_DA_paralpip_CW(μa, μsp; n_ext, n_med, rd, rs, L, xs)
-
-Compute the steady-state fluence in a parallelepiped [lx, ly, lz].
-
-# Arguments
-- `μa`: absorption coefficient (cm⁻¹)
-- `μsp`: reduced scattering coefficient (cm⁻¹)
-- `ρ`: the source detector separation (cm⁻¹)
-- `ndet`: the boundary's index of refraction (air or detector)
-- `nmed`: the sample medium's index of refraction
-- `rd`: target location within medium [x,y,z] with origin x,y = 0 at corner of parallelepiped; z assumed to be 0
-- `rs`: the location of the source [x,y] with origin x,y = 0 at corner of parallelepiped; z assumed to be 0
-- `L`: the dimensions [lx, ly, lz] of the parallelepiped
-- `xs`: the number of sources to compute in the series
-
-# Examples
-julia> fluence_DA_paralpip_CW(0.1, 10.0, n_ext = 1.0, n_med = 1.0, rd = [24.0, 25.0, 0.0], rs = [25.0,25.0], L = [50.0,50.0,50.0], xs = 20)
-"""
-function fluence_DA_paralpip_CW(μa, μsp; n_ext = 1.0, n_med = 1.0, rd = [4.0, 5.0, 0.0], rs = [5.0, 5.0], L = [10.0, 10.0, 10.0], xs = 10)
-    D = D_coeff(μsp, μa)
-    A = A_coeff(n_med / n_ext)
-	
-    z0 = z0_coeff(μsp)
-    zb = zb_coeff(A, D)
-    μeff = sqrt(3 * μa * μsp)
-
-    x = rd[1]
-    y = rd[2]
-    z = rd[3]
-    xu = rs[1]
-    yu = rs[2]
-    lx = L[1]
-    ly = L[2]
-    lz = L[3]
-
-    return _kernel_fluence_DA_paralpip_CW(μeff, D, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
-end
-@inline function _kernel_fluence_DA_paralpip_CW(μeff, D, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
-    ϕ = zero(eltype(D))
-
-    for l in -xs:xs, m in -xs:xs, n in -xs:xs
-    	ϕ += _sources_DA_paralpip_CW(l, m, n, x, y, z, lx, ly, lz, xu, yu, z0, zb, μeff)
-    end
-    
-    return ϕ / (4 * π * D)
-end
-@inline function _sources_DA_paralpip_CW(l, m, n, x, y, z, lx, ly, lz, xu, yu, z0, zb, μeff)
-	
-    x1l = 2 * l * lx + 4 * l * zb + xu 
-    x2l = 2 * l * lx + (4 * l - 2) * zb - xu
-    y1m = 2 * m * ly + 4 * m * zb + yu
-    y2m = 2 * m * ly + (4 * m - 2) * zb - yu
-    z1n = 2 * n * lz + 4 * n * zb + z0
-    z2n = 2 * n * lz + (4 * n - 2) * zb - z0
-
-    r1 = sqrt((x - x1l)^2 + (y - y1m)^2 + (z - z1n)^2)
-    r2 = sqrt((x - x1l)^2 + (y - y1m)^2 + (z - z2n)^2)
-    r3 = sqrt((x - x1l)^2 + (y - y2m)^2 + (z - z1n)^2)
-    r4 = sqrt((x - x1l)^2 + (y - y2m)^2 + (z - z2n)^2)
-    r5 = sqrt((x - x2l)^2 + (y - y1m)^2 + (z - z1n)^2)
-    r6 = sqrt((x - x2l)^2 + (y - y1m)^2 + (z - z2n)^2)
-    r7 = sqrt((x - x2l)^2 + (y - y2m)^2 + (z - z1n)^2)
-    r8 = sqrt((x - x2l)^2 + (y - y2m)^2 + (z - z2n)^2)
-
-    ϕ  = exp(-μeff * r1) / r1 - exp(-μeff * r2) / r2 - exp(-μeff * r3) / r3 + exp(-μeff * r4) / r4
-    ϕ += -exp(-μeff * r5) / r5 + exp(-μeff * r6) / r6 + exp(-μeff * r7) / r7 - exp(-μeff * r8) / r8
-
-    return ϕ
 end
 
 ### TD Reflectance ###
