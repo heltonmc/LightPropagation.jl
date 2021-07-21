@@ -1,9 +1,10 @@
 ################################################################################################################################## 
 # Implements solution to the diffusion equation for the fluence in the steady-state and time-domain in a slab [1][2].
 #
-# [1] Contini, Daniele, Fabrizio Martelli, and Giovanni Zaccanti. "Photon migration through a turbid slab described by a model based on diffusion approximation. I. Theory." 
+# [1] Contini et. al. "Photon migration through a turbid slab described by a model based on diffusion approximation. I. Theory." 
 #     Applied optics 36.19 (1997): 4587-4599.
-# [2] Martelli, Fabrizio, et al. Light propagation through biological tissue and other diffusive media: theory, solutions and software. Vol. 10. No. 3.824746. Bellingham: SPIE press, 2010.
+# [2] Martelli et al. Light propagation through biological tissue and other diffusive media: theory, solutions and software. 
+#     Vol. 10. No. 3.824746. Bellingham: SPIE press, 2010.
 ################################################################################################################################## 
 
 #####################################
