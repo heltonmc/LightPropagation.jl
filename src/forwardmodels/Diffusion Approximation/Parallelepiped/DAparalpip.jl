@@ -52,7 +52,7 @@ function fluence_DA_paralpip_TD(t, μa, μsp; n_ext = 1.0, n_med = 1.0, rd = [4.
             ϕ[ind] = _kernel_fluence_DA_paralpip_TD(D, ν, t[ind], μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
         end
     	return ϕ
-	end
+    end
 end
 @inline function _kernel_fluence_DA_paralpip_TD(D, ν, t, μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
     tmp = 4 * D * ν * t
