@@ -40,7 +40,7 @@ function postwid(f::Function, t::AbstractArray; v = _PWcoeffs(18))
 end
 
 
-
+#=
 ####### How to use
 function fluence_DA_inf_FD(ρ, β, s, nmed = 1.0)
     μa = β[1]
@@ -110,7 +110,7 @@ plot(t, Rt, yscale=:log10, label = "TD analytical 'true'")
 plot!(t, abs.(lt), label = "LT Post-Widder")
 =#
 
-
+=#
 # Implement Laplace transfrom along a hyperbola contour
 
 ## adaptive contour for each time point (can't precompute f(ω) or sk)
