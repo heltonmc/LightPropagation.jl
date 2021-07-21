@@ -36,21 +36,21 @@ function fluence_DA_paralpip_TD(t, μa, μsp; n_ext = 1.0, n_med = 1.0, rd = [4.
     zb = zb_coeff(A, D)
 
     x = rd[1]
-	y = rd[2]
-	z = rd[3]
-	xu = rs[1]
-	yu = rs[2]
-	lx = L[1]
-	ly = L[2]
-	lz = L[3]
+    y = rd[2]
+    z = rd[3]
+    xu = rs[1]
+    yu = rs[2]
+    lx = L[1]
+    ly = L[2]
+    lz = L[3]
 
-	if isa(t, AbstractFloat)
-		return _kernel_fluence_DA_paralpip_TD(D, ν, t, μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
-	elseif isa(t, AbstractArray)
-		ϕ = zeros(eltype(D), length(t))
+    if isa(t, AbstractFloat)
+    	return _kernel_fluence_DA_paralpip_TD(D, ν, t, μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
+    elseif isa(t, AbstractArray)
+    	ϕ = zeros(eltype(D), length(t))
         @inbounds Threads.@threads for ind in eachindex(t)
     		ϕ[ind] = _kernel_fluence_DA_paralpip_TD(D, ν, t[ind], μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
-    	end
+        end
     	return ϕ
 	end
 end
