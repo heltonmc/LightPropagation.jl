@@ -1,7 +1,6 @@
 
 module LightPropagation
 
-
 using DelimitedFiles
 using LsqFit
 using DSP
@@ -9,7 +8,6 @@ using FFTW
 using Parameters
 using SpecialFunctions
 using JLD
-
 
 export TPSF_DA_semiinf_refl
 export TPSF_DA_slab_refl
