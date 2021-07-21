@@ -22,6 +22,7 @@ export fluence_DA_semiinf_CW
 export fluence_DA_slab_CW
 export fluence_DA_slab_TD
 export fluence_DA_paralpip_TD
+export fluence_DA_paralpip_CW
 
 export Nlayer_cylinder
 export fluence_DA_Nlay_cylinder_CW
