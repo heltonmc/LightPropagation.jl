@@ -12,6 +12,7 @@ makedocs(
     format = Documenter.HTML(),
     pages = [ 
                 "Home" => "index.md",
+                "API" => "API.md",
                 "Getting Started" => "getting-started.md",
                 "Tutorials" => Any[
                     "When is semi-infinite semi-infinite?" => "whensemiinf.md"
