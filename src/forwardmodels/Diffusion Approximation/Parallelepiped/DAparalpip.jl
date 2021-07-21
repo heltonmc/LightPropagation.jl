@@ -49,7 +49,7 @@ function fluence_DA_paralpip_TD(t, μa, μsp; n_ext = 1.0, n_med = 1.0, rd = [4.
     elseif isa(t, AbstractArray)
     	ϕ = zeros(eltype(D), length(t))
         @inbounds Threads.@threads for ind in eachindex(t)
-    		ϕ[ind] = _kernel_fluence_DA_paralpip_TD(D, ν, t[ind], μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
+            ϕ[ind] = _kernel_fluence_DA_paralpip_TD(D, ν, t[ind], μa, zb, x, y, z, lx, ly, lz, xu, yu, z0, xs)
         end
     	return ϕ
 	end
