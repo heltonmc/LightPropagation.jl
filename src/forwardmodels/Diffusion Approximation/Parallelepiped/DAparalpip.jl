@@ -24,7 +24,7 @@ Compute the steady-state fluence in a parallelepiped [lx, ly, lz].
 - `xs`: the number of sources to compute in the series
 
 # Examples
-julia> fluence_DA_paralpip_CW(0.1, 10.0, n_ext = 1.0, n_med = 1.0, rd = [24.0, 25.0, 0.0], rs = [25.0,25.0], L = [50.0,50.0,50.0], xs = 20)
+julia> `fluence_DA_paralpip_CW(0.1, 10.0, n_ext = 1.0, n_med = 1.0, rd = [24.0, 25.0, 0.0], rs = [25.0,25.0], L = [50.0,50.0,50.0], xs = 20)`
 """
 function fluence_DA_paralpip_CW(μa, μsp; n_ext = 1.0, n_med = 1.0, rd = [4.0, 5.0, 0.0], rs = [5.0, 5.0], L = [10.0, 10.0, 10.0], xs = 10)
     D = D_coeff(μsp, μa)
@@ -99,7 +99,7 @@ Compute the time-domain fluence in a parallelepiped [lx, ly, lz].
 - `xs`: the number of sources to compute in the series
 
 # Examples
-julia> fluence_DA_paralpip_TD(0.5, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, rd = [24.0, 25.0, 0.0], rs = [25.0,25.0], L = [50.0,50.0,50.0], xs = 20)
+julia> `fluence_DA_paralpip_TD(0.5, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, rd = [24.0, 25.0, 0.0], rs = [25.0,25.0], L = [50.0,50.0,50.0], xs = 20)`
 """
 function fluence_DA_paralpip_TD(t, μa, μsp; n_ext = 1.0, n_med = 1.0, rd = [4.0, 5.0, 0.0], rs = [5.0, 5.0], L = [10.0, 10.0, 10.0], xs = 10)
     D = D_coeff(μsp, μa)
@@ -177,7 +177,7 @@ Compute the time-domain reflectance from a parallelepiped [lx, ly, lz] applying 
 - `L::Array{Float64,1}`: the dimenensions [lx, ly, lz] of the parallelepied
 
 # Examples
-julia> refl_DA_paralpip_TD(0:1:5, [0.1,10.0], 1.0, 1.0, [2.5,5.0], [5.0,5.0], [10.0,10.0,10.0])
+julia> `refl_DA_paralpip_TD(0:1:5, [0.1,10.0], 1.0, 1.0, [2.5,5.0], [5.0,5.0], [10.0,10.0,10.0])`
 """
 function refl_DA_paralpip_TD(t, β::Array{Float64,1}, ndet::Float64, nmed::Float64, rd::Array{Float64,1}, rs::Array{Float64,1}, L::Array{Float64,1})
     n = nmed/ndet
@@ -256,7 +256,7 @@ Compute the time-domain transmittance from a parallelepiped [lx, ly, lz] with Eq
 - `L::Array{Float64,1}`: the dimenensions [lx, ly, lz] of the parallelepied
 
 # Examples
-julia> trans_DA_paralpip_TD(0:1:5, [0.1,10.0], 1.0, 1.0, [2.5,5.0], [5.0,5.0], [10.0,10.0,10.0])
+julia> `trans_DA_paralpip_TD(0:1:5, [0.1,10.0], 1.0, 1.0, [2.5,5.0], [5.0,5.0], [10.0,10.0,10.0])`
 """
 function trans_DA_paralpip_TD(t, β::Array{Float64,1}, ndet::Float64, nmed::Float64, rd::Array{Float64,1}, rs::Array{Float64,1}, L::Array{Float64,1})
     n = nmed/ndet

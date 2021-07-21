@@ -24,7 +24,7 @@ Compute the steady-state fluence in a semi-infinite geometry according to Eqn. 3
 - `z`: the z-depth orthogonal from the boundary (cm)
 
 # Examples
-julia> fluence_DA_semiinf_CW(1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, z = 0.0)
+julia> `fluence_DA_semiinf_CW(1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, z = 0.0)`
 """
 function fluence_DA_semiinf_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0)
     D = D_coeff(μsp, μa)
@@ -63,7 +63,7 @@ Compute the time-domain fluence in a semi-infinite medium (Eqn. 33 Contini).
 - `z`: the z-depth in medium
 
 # Examples
-julia> fluence_DA_semiinf_TD(0.1:0.1:1.0, 1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, z = 0.0)
+julia> `fluence_DA_semiinf_TD(0.1:0.1:1.0, 1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, z = 0.0)`
 """
 function fluence_DA_semiinf_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0)
     D = D_coeff(μsp, μa)
@@ -109,7 +109,7 @@ Compute the frequency domain fluence in a semi-infinite geometry.
 - `ω`: the modulation frequency (1/ns)
 
 # Examples
-julia> fluence_DA_semiinf_FD(1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, z = 0.0, ω = 1.0)
+julia> `fluence_DA_semiinf_FD(1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, z = 0.0, ω = 1.0)`
 """
 function fluence_DA_semiinf_FD(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0, ω = 1.0)
     ν = ν_coeff(n_med)
@@ -136,7 +136,7 @@ Compute the time-domain reflectance from a semi-infinite medium from Eqn. 36 Con
 
 # Examples
 ```jldoctest
-julia> refl_DA_semiinf_TD(0.2:0.6:2.0, 1.0, 0.1, 10.0, 1.0, 1.0)
+julia> `refl_DA_semiinf_TD(0.2:0.6:2.0, 1.0, 0.1, 10.0, 1.0, 1.0)`
 4-element Vector{Float64}:
  0.03126641311563058
  0.00042932742937583005

@@ -26,7 +26,7 @@ Compute the steady-state fluence from a slab geometry (x, y -> inf, z -> finite)
 - `xs`: the number of sources to compute in the series
 
 # Examples
-julia> fluence_DA_slab_CW(1.0, [0.1,10.], 1.0,1.0, 2.0, 0.)
+julia> `fluence_DA_slab_CW(1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, s = 2.0, z = 0.0)`
 """
 function fluence_DA_slab_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 1.0, z = 0.0, xs = 10)
     D = D_coeff(μsp, μa)
@@ -77,7 +77,7 @@ Compute the time-domain fluence from a slab geometry (x, y -> inf, z -> finite).
 - `xs`: the number of sources to compute in the series
 
 # Examples
-julia> fluence_DA_slab_TD(0.1, 1.0, 0.1, 10.0, s = 40.0)
+julia> `fluence_DA_slab_TD(0.1, 1.0, 0.1, 10.0, s = 40.0)`
 """
 function fluence_DA_slab_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 1.0, z = 0.0, xs = 10)
     D = D_coeff(μsp, μa)
@@ -134,7 +134,7 @@ Compute the time-domain reflectance (flux) from a slab geometry (x,y->inf, z-> f
 - `s`: the thickness (z-depth) of the slab (cm)
 
 # Examples
-julia> refl_DA_slab_TD(1.0, 1.0, 0.1, 10.0, 1.0, 1.0, 1.0)
+julia> `refl_DA_slab_TD(1.0, 1.0, 0.1, 10.0, 1.0, 1.0, 1.0)`
 """
 function refl_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s; xs = -15:15)
 	D = D_coeff(μsp, μa)
@@ -178,7 +178,7 @@ Compute the time-domain transmittance (flux) from a slab geometry (x,y -> inf, z
 - `s`: the thickness (z-depth) of the slab (cm)
 
 # Examples
-julia> trans_DA_slab_TD(1.0, 1.0, 0.1, 10.0, 1.0, 1.0, 1.0)
+julia> `trans_DA_slab_TD(1.0, 1.0, 0.1, 10.0, 1.0, 1.0, 1.0)`
 """
 function trans_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s; xs = -15:15)
 	D = D_coeff(μsp, μa)
