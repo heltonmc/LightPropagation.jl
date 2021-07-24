@@ -11,22 +11,22 @@
 # Steady-State Fluence 
 #####################################
 """
-    fluence_DA_slab_CW(ρ, μa, μsp; n_ext, n_med, s, z, xs)
+    fluence_DA_slab_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 0.0, xs = 10)
 
 Compute the steady-state fluence from a slab geometry (x, y -> inf, z -> finite). 
 
 # Arguments
-- `ρ::Float64`: the source detector separation (cm⁻¹)
+- `ρ`: the source detector separation (cm⁻¹)
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
-- `n_ext::Float64`: the boundary's index of refraction (air or detector)
-- `n_med::Float64`: the sample medium's index of refraction
-- `s::Float64`: the thickness (z-depth) of the slab (cm)
-- `z::Float64`: the z-depth within slab (cm)
+- `n_ext`: the boundary's index of refraction (air or detector)
+- `n_med`: the sample medium's index of refraction
+- `s`: the thickness (z-depth) of the slab (cm)
+- `z`: the z-depth within slab (cm)
 - `xs`: the number of sources to compute in the series
 
 # Examples
-julia> `fluence_DA_slab_CW(1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, s = 2.0, z = 0.0)`
+julia> `fluence_DA_slab_CW(1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, s = 1.0, z = 0.0)`
 """
 function fluence_DA_slab_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 1.0, z = 0.0, xs = 10)
     D = D_coeff(μsp, μa)
@@ -61,19 +61,19 @@ end
 # Time-Domain Fluence 
 #####################################
 """
-    fluence_DA_slab_TD(t, ρ, μa, μsp; n_ext, n_med, s, z, xs)
+    fluence_DA_slab_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 1.0, z = 0.0, xs = 10)
 
 Compute the time-domain fluence from a slab geometry (x, y -> inf, z -> finite). 
 
 # Arguments
 - `t`: the time vector (ns). 
+- `ρ`: the source detector separation (cm⁻¹)
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
-- `ρ::Float64`: the source detector separation (cm⁻¹)
-- `ndet::Float64`: the boundary's index of refraction (air or detector)
-- `nmed::Float64`: the sample medium's index of refraction
-- `s::Float64`: the thickness (z-depth) of the slab (cm)
-- `z::Float64`: the z-depth coordinate (cm)
+- `n_ext`: the boundary's index of refraction (air or detector)
+- `n_med`: the sample medium's index of refraction
+- `s`: the thickness (z-depth) of the slab (cm)
+- `z`: the z-depth coordinate (cm)
 - `xs`: the number of sources to compute in the series
 
 # Examples
@@ -120,15 +120,15 @@ end
 # Time-Domain Reflectance (flux) 
 #####################################
 """
-    refl_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s; xs)
+    refl_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s; xs = -15:15)
 
 Compute the time-domain reflectance (flux) from a slab geometry (x,y->inf, z-> finite). 
 
 # Arguments
 - `t`: the time vector (ns). 
+- `ρ`: the source detector separation (cm⁻¹)
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
-- `ρ`: the source detector separation (cm⁻¹)
 - `ndet`: the boundary's index of refraction (air or detector)
 - `nmed`: the sample medium's index of refraction
 - `s`: the thickness (z-depth) of the slab (cm)
@@ -164,17 +164,17 @@ end
 # Time-Domain Transmittance (flux) 
 #####################################
 """
-    trans_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s; xs)
+    trans_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s; xs = -15:15)
 
 Compute the time-domain transmittance (flux) from a slab geometry (x,y -> inf, z -> finite) with Eqn. 39 from Contini 97. 
 
 # Arguments
 - `t`: the time vector (ns). 
+- `ρ`: the source detector separation (cm⁻¹)
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
-- `ρ`: the source detector separation (cm⁻¹)
-- `ndet`: the boundary's index of refraction (air or detector)
-- `nmed`: the sample medium's index of refraction
+- `n_det`: the boundary's index of refraction (air or detector)
+- `n_med`: the sample medium's index of refraction
 - `s`: the thickness (z-depth) of the slab (cm)
 
 # Examples

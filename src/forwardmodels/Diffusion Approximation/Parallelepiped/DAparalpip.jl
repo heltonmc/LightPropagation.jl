@@ -8,16 +8,15 @@
 # Steady-State Fluence 
 #####################################
 """
-    fluence_DA_paralpip_CW(μa, μsp; n_ext, n_med, rd, rs, L, xs)
+    fluence_DA_paralpip_CW(μa, μsp; n_ext = 1.0, n_med = 1.0, rd = [4.0, 5.0, 0.0], rs = [5.0, 5.0], L = [10.0, 10.0, 10.0], xs = 10)
 
 Compute the steady-state fluence in a parallelepiped [lx, ly, lz].
 
 # Arguments
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
-- `ρ`: the source detector separation (cm⁻¹)
-- `ndet`: the boundary's index of refraction (air or detector)
-- `nmed`: the sample medium's index of refraction
+- `n_ext`: the boundary's index of refraction (air or detector)
+- `n_med`: the sample medium's index of refraction
 - `rd`: target location within medium [x,y,z] with origin x,y = 0 at corner of parallelepiped; z assumed to be 0
 - `rs`: the location of the source [x,y] with origin x,y = 0 at corner of parallelepiped; z assumed to be 0
 - `L`: the dimensions [lx, ly, lz] of the parallelepiped
@@ -82,7 +81,7 @@ end
 # Time-Domain Fluence 
 #####################################
 """
-    fluence_DA_paralpip_TD(t, μa, μsp; n_ext, n_med, rd, rs, L, xs)
+    fluence_DA_paralpip_TD(t, μa, μsp; n_ext = 1.0, n_med = 1.0, rd = [4.0, 5.0, 0.0], rs = [5.0, 5.0], L = [10.0, 10.0, 10.0], xs = 10)
 
 Compute the time-domain fluence in a parallelepiped [lx, ly, lz].
 
@@ -90,9 +89,8 @@ Compute the time-domain fluence in a parallelepiped [lx, ly, lz].
 - `t`: the time vector (ns). 
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
-- `ρ`: the source detector separation (cm⁻¹)
-- `ndet`: the boundary's index of refraction (air or detector)
-- `nmed`: the sample medium's index of refraction
+- `n_ext`: the boundary's index of refraction (air or detector)
+- `n_med`: the sample medium's index of refraction
 - `rd`: target location within medium [x,y,z] with origin x,y = 0 at corner of parallelepiped; z assumed to be 0
 - `rs`: the location of the source [x,y] with origin x,y = 0 at corner of parallelepiped; z assumed to be 0
 - `L`: the dimensions [lx, ly, lz] of the parallelepiped

@@ -33,7 +33,7 @@ end
 # Time-Domain Fluence 
 #####################################
 """
-    fluence_DA_inf_TD(t, ρ, μa, μsp; nmed)
+    fluence_DA_inf_TD(t, ρ, μa, μsp; nmed = 1.0)
 
 Compute the time-domain fluence in an infinite medium with Eqn. 3 of Patterson. et al. 1989. 
 
@@ -76,7 +76,7 @@ end
 # Frequency-Domain Fluence 
 #####################################
 """
-    fluence_DA_inf_FD(ρ, μa, μsp, ω; n_med)
+    fluence_DA_inf_FD(ρ, μa, μsp, ω; n_med = 1.0)
 
 Compute the fluence for a frequency modulated source in an infinite medium. 
 

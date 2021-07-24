@@ -11,7 +11,7 @@
 # Steady-State Fluence 
 #####################################
 """
-    fluence_DA_semiinf_CW(ρ, μa, μsp; n_ext, n_med, z)
+    fluence_DA_semiinf_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0)
 
 Compute the steady-state fluence in a semi-infinite geometry according to Eqn. 3 of Kienle 1997. 
 
@@ -49,7 +49,7 @@ end
 # Time-Domain Fluence 
 #####################################
 """
-    fluence_DA_semiinf_TD(t, ρ, μa, μsp; n_ext, n_med, z)
+    fluence_DA_semiinf_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0)
 
 Compute the time-domain fluence in a semi-infinite medium (Eqn. 33 Contini). 
 
@@ -95,7 +95,7 @@ end
 # Frequency-Domain Fluence 
 #####################################
 """
-fluence_DA_semiinf_FD(ρ, μa, μsp; n_ext, n_med, z, ω)
+fluence_DA_semiinf_FD(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0, ω = 1.0)
 
 Compute the frequency domain fluence in a semi-infinite geometry.
 
