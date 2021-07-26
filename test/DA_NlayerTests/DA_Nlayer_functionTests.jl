@@ -47,14 +47,25 @@ cyl_3 = Nlayer_cylinder(ρ = 1.0, μsp = [10.0, 10.0, 10.0], μa = [0.1, 0.1, 0.
 cyl_4 = Nlayer_cylinder(ρ = 1.0, μsp = [10.0, 10.0, 10.0, 10.0], μa = [0.1, 0.1, 0.1, 0.1], l = [10.0, 10.0, 10.0, 10.0], n_med = [1.5, 1.5, 1.5, 1.5], n_ext = 1.4, a = 20.0)
 @test fluence_DA_Nlay_cylinder_CW(cyl_4, besselroots) ≈ fluence_DA_Nlay_cylinder_CW(cyl_3, besselroots) ≈ fluence_DA_Nlay_cylinder_CW(cyl_2, besselroots) ≈ fluence_DA_semiinf_CW(1.0, 0.1, 10.0, n_med = 1.5, n_ext = 1.4)
 
+#### tests for CW fluence in the bottom layer GN
+@test fluence_DA_Nlay_cylinder_CW(0.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [1.0, 1.0], 10.0, 2.0, bessels) ≈ fluence_DA_slab_CW(0.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 2.0, xs = 50)
+@test fluence_DA_Nlay_cylinder_CW(1.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [1.0, 1.0], 10.0, 2.0, bessels) ≈ fluence_DA_slab_CW(1.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 2.0, xs = 50)
+@test fluence_DA_Nlay_cylinder_CW(1.6, [0.21, 0.21], [12.1, 12.1], 1.0, [1.0, 1.0], [1.0, 1.0], 10.0, 2.0, bessels) ≈ fluence_DA_slab_CW(1.6, 0.21, 12.1; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 2.0, xs = 50)
+
+@test fluence_DA_Nlay_cylinder_CW(0.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [1.5, 1.5], 10.0, 3.0, bessels) ≈ fluence_DA_slab_CW(0.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 3.0, z = 3.0, xs = 50)
+
+@test fluence_DA_Nlay_cylinder_CW(0.0, [0.1, 0.1, 0.1, 0.1, 0.1, 0.1], [10.0, 10.0, 10.0, 10.0, 10.0, 10.0], 1.0, [1.0, 1.0, 1.0, 1.0, 1.0, 1.0], [0.5, 0.5, 0.5, 0.5, 0.5, 0.5], 10.0, 3.0, bessels) ≈ fluence_DA_slab_CW(0.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 3.0, z = 3.0, xs = 50)
+@test fluence_DA_Nlay_cylinder_CW(0.0, [0.1, 0.1, 0.1, 0.1, 0.1, 0.1], [10.0, 10.0, 10.0, 10.0, 10.0, 10.0], 1.0, [1.0, 1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0, 1.0], 10.0, 6.0, bessels) ≈ fluence_DA_slab_CW(0.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 6.0, z = 6.0, xs = 50)
+
 
 # TD
 
+## test reflectance in first layer
 # test long times at SDS = 0.5 cm
 t = range(0.03, 8.0, length = 60)
 cylinder_data = Nlayer_cylinder(a = 8.0, ρ = 0.5)
 
-si = fluence_DA_semiinf_TD(t, [0.1, 10.0], 0.5, 1.0, 1.0, 0.0)
+si = fluence_DA_semiinf_TD(t, 0.5, 0.1, 10.0)
 
 a72 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 72)
 a96 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 96)
@@ -66,7 +77,7 @@ a96 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600]
 t = range(0.04, 8.0, length = 60)
 cylinder_data = Nlayer_cylinder(a = 8.0, ρ = 3.0, l = [4.0, 4.0, 4.0, 5.0])
 
-si = fluence_DA_semiinf_TD(t, [0.1, 10.0], 3.0, 1.0, 1.0, 0.0)
+si = fluence_DA_semiinf_TD(t, 3.0, 0.1, 10.0)
 
 a72 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 72)
 a96 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 96)
@@ -78,7 +89,7 @@ a96 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600]
 t = range(0.04, 8.0, length = 60)
 cylinder_data = Nlayer_cylinder(a = 8.0, ρ = 1.5, l = [4.0, 4.0, 4.0, 5.0], μsp = [60.0, 60.0, 60.0, 60.0])
 
-si = fluence_DA_semiinf_TD(t, [0.1, 60.0], 1.5, 1.0, 1.0, 0.0)
+si = fluence_DA_semiinf_TD(t, 1.5, 0.1, 60.0)
 
 a72 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 72)
 a96 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 96)
@@ -88,15 +99,38 @@ a96 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600]
 
 ## in general the error in the TD is like 1e-14..
 
+## test transmittance in bottom layer
+t = range(0.03, 8.0, length = 60)
+cylinder_data = Nlayer_cylinder(μa = [0.1, 0.1], μsp = [10.0, 10.0], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 1.0], a = 8.0, ρ = 0.5, z = 2.0)
+
+slab = fluence_DA_slab_TD(t, 0.5, 0.1, 10.0; s = 2.0, z = 2.0, xs = 50)
+
+a72 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 72)
+a96 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 96)
+
+@test a72 ≈ slab
+@test a96 ≈ slab
+
+t = range(0.03, 8.0, length = 60)
+cylinder_data = Nlayer_cylinder(μa = [0.1, 0.1], μsp = [10.0, 10.0], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.5, 1.5], a = 8.0, ρ = 0.5, z = 3.0)
+
+slab = fluence_DA_slab_TD(t, 0.5, 0.1, 10.0; s = 3.0, z = 3.0, xs = 50)
+
+a72 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 72)
+a96 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 96)
+
+@test a72 ≈ slab
+@test a96 ≈ slab
+
+t = range(0.03, 8.0, length = 60)
+cylinder_data = Nlayer_cylinder(μa = [0.1, 0.1], μsp = [10.0, 10.0], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.5, 1.5], a = 8.0, ρ = 1.5, z = 3.0)
+
+slab = fluence_DA_slab_TD(t, 1.5, 0.1, 10.0; s = 3.0, z = 3.0, xs = 50)
+
+a72 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 72)
+a96 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 96)
+
+@test a72 ≈ slab
+@test a96 ≈ slab
+
 end # module
-
-
-
-fluence([10.0, 10.0, 10.0, 10.0], [0.1, 0.1, 0.1, 0.1], 1.0, [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0], 0.0, 10.0, 4.0, besselroots)
-8.077937297438846e-5  == fluence_DA_slab_CW(0.0, big(0.1), 10.0; n_ext = 1.0, n_med = 1.0, s = 4.0, z = 4.0, xs = 50)
-
-fluence_DA_slab_CW(0.0, big(0.1), 10.0; n_ext = 1.0, n_med = 1.0, s = 3.0, z = 3.0, xs = 50) == fluence([10.0, 10.0], [0.1, 0.1], 1.0, [1.0, 1.0], [1.5, 1.5], 0.0, 10.0, 3.0, besselroots)
-fluence_DA_slab_CW(0.0, big(0.1), 10.0; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 2.0, xs = 50) == fluence([10.0, 10.0], [0.1, 0.1], 1.0, [1.0, 1.0], [1.0, 1.0], 0.0, 10.0, 2.0, besselroots)
-fluence_DA_slab_CW(0.0, big(0.1), 10.0; n_ext = 1.0, n_med = 1.0, s = 1.0, z = 1.0, xs = 50) == fluence([10.0, 10.0], [0.1, 0.1], 1.0, [1.0, 1.0], [0.5, 0.5], 0.0, 10.0, 1.0, besselroots)
-fluence_DA_slab_CW(1.0, big(0.1), 10.0; n_ext = 1.0, n_med = 1.0, s = 1.0, z = 1.0, xs = 50) == fluence([10.0, 10.0], [0.1, 0.1], 1.0, [1.0, 1.0], [0.5, 0.5], 1.0, 10.0, 1.0, besselroots)
-### add some more tests for N layers in transmittance and reflectance in the first layer ( like N = 12)
