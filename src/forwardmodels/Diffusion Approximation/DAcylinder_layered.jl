@@ -90,7 +90,7 @@ Compute the frequency modulated fluence in an N-layered cylinder. Source is assu
 - `besselroots`: roots of bessel function of first kind zero order J0(x) = 0
 
 # Examples
-julia> `fluence_DA_Nlay_cylinder_CW(1.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [4.5, 4.5], 10.0, 0.0, 1.0, besselroots)`
+julia> `fluence_DA_Nlay_cylinder_TD(1.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [4.5, 4.5], 10.0, 0.0, besselroots)`
 """
 function fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 24, ILT = hyper_fixed)
     Rt = zero(eltype(t))
@@ -105,7 +105,7 @@ Wrapper to fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, 
 
 # Examples
 julia> data = Nlayer_cylinder(a = 10.0, l = [1.0, 1.0, 1.0, 2.0], z = 5.0)
-julia> `fluence_DA_Nlay_cylinder_CW(data, besselroots)`
+julia> `fluence_DA_Nlay_cylinder_TD(0.5:1.0:2.5, data, besselroots)`
 """
 function fluence_DA_Nlay_cylinder_TD(t, data; bessels = besselroots, ILT = hyper_fixed, N = 24)
     return fluence_DA_Nlay_cylinder_TD(t, data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.l, data.a, data.z, bessels, N = N, ILT = ILT)
@@ -121,18 +121,7 @@ function _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z,
 
     return fluence_DA_Nlay_cylinder_CW(ρ, μa_complex, μsp, n_ext, n_med, l, a, z, besselroots)
 end
-"""
-    fluence_DA_Nlay_cylinder_FD(data, besselroots)
 
-Wrapper to fluence_DA_Nlay_cylinder_FD(ρ, μa, μsp, n_ext, n_med, l, a, z, ω, besselroots) with inputs given as a structure (data).
-
-# Examples
-julia> data = Nlayer_cylinder(a = 10.0, l = [1.0, 1.0, 1.0, 2.0], z = 5.0, ω = 1.0)
-julia> `fluence_DA_Nlay_cylinder_CW(data, besselroots)`
-"""
-function fluence_DA_Nlay_cylinder_FD(data, besselroots)
-    return fluence_DA_Nlay_cylinder_FD(data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.l, data.a, data.z, data.ω, besselroots)
-end
 #####################################
 # Frequency-Domain Fluence 
 #####################################
@@ -172,7 +161,7 @@ Wrapper to fluence_DA_Nlay_cylinder_FD(ρ, μa, μsp, n_ext, n_med, l, a, z, ω,
 
 # Examples
 julia> data = Nlayer_cylinder(a = 10.0, l = [1.0, 1.0, 1.0, 2.0], z = 5.0, ω = 1.0)
-julia> `fluence_DA_Nlay_cylinder_CW(data, besselroots)`
+julia> `fluence_DA_Nlay_cylinder_FD(data, besselroots)`
 """
 function fluence_DA_Nlay_cylinder_FD(data, besselroots)
     return fluence_DA_Nlay_cylinder_FD(data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.l, data.a, data.z, data.ω, besselroots)
@@ -199,13 +188,6 @@ function _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, be
     return ϕ
 end
 
-@inline function α_coeff!(α, μa, D, sn)
-    @inbounds for ind in 1:length(μa)
-        α[ind] = sqrt(μa[ind] / D[ind] + sn^2)
-    end
-    return α
-end
-
 ###########################################################################################
 # Calculates the Green's function in the first (top) and last (bottom) layer
 # sinh and cosh have been expanded as exponentials.
@@ -213,6 +195,12 @@ end
 # For N = 2, 3, 4 coefficients are explicitly calculated.
 # For N > 4, β and γ are calculated recursively using eqn. 17 & 18.
 ###########################################################################################
+@inline function α_coeff!(α, μa, D, sn)
+    @inbounds for ind in 1:length(μa)
+        α[ind] = sqrt(μa[ind] / D[ind] + sn^2)
+    end
+    return α
+end
 function _green_Nlaycylin_top(α, sn, μa, D, z, z0, zb, l, n, N)
     α = α_coeff!(α, μa, D, sn)
 
@@ -249,7 +237,7 @@ function _green_Nlaycylin_bottom(α, sn, μa, D, z, z0, zb, l, n, N)
     elseif N == 2
         β, γ = _get_βγ2(α, D, n, zb, l)
         βγ_correction = _βγ2_correction(α, zb, l)  
-    elseif N > N
+    elseif N > 4
         β, γ = _get_βγk(α, D, n, zb, l)
         βγ_correction = _βγN_correction(α, zb, l)  
     end
@@ -374,4 +362,4 @@ function _βγN_correction(α, zb, l)
     end
     return out
 end
-###########
+##########################################################################
