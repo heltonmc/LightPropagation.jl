@@ -48,14 +48,14 @@ cyl_4 = Nlayer_cylinder(ρ = 1.0, μsp = [10.0, 10.0, 10.0, 10.0], μa = [0.1, 0
 @test fluence_DA_Nlay_cylinder_CW(cyl_4, besselroots) ≈ fluence_DA_Nlay_cylinder_CW(cyl_3, besselroots) ≈ fluence_DA_Nlay_cylinder_CW(cyl_2, besselroots) ≈ fluence_DA_semiinf_CW(1.0, 0.1, 10.0, n_med = 1.5, n_ext = 1.4)
 
 #### tests for CW fluence in the bottom layer GN
-@test fluence_DA_Nlay_cylinder_CW(0.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [1.0, 1.0], 10.0, 2.0, bessels) ≈ fluence_DA_slab_CW(0.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 2.0, xs = 50)
-@test fluence_DA_Nlay_cylinder_CW(1.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [1.0, 1.0], 10.0, 2.0, bessels) ≈ fluence_DA_slab_CW(1.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 2.0, xs = 50)
-@test fluence_DA_Nlay_cylinder_CW(1.6, [0.21, 0.21], [12.1, 12.1], 1.0, [1.0, 1.0], [1.0, 1.0], 10.0, 2.0, bessels) ≈ fluence_DA_slab_CW(1.6, 0.21, 12.1; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 2.0, xs = 50)
+@test fluence_DA_Nlay_cylinder_CW(0.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [1.0, 1.0], 10.0, 2.0, besselroots) ≈ fluence_DA_slab_CW(0.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 2.0, xs = 50)
+@test fluence_DA_Nlay_cylinder_CW(1.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [1.0, 1.0], 10.0, 2.0, besselroots) ≈ fluence_DA_slab_CW(1.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 2.0, xs = 50)
+@test fluence_DA_Nlay_cylinder_CW(1.6, [0.21, 0.21], [12.1, 12.1], 1.0, [1.0, 1.0], [1.0, 1.0], 10.0, 2.0, besselroots) ≈ fluence_DA_slab_CW(1.6, 0.21, 12.1; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 2.0, xs = 50)
 
-@test fluence_DA_Nlay_cylinder_CW(0.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [1.5, 1.5], 10.0, 3.0, bessels) ≈ fluence_DA_slab_CW(0.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 3.0, z = 3.0, xs = 50)
+@test fluence_DA_Nlay_cylinder_CW(0.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [1.5, 1.5], 10.0, 3.0, besselroots) ≈ fluence_DA_slab_CW(0.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 3.0, z = 3.0, xs = 50)
 
-@test fluence_DA_Nlay_cylinder_CW(0.0, [0.1, 0.1, 0.1, 0.1, 0.1, 0.1], [10.0, 10.0, 10.0, 10.0, 10.0, 10.0], 1.0, [1.0, 1.0, 1.0, 1.0, 1.0, 1.0], [0.5, 0.5, 0.5, 0.5, 0.5, 0.5], 10.0, 3.0, bessels) ≈ fluence_DA_slab_CW(0.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 3.0, z = 3.0, xs = 50)
-@test fluence_DA_Nlay_cylinder_CW(0.0, [0.1, 0.1, 0.1, 0.1, 0.1, 0.1], [10.0, 10.0, 10.0, 10.0, 10.0, 10.0], 1.0, [1.0, 1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0, 1.0], 10.0, 6.0, bessels) ≈ fluence_DA_slab_CW(0.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 6.0, z = 6.0, xs = 50)
+@test fluence_DA_Nlay_cylinder_CW(0.0, [0.1, 0.1, 0.1, 0.1, 0.1, 0.1], [10.0, 10.0, 10.0, 10.0, 10.0, 10.0], 1.0, [1.0, 1.0, 1.0, 1.0, 1.0, 1.0], [0.5, 0.5, 0.5, 0.5, 0.5, 0.5], 10.0, 3.0, besselroots) ≈ fluence_DA_slab_CW(0.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 3.0, z = 3.0, xs = 50)
+@test fluence_DA_Nlay_cylinder_CW(0.0, [0.1, 0.1, 0.1, 0.1, 0.1, 0.1], [10.0, 10.0, 10.0, 10.0, 10.0, 10.0], 1.0, [1.0, 1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0, 1.0], 10.0, 6.0, besselroots) ≈ fluence_DA_slab_CW(0.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 6.0, z = 6.0, xs = 50)
 
 
 # TD
@@ -126,6 +126,18 @@ t = range(0.03, 8.0, length = 60)
 cylinder_data = Nlayer_cylinder(μa = [0.1, 0.1], μsp = [10.0, 10.0], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.5, 1.5], a = 8.0, ρ = 1.5, z = 3.0)
 
 slab = fluence_DA_slab_TD(t, 1.5, 0.1, 10.0; s = 3.0, z = 3.0, xs = 50)
+
+a72 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 72)
+a96 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 96)
+
+@test a72 ≈ slab
+@test a96 ≈ slab
+
+
+t = range(0.03, 8.0, length = 60)
+cylinder_data = Nlayer_cylinder(μa = [0.1, 0.1], μsp = [10.0, 10.0], n_ext = 1.3, n_med = [1.2, 1.2], l = [1.0, 1.0], a = 8.0, ρ = 0.5, z = 2.0)
+
+slab = fluence_DA_slab_TD(t, 0.5, 0.1, 10.0; s = 2.0, z = 2.0, xs = 50, n_ext = 1.3, n_med = 1.2)
 
 a72 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 72)
 a96 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600], N = 96)
