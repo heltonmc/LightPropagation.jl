@@ -43,7 +43,6 @@ julia> `fluence_DA_Nlay_cylinder_CW(1.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.
 """
 function fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots)
     D = D_coeff.(μsp, μa)
-    A = A_coeff.(n_med / n_ext)
     N = length(D)
 	
     z0 = z0_coeff(μsp[1])
@@ -73,11 +72,15 @@ end
 # Time-Domain Fluence 
 #####################################
 """
-    fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots)
+    fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; ; N = 24, ILT = hyper_fixed)
 
-Compute the frequency modulated fluence in an N-layered cylinder. Source is assumed to be located on the top middle of the cylinder.
+Compute the time-domain fluence in an N-layered cylinder. Source is assumed to be located on the top middle of the cylinder.
+It is best to use `hyper_fixed` as the inverse laplace transform if t consists of many time points. Utilize `hyperbola` for a single time point.
+The value of N should be proportional to the dynamic range of the time-domain signal needed. For later times you will need a larger N.
+The lowest fluence value you can compute will be no less than the machine precision you utilize. Float64 values are limited to fluence > ~2.2-16.
 
 # Arguments
+- `t`: time point or vector (ns)
 - `ρ`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
@@ -86,14 +89,21 @@ Compute the frequency modulated fluence in an N-layered cylinder. Source is assu
 - `l`: layer thicknesses (cm)
 - `a`: cylinder radius (cm)
 - `z`: source depth within cylinder
-- `ω`: source modulation frequency (1/ns)
 - `besselroots`: roots of bessel function of first kind zero order J0(x) = 0
+- `N`: number of Hankel-Laplace calculations
+- `ILT`: inverse laplace transform function
 
 # Examples
-julia> `fluence_DA_Nlay_cylinder_TD(1.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [4.5, 4.5], 10.0, 0.0, besselroots)`
+julia> `fluence_DA_Nlay_cylinder_TD(0.1:0.1:2.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [4.5, 4.5], 10.0, 0.0, besselroots)`
 """
-function fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 24, ILT = hyper_fixed)
+function fluence_DA_Nlay_cylinder_TD(t::AbstractFloat, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 24, ILT = hyperbola)
     Rt = zero(eltype(t))
+    Rt = ILT(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z, s, besselroots), t, N = N)
+
+    return Rt
+end
+function fluence_DA_Nlay_cylinder_TD(t::AbstractArray, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 24, ILT = hyper_fixed)
+    Rt = zeros(eltype(μa), length(t))
     Rt = ILT(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z, s, besselroots), t, N = N)
 
     return Rt
@@ -101,7 +111,7 @@ end
 """
     fluence_DA_Nlay_cylinder_TD(data; besselroots, ILT = hyper_fixed)
 
-Wrapper to fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 16, ILT = hyper_fixed) with inputs given as a structure (data).
+Wrapper to fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 24, ILT = hyper_fixed) with inputs given as a structure (data).
 
 # Examples
 julia> data = Nlayer_cylinder(a = 10.0, l = [1.0, 1.0, 1.0, 2.0], z = 5.0)
