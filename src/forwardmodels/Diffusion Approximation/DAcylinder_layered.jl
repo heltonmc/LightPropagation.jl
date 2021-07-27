@@ -44,9 +44,9 @@ julia> `fluence_DA_Nlay_cylinder_CW(1.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.
 function fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots)
     D = D_coeff.(μsp, μa)
     N = length(D)
-	
+    A = A_coeff.(n_med / n_ext)
     z0 = z0_coeff(μsp[1])
-    zb = zb_coeff.(n_med / n_ext, D)
+    zb = zb_coeff.(A, D)
     @assert z0 < l[1]
 
     if z < l[1]
