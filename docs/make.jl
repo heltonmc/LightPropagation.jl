@@ -27,6 +27,6 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/heltonmc/LightPropagation.git",
+    repo = "github.com/heltonmc/LightPropagation.jl.git",
     devbranch = "main"
 )
