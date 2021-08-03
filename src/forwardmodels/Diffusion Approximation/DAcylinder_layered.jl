@@ -205,7 +205,7 @@ end
     end
     return α
 end
-function _green_Nlaycylin_top(α, sn, μa, D, z, z0, zb, l, n, N)
+@inline function _green_Nlaycylin_top(α, sn, μa, D, z, z0, zb, l, n, N)
     α = α_coeff!(α, μa, D, sn)
 
     if N == 4
@@ -229,7 +229,7 @@ function _green_Nlaycylin_top(α, sn, μa, D, z, z0, zb, l, n, N)
 
     return (g + g1) / (2 * D[1] * α[1])
 end
-function _green_Nlaycylin_bottom(α, sn, μa, D, z, z0, zb, l, n, N)
+@inline function _green_Nlaycylin_bottom(α, sn, μa, D, z, z0, zb, l, n, N)
     α = α_coeff!(α, μa, D, sn)
 
     if N == 4
@@ -266,7 +266,7 @@ function _green_Nlaycylin_bottom(α, sn, μa, D, z, z0, zb, l, n, N)
 # For N = 2, 3, 4 coefficients are explicitly calculated.
 # For N > 4, β and γ are calculated recursively using eqn. 17 & 18.
 ###########################################################################################
-function _get_βγ2(α, D, n, zb, l)
+@inline function _get_βγ2(α, D, n, zb, l)
     tmp1 = exp(-2 * α[2] * (l[2] + zb[2]))
     
     β = (1 - tmp1)
@@ -274,7 +274,7 @@ function _get_βγ2(α, D, n, zb, l)
     
     return β, γ
 end
-function _get_βγ3(α, D, n, zb, l)
+@inline function _get_βγ3(α, D, n, zb, l)
     tmp1 = D[2] * α[2] * n[2]^2
     tmp2 = D[3] * α[3] * n[3]^2
     tmp3 = exp(-2 * α[2] * l[2])
@@ -288,7 +288,7 @@ function _get_βγ3(α, D, n, zb, l)
 
     return β, γ
 end
-function _get_βγ4(α, D, n, zb, l)
+@inline function _get_βγ4(α, D, n, zb, l)
     tmp5 = D[2] * α[2] * n[2]^2
     tmp1 = D[3] * α[3] * n[3]^2
     tmp4 = D[4] * α[4] * n[4]^2
@@ -308,7 +308,7 @@ function _get_βγ4(α, D, n, zb, l)
 
     return β, γ
 end
-function _get_βγk(α, D, n, zb, l)
+@inline function _get_βγk(α, D, n, zb, l)
     βN, γN = _get_βγN(α, D, n, zb, l)
   
     for k in length(α):-1:4
@@ -325,7 +325,7 @@ function _get_βγk(α, D, n, zb, l)
 
     return βN, γN
 end
-function _get_βγN(α, D, n, zb, l)
+@inline function _get_βγN(α, D, n, zb, l)
     tmp1 = D[end - 1] * α[end - 1] * n[end - 1]^2
     tmp2 = D[end] * α[end] * n[end]^2
     tmp3 = exp(-2 * α[end - 1] * l[end - 1])
@@ -347,19 +347,19 @@ end
 # For N = 2, 3, 4 coefficients are explicitly calculated.
 # For N > 4, β and γ are calculated recursively
 ##########################################################################
-function _βγ2_correction(α, zb, l)  
+@inline function _βγ2_correction(α, zb, l)  
     return α[2] * (l[2] + zb[2])
 end
 function _βγ3_correction(α, zb, l)  
     return α[2] * l[2] + α[3] * (l[3] + zb[2])
 end
-function _βγ4_correction(α, zb, l)  
+@inline function _βγ4_correction(α, zb, l)  
     return α[2] * l[2] + α[3] * l[3] + α[4] * (l[4] + zb[2])
 end
-function _βγ5_correction(α, zb, l)  
+@inline function _βγ5_correction(α, zb, l)  
     return α[2] * l[2] + α[3] * l[3] + α[4] * l[4] + α[5] * (l[5] + zb[2])
 end
-function _βγN_correction(α, zb, l) 
+@inline function _βγN_correction(α, zb, l) 
     out = α[end] * (l[end] + zb[2])
     for ind in (length(α) - 1):-1:2
         out += α[ind] * l[ind]
