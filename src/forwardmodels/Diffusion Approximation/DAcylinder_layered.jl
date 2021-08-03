@@ -117,17 +117,14 @@ Wrapper to fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, 
 julia> data = Nlayer_cylinder(a = 10.0, l = [1.0, 1.0, 1.0, 2.0], z = 5.0)
 julia> `fluence_DA_Nlay_cylinder_TD(0.5:1.0:2.5, data, besselroots)`
 """
-function fluence_DA_Nlay_cylinder_TD(t, data; bessels = besselroots, ILT = hyper_fixed, N = 24)
-    return fluence_DA_Nlay_cylinder_TD(t, data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.l, data.a, data.z, bessels, N = N, ILT = ILT)
+function fluence_DA_Nlay_cylinder_TD(t, data; bessels = besselroots,  N = 24)
+    return fluence_DA_Nlay_cylinder_TD(t, data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.l, data.a, data.z, bessels, N = N)
 end
 
 # this function is the base for the laplace transform in the time domain
 function _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z, s, besselroots)
     ν = ν_coeff.(n_med)
-    μa_complex = zeros(eltype(s), length(μa))
-    @inbounds for ind in 1:length(μa)
-        μa_complex[ind] = μa[ind] + s / ν[ind]
-    end
+    μa_complex = μa .+ s ./ ν
 
     return fluence_DA_Nlay_cylinder_CW(ρ, μa_complex, μsp, n_ext, n_med, l, a, z, besselroots)
 end
@@ -157,10 +154,7 @@ julia> `fluence_DA_Nlay_cylinder_CW(1.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.
 """
 function fluence_DA_Nlay_cylinder_FD(ρ, μa, μsp, n_ext, n_med, l, a, z, ω, besselroots)
     ν = ν_coeff.(n_med)
-    μa_complex = zeros(Complex{eltype(μa)}, length(μa))
-    @inbounds for ind in 1:length(μa)
-        μa_complex[ind] = μa[ind] + ω * im / ν[ind]
-    end
+    μa_complex = μa .+ ω * im ./ ν
 
     return fluence_DA_Nlay_cylinder_CW(ρ, μa_complex, μsp, n_ext, n_med, l, a, z, besselroots)
 end
