@@ -39,78 +39,6 @@ function postwid(f::Function, t::AbstractArray; v = _PWcoeffs(18))
     return a
 end
 
-
-#=
-####### How to use
-function fluence_DA_inf_FD(ρ, β, s, nmed = 1.0)
-    μa = β[1]
-    μsp = β[2]
-    D = 1/3μsp
-    ν = 29.9792458/nmed
-
-    ϕ = exp(-ρ*sqrt(μa/D + s/(ν*D)))/(4*π*ρ*D)
-
-    return ϕ
-end
-
-function fluence_DA_inf_TD(t, β::Array{Float64,1}, ρ::Float64, nmed::Float64 = 1.0)
-    μa::Float64 = β[1]
-    μsp::Float64 = β[2]
-    D::Float64 = 1/3μsp
-    ν::Float64 = 29.9792458/nmed
-
-    ϕ = Array{Float64}(undef, length(t))
-
-    Threads.@threads for n in eachindex(t)
-
-        ϕ[n] = -(ρ^2/(4D*ν*t[n]))
-        ϕ[n] = ϕ[n] - μa*ν*t[n]
-        ϕ[n] = ν*exp(ϕ[n])/((4π*D*ν*t[n])^(3/2))
-
-        if isnan(ϕ[n])
-            ϕ[n] = 0
-        end
- 
-    end
-
-    return ϕ
-end
-
-
-function computeTD_fromFD2(t, β, ρ, ub, N)	
-
-    Rt = zeros(Float64, length(t))
-    freqcomp = zeros(Float64, N)
-    x, w = gausslegendre(N)
-
-
-    Threads.@threads for m in eachindex(x)
-        freqcomp[m] = real(fluence_DA_inf_FD(ρ, [β[1],β[2]], x[m]*ub/2 +ub/2))*w[m]*ub/pi
-    end
-
-	
-    Threads.@threads for n in eachindex(t)
-        for m in eachindex(x)
-            Rt[n] += real(exp(im*t[n]*(x[m]*ub/2 +ub/2)))*freqcomp[m]
-        end
-    end
-   
-   
-return Rt
-end
-
-#=
-N = 18
-v = _PWcoeffs(N)
-t = 0.01:0.01:5
-lt = LT_postwid(s -> fluence_DA_inf_FD(1.0, [0.1, 10.0], s),v, t)
-Rt = fluence_DA_inf_TD(t, [0.1, 10.0], 1.0)
-
-plot(t, Rt, yscale=:log10, label = "TD analytical 'true'")
-plot!(t, abs.(lt), label = "LT Post-Widder")
-=#
-
-=#
 # Implement Laplace transfrom along a hyperbola contour
 
 ## adaptive contour for each time point (can't precompute f(ω) or sk)
@@ -141,7 +69,7 @@ function hyperbola(f::Function, t::AbstractFloat; N = 16)
 end
 
 # loop through an entire time array with multithreads
-function hyperbola(f::Function, t::AbstractArray; N = 16)
+function hyperbola(f::Function, t::AbstractVector; N = 16)
     out = similar(t)
     Threads.@threads for ind in eachindex(t)
         out[ind] = hyperbola(f, t[ind], N = N)
@@ -153,7 +81,7 @@ end
 # get the fixed integration components
 
 # get the fixed integration components
-function hyper_coef(N, t::AbstractArray; ϕ = 1.09)
+function hyper_coef(N, t::AbstractVector; ϕ = 1.09)
     A = acosh(((π - 2 * ϕ) * t[end] / t[1] + 4 * ϕ - π) / ((4 * ϕ - π) * sin(ϕ)))
     μ = (4 * π * ϕ - π^2) * N / t[end] / A
     h = A / N
@@ -165,7 +93,7 @@ s_fixed(θ, μ; ϕ = 1.09) = μ + im * μ * sinh(θ + im * ϕ)
 ds_fixed(θ, μ; ϕ = 1.09) = im * μ * cosh(θ + im * ϕ)
 
 # compute the function values over the fixed contour nodes
-function fixed_sk(f::Function, N, t::AbstractArray)
+function fixed_sk(f::Function, N, t::AbstractVector)
     μ, h = hyper_coef(N, t)
     a = zeros(Complex{eltype(h)}, Int(N))
     sk = similar(a)
@@ -187,7 +115,7 @@ end
 
 
 
-function hyper_fixed(f::Function, t::AbstractArray; N = 24)
+function hyper_fixed(f::Function, t::AbstractVector; N = 24)
     N = convert(eltype(t), N)
     a, sk, h = fixed_sk(f, N, t)
     out = zeros(eltype(h), length(t))
