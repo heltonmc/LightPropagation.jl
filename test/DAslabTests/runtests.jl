@@ -39,5 +39,7 @@ D = 1 / (3 * 20.0)
 D = 1 / (3 * 20.0)
 @test (-D * ForwardDiff.derivative(dz -> fluence_DA_slab_TD(1.0, 1.3, 0.3, 20.0, n_ext = 1.0, n_med = 1.0, s = 1.0, z = dz), 1.0)) ≈ flux_DA_slab_TD(1.0, 1.3, 0.3, 20.0,  n_ext = 1.0, n_med = 1.0, s = 1.0, z = 1.0)
 
+## CW
+@test flux_DA_slab_CW(1.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 40.0, z = 0.0, xs = 15) ≈ flux_DA_semiinf_CW(1.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0)
 
 end 

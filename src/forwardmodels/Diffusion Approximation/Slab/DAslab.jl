@@ -226,3 +226,39 @@ end
 
 	return Rt1 * Rt2  
 end
+
+#####################################
+# Steady-State Flux
+#####################################
+"""
+fluence_DA_slab_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 0.0, xs = 10)
+
+    flux_DA_slab_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 0.0, xs = 10)
+
+Compute the steady-state flux (D*∂ϕ(ρ)/∂z for z = [0, s]) from a slab geometry (x, y -> inf, z -> finite). 
+
+# Arguments
+- `ρ`: the source detector separation (cm⁻¹)
+- `μa`: absorption coefficient (cm⁻¹)
+- `μsp`: reduced scattering coefficient (cm⁻¹)
+- `n_ext`: the boundary's index of refraction (air or detector)
+- `n_med`: the sample medium's index of refraction
+- `s`: the thickness (z-depth) of the slab (cm)
+- `z`: the z-depth within slab (cm)
+- `xs`: the number of sources to compute in the series
+
+# Examples
+```jldoctest
+julia> `flux_DA_slab_CW(1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, s = 2.0, z = 0.0)`
+```
+"""
+function flux_DA_slab_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 0.0, xs = 10)
+    D = D_coeff(μsp, μa)
+    if z == zero(eltype(z))
+        return D * ForwardDiff.derivative(dz -> fluence_DA_slab_CW(ρ, μa, μsp, n_med = n_med, n_ext = n_ext, s = s, z = dz, xs = xs), z)
+    elseif z == s
+        return -D * ForwardDiff.derivative(dz -> fluence_DA_slab_CW(ρ, μa, μsp, n_med = n_med, n_ext = n_ext, s = s, z = dz, xs = xs), z)
+    else 
+        return D * ForwardDiff.derivative(dz -> fluence_DA_slab_TD(t, ρ, μa, μsp, n_ext = n_ext, n_med = n_med, s = s, z = dz, xs = xs), z)
+    end
+end
