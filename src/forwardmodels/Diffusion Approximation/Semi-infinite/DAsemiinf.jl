@@ -78,7 +78,7 @@ function fluence_DA_semiinf_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0
 	elseif isa(t, AbstractVector)
         T = promote_type(eltype(ρ), eltype(μa), eltype(μsp), eltype(z))
         ϕ = zeros(T, length(t))
-        
+
         @inbounds Threads.@threads for ind in eachindex(t)
     		ϕ[ind] = _kernel_fluence_DA_semiinf_TD(D, ν, t[ind], μa, z, z0, ρ, zb)
     	end
@@ -173,7 +173,6 @@ function flux_DA_semiinf_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0)
 
     return Rt
 end
-
 
 #####################################
 # Steady-State Flux
