@@ -124,7 +124,8 @@ end
 """
     flux_DA_slab_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 1.0, z = 0.0, xs = 15)
 
-    Compute the time-domain flux (D*∂ϕ(t)/∂z @ z = 0 or z = s) from a slab geometry (x,y->inf, z-> finite). 
+    Compute the time-domain flux, D*∂ϕ(t)/∂z for z = 0 and -D*∂ϕ(t)/∂z for z = s from a slab geometry (x, y -> inf, z -> finite).
+    If z != 0 or s will default to compute D*∂ϕ(t)/∂z for the z given. 
 
 # Arguments
 - `t`: the time vector (ns). 
@@ -235,7 +236,8 @@ fluence_DA_slab_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 0.0, xs
 
     flux_DA_slab_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 0.0, xs = 10)
 
-Compute the steady-state flux (D*∂ϕ(ρ)/∂z for z = 0 or s from a slab geometry (x, y -> inf, z -> finite). 
+Compute the steady-state flux, D*∂ϕ(ρ)/∂z for z = 0 and -D*∂ϕ(ρ)/∂z for z = s from a slab geometry (x, y -> inf, z -> finite).
+If z != 0 or s will default to compute D*∂ϕ(ρ)/∂z for the z given.
 
 # Arguments
 - `ρ`: the source detector separation (cm⁻¹)
