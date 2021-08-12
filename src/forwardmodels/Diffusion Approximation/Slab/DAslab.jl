@@ -232,12 +232,10 @@ end
 # Steady-State Flux
 #####################################
 """
-fluence_DA_slab_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 0.0, xs = 10)
+    fluence_DA_slab_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 0.0, xs = 10)
 
-    flux_DA_slab_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 0.0, xs = 10)
-
-Compute the steady-state flux, D*∂ϕ(ρ)/∂z for z = 0 and -D*∂ϕ(ρ)/∂z for z = s from a slab geometry (x, y -> inf, z -> finite).
-If z != 0 or s will default to compute D*∂ϕ(ρ)/∂z for the z given.
+    Compute the steady-state flux, D*∂ϕ(ρ)/∂z for z = 0 and -D*∂ϕ(ρ)/∂z for z = s from a slab geometry (x, y -> inf, z -> finite).
+    If z != 0 or s will default to compute D*∂ϕ(ρ)/∂z for the z given.
 
 # Arguments
 - `ρ`: the source detector separation (cm⁻¹)
