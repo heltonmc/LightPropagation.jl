@@ -90,7 +90,9 @@ function fluence_DA_slab_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 1.0,
 	if isa(t, AbstractFloat)
     	return _kernel_fluence_DA_slab_TD(D, ν, t, ρ, μa, s, zb, z0, z, xs)
     elseif isa(t, AbstractArray)
-    	ϕ = zeros(eltype(D), length(t))
+    	T = promote_type(eltype(ρ), eltype(D), eltype(s), eltype(z))
+        ϕ = zeros(T, length(t))
+
         @inbounds Threads.@threads for ind in eachindex(t)
             ϕ[ind] = _kernel_fluence_DA_slab_TD(D, ν, t[ind], ρ, μa, s, zb, z0, z, xs)
         end
@@ -117,26 +119,44 @@ end
 end
 
 #####################################
-# Time-Domain Reflectance (flux) 
+# Time-Domain Flux
 #####################################
 """
-    refl_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s; xs = -15:15)
+    flux_DA_slab_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 1.0, z = 0.0, xs = 15)
 
-Compute the time-domain reflectance (flux) from a slab geometry (x,y->inf, z-> finite). 
+    Compute the time-domain flux (D*∂ϕ(t)/∂z @ z = 0 or z = s) from a slab geometry (x,y->inf, z-> finite). 
 
 # Arguments
 - `t`: the time vector (ns). 
 - `ρ`: the source detector separation (cm⁻¹)
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
-- `ndet`: the boundary's index of refraction (air or detector)
-- `nmed`: the sample medium's index of refraction
+- `n_ext`: the boundary's index of refraction (air or detector)
+- `n_med`: the sample medium's index of refraction
 - `s`: the thickness (z-depth) of the slab (cm)
+- `z`: the z-depth coordinate (cm)
+- `xs`: the number of sources to compute in the series
 
 # Examples
-julia> `refl_DA_slab_TD(1.0, 1.0, 0.1, 10.0, 1.0, 1.0, 1.0)`
+julia> `flux_DA_slab_TD(1.0, 1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, z = 0.0, s = 1.0)`
 """
-function refl_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s; xs = -15:15)
+function flux_DA_slab_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0, s = 1.0, xs = 15)
+    if z == zero(eltype(z))
+        return _refl_DA_slab_TD(t, ρ, μa, μsp, n_ext = n_ext, n_med = n_med, s = s, xs = xs)
+    elseif z == s
+        return _trans_DA_slab_TD(t, ρ, μa, μsp, n_ext = n_ext, n_med = n_med, s = s, xs = xs)
+    else 
+        return D * ForwardDiff.derivative(dz -> fluence_DA_slab_TD(t, ρ, μa, μsp, n_ext = n_ext, n_med = n_med, s = s, z = dz, xs = xs), z)
+    end
+end
+
+"""
+    _refl_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s; xs = -15:15)
+
+Compute the time-domain flux or reflectance at the top surface from a slab geometry (x,y->inf, z-> finite). 
+
+"""
+function _refl_DA_slab_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 1.0, xs = 15)
 	D = D_coeff(μsp, μa)
     A = A_coeff(n_med / n_ext)
     ν = ν_coeff(n_med)
@@ -144,63 +164,65 @@ function refl_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s; xs = -15:15)
     z0 = z0_coeff(μsp)
     zb = zb_coeff(A, D)
     
-    Rt1 = Array{eltype(ρ)}(undef, length(t))
-    Rt2 = zeros(eltype(ρ), length(t))
-	
-    Threads.@threads for n in eachindex(t) 
-        Rt1[n] = -exp(-(ρ^2 / (4 * D * ν * t[n])) - μa * ν * t[n]) / (2 * (4 * π * D * ν)^(3/2) * t[n]^(5/2))
-	    for m in xs
-	        z3m = -2 * m * s - 4 * m * zb - z0
-	        z4m = -2 * m * s - (4m - 2) * zb + z0
-	    	Rt2[n] += z3m * exp(-(z3m^2 / (4 * D * ν * t[n]))) - z4m * exp(-(z4m^2 / (4 * D * ν * t[n])))
-    	end		
-	    Rt1[n] *= Rt2[n]   
-	end
+    if isa(t, AbstractFloat)
+    	return _kernel_refl_DA_slab_TD(ρ, D, ν, t, μa, xs, s, zb, z0)
+    elseif isa(t, AbstractVector)
+    	T = promote_type(eltype(ρ), eltype(D), eltype(s))
+        Rt = zeros(T, length(t))
 
-	return Rt1
+        @inbounds Threads.@threads for ind in eachindex(t)
+            Rt[ind] = _kernel_refl_DA_slab_TD(ρ, D, ν, t[ind], μa, xs, s, zb, z0)
+        end
+
+    	return Rt
+    end
+end
+@inline function _kernel_refl_DA_slab_TD(ρ, D, ν, t, μa, xs, s, zb, z0)
+    Rt1 = -exp(-(ρ^2 / (4 * D * ν * t)) - μa * ν * t) / (2 * (4 * π * D * ν)^(3/2) * t^(5/2))
+    Rt2 = zero(eltype(Rt1))
+	for m in -xs:xs
+	    z3m = -2 * m * s - 4 * m * zb - z0
+	    z4m = -2 * m * s - (4m - 2) * zb + z0
+	    Rt2 += z3m * exp(-(z3m^2 / (4 * D * ν * t))) - z4m * exp(-(z4m^2 / (4 * D * ν * t)))
+    end	
+
+	return Rt1 * Rt2  
 end
 
-#####################################
-# Time-Domain Transmittance (flux) 
-#####################################
 """
     trans_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s; xs = -15:15)
 
 Compute the time-domain transmittance (flux) from a slab geometry (x,y -> inf, z -> finite) with Eqn. 39 from Contini 97. 
-
-# Arguments
-- `t`: the time vector (ns). 
-- `ρ`: the source detector separation (cm⁻¹)
-- `μa`: absorption coefficient (cm⁻¹)
-- `μsp`: reduced scattering coefficient (cm⁻¹)
-- `n_det`: the boundary's index of refraction (air or detector)
-- `n_med`: the sample medium's index of refraction
-- `s`: the thickness (z-depth) of the slab (cm)
-
-# Examples
-julia> `trans_DA_slab_TD(1.0, 1.0, 0.1, 10.0, 1.0, 1.0, 1.0)`
 """
-function trans_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s; xs = -15:15)
+function _trans_DA_slab_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 1.0, xs = 15)
 	D = D_coeff(μsp, μa)
     A = A_coeff(n_med / n_ext)
     ν = ν_coeff(n_med)
 
     z0 = z0_coeff(μsp)
     zb = zb_coeff(A, D)
+    
+    if isa(t, AbstractFloat)
+    	return _kernel_trans_DA_slab_TD(ρ, D, ν, t, μa, xs, s, zb, z0)
+    elseif isa(t, AbstractVector)
+    	T = promote_type(eltype(ρ), eltype(D), eltype(s))
+        Rt = zeros(T, length(t))
 
-    Rt1 = Array{eltype(ρ)}(undef, length(t))
-    Rt2 = zeros(eltype(ρ), length(t))
+        @inbounds Threads.@threads for ind in eachindex(t)
+            Rt[ind] = _kernel_trans_DA_slab_TD(ρ, D, ν, t[ind], μa, xs, s, zb, z0)
+        end
 
-	Threads.@threads for n in eachindex(t) 
-        Rt1[n] = exp(-(ρ^2 / (4 * D * ν * t[n])) - μa * ν * t[n]) / (2 * (4 * π * D * ν)^(3/2) * t[n]^(5/2))
-        for m in xs
-            z1m = (1 - 2 * m) * s - 4 * m * zb - z0
-		    z2m = (1 - 2 * m) * s - (4 * m - 2) * zb + z0
-
-		    Rt2[n] += z1m * exp(-(z1m^2 / (4 * D * ν * t[n]))) - z2m * exp(-(z2m^2 / (4 * D * ν * t[n])))
-	    end
-	    Rt1[n] *= Rt2[n]
+    	return Rt
     end
-			
-	return Rt1
+end
+@inline function _kernel_trans_DA_slab_TD(ρ, D, ν, t, μa, xs, s, zb, z0)
+    Rt1 = exp(-(ρ^2 / (4 * D * ν * t)) - μa * ν * t) / (2 * (4 * π * D * ν)^(3/2) * t^(5/2))
+    Rt2 = zero(eltype(Rt1))
+	for m in -xs:xs
+	    z1m = (1 - 2 * m) * s - 4 * m * zb - z0
+		z2m = (1 - 2 * m) * s - (4 * m - 2) * zb + z0
+	    Rt2 += z1m * exp(-(z1m^2 / (4 * D * ν * t))) - z2m * exp(-(z2m^2 / (4 * D * ν * t)))
+    end	
+
+	return Rt1 * Rt2  
 end
