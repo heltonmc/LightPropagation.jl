@@ -75,8 +75,10 @@ function fluence_DA_semiinf_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0
 
     if isa(t, AbstractFloat)
 		return _kernel_fluence_DA_semiinf_TD(D, ν, t, μa, z, z0, ρ, zb)
-	elseif isa(t, AbstractArray)
-		ϕ = zeros(eltype(ρ), length(t))
+	elseif isa(t, AbstractVector)
+        T = promote_type(eltype(ρ), eltype(μa), eltype(μsp), eltype(z))
+        ϕ = zeros(T, length(t))
+        
         @inbounds Threads.@threads for ind in eachindex(t)
     		ϕ[ind] = _kernel_fluence_DA_semiinf_TD(D, ν, t[ind], μa, z, z0, ρ, zb)
     	end
@@ -119,15 +121,69 @@ function fluence_DA_semiinf_FD(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0,
 end
 
 #####################################
-# Time-Domain Reflectance (Flux) 
+# Time-Domain Flux
 #####################################
 """
-    refl_DA_semiinf_TD(t, ρ, μa, μsp, n_ext, n_med)
+    flux_DA_semiinf_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0)
 
-Compute the time-domain reflectance from a semi-infinite medium from Eqn. 36 Contini 97 (m = 0). 
+Compute the time-domain flux (D*∂ϕ(t)/∂z @ z = 0) from a semi-infinite medium from Eqn. 36 Contini 97 (m = 0).
 
 # Arguments
 - `t`: the time vector (ns). 
+- `ρ`: the source detector separation (cm⁻¹)
+- `μa`: absorption coefficient (cm⁻¹)
+- `μsp`: reduced scattering coefficient (cm⁻¹)
+- `n_det`: the boundary's index of refraction (air or detector)
+- `n_med`: the sample medium's index of refraction
+
+# Examples
+```jldoctest
+julia> `flux_DA_semiinf_TD(1.0, 1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0)`
+```
+"""
+function flux_DA_semiinf_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0)
+    D = D_coeff(μsp, μa)
+    A = A_coeff(n_med / n_ext)
+    ν = ν_coeff(n_med)
+	
+    z0 = z0_coeff(μsp)
+    zb = zb_coeff(A, D)
+
+    z3m = - z0
+    z4m = 2 * zb + z0
+
+    if isa(t, AbstractFloat)
+        return _kernel_flux_DA_semiinf_TD(D, ν, t, μa, z3m, z4m, ρ)
+    elseif isa(t, AbstractArray)
+        T = promote_type(eltype(ρ), eltype(μa), eltype(μsp))
+        Rt = zeros(T, length(t))
+        @inbounds Threads.@threads for ind in eachindex(t)
+            Rt[ind] = _kernel_flux_DA_semiinf_TD(D, ν, t[ind], μa, z3m, z4m, ρ)
+        end
+        return Rt
+    end
+ end
+@inline function _kernel_flux_DA_semiinf_TD(D, ν, t, μa, z3m, z4m, ρ)
+    @assert t > zero(eltype(D))
+    tmp1 = 4 * D * ν * t
+    Rt = -(ρ^2 / (tmp1))
+    Rt -= μa * ν * t
+    Rt = -exp(Rt) / (2 * (4 * π * D * ν)^(3/2) * sqrt(t * t * t * t * t))
+    Rt *= (z3m * exp(-(z3m^2 / (tmp1))) - z4m * exp(-(z4m^2 / (tmp1))))
+
+    return Rt
+end
+
+
+#####################################
+# Steady-State Flux
+#####################################
+"""
+    flux_DA_semiinf_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0)
+
+Compute the steady-state flux (D*∂ϕ(ρ)/∂z @ z = 0) from a semi-infinite medium.
+
+# Arguments
 - `ρ`: the source detector separation (cm⁻¹)
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
@@ -136,34 +192,10 @@ Compute the time-domain reflectance from a semi-infinite medium from Eqn. 36 Con
 
 # Examples
 ```jldoctest
-julia> `refl_DA_semiinf_TD(0.2:0.6:2.0, 1.0, 0.1, 10.0, 1.0, 1.0)`
-4-element Vector{Float64}:
- 0.03126641311563058
- 0.00042932742937583005
- 2.016489075323064e-5
- 1.4467359376429123e-6
+julia> `flux_DA_semiinf_CW(1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0)`
 ```
 """
-function refl_DA_semiinf_TD(t, ρ, μa, μsp, n_ext, n_med)
+function flux_DA_semiinf_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0)
     D = D_coeff(μsp, μa)
-    A = A_coeff(n_med / n_ext)
-    ν = ν_coeff(n_med)
-	
-    z0 = z0_coeff(μsp)
-    zb = zb_coeff(A, D)
-
-    Rt = Array{eltype(ρ)}(undef, length(t))
-
-    z3m = - z0
-    z4m = 2 * zb + z0
-
-    Threads.@threads for n in eachindex(t)
-        tmp1 = 4 * D * ν * t[n]
-        Rt[n] = -(ρ^2 / (tmp1))
-        Rt[n] -= μa * ν * t[n]
-        Rt[n] = -exp(Rt[n]) / (2 * (4 * π * D * ν)^(3/2) * sqrt(t[n] * t[n] * t[n] * t[n] * t[n]))
-        Rt[n] *= (z3m * exp(-(z3m^2 / (tmp1))) - z4m * exp(-(z4m^2 / (tmp1))))
-    end
- 
-     return Rt
+    return D * ForwardDiff.derivative(z -> fluence_DA_semiinf_CW(ρ, μa, μsp, n_med = n_med, n_ext = n_ext, z = z), 0.0)
 end

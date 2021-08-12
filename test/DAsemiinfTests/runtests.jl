@@ -16,4 +16,8 @@ using LightPropagation: fluence_DA_semiinf_CW, fluence_DA_semiinf_TD
 d = [0.000288659079311426, 2.896685181887841e-6, 5.474977667638328e-8, 1.3595622802163355e-9]
 @test fluence_DA_semiinf_TD(1.0:4.0, 1.0, 0.1, 10.0, n_med = 1.0, n_ext = 1.0, z = 0.0) ≈ d
 
+# this test both the ForwardDiff package and the implementations of fluence and flux in semiinfite case
+D = 1 / (3 * 10.0) # hard code diffusion coefficient here but could be different
+@test D*ForwardDiff.derivative(z -> fluence_DA_semiinf_TD(1.0, 1.0, 0.1, 10.0, z = z), 0.0) ≈ flux_DA_semiinf_TD(1.0, 1.0, 0.1, 10.0, n_med = 1.0, n_ext = 1.0)
+
 end # module
