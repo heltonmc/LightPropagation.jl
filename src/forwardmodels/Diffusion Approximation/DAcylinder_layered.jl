@@ -69,10 +69,55 @@ function fluence_DA_Nlay_cylinder_CW(data, besselroots)
 end
 
 #####################################
+# Steady-State Flux 
+#####################################
+"""
+    flux_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots)
+
+Compute the steady-state flux using Fick's law D[1]*∂ϕ(ρ)/∂z for z = 0 (reflectance) and -D[end]*∂ϕ(ρ)/∂z for z = sum(l) (transmittance) in an N-layered cylinder. 
+Source is assumed to be located on the top middle of the cylinder. z must be equal to 0 or the total length sum(l) of cylinder.
+
+# Arguments
+- `ρ`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
+- `μa`: absorption coefficient (cm⁻¹)
+- `μsp`: reduced scattering coefficient (cm⁻¹)
+- `n_ext`: the boundary's index of refraction (air or detector)
+- `n_med`: the sample medium's index of refraction
+- `l`: layer thicknesses (cm)
+- `a`: cylinder radius (cm)
+- `z`: source depth within cylinder: must be equal to 0 or sum(l)
+- `besselroots`: roots of bessel function of first kind zero order J0(x) = 0
+
+# Examples
+julia> `flux_DA_Nlay_cylinder_CW(1.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [4.5, 4.5], 10.0, 0.0, besselroots)`
+"""
+function flux_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots)
+    @assert z == zero(eltype(z)) || z == sum(l)
+    D = D_coeff.(μsp, μa)
+    if z == zero(eltype(z))
+        return D[1] * ForwardDiff.derivative(dz -> fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, dz, besselroots), z)
+    elseif z == sum(l)
+        return -D[end] * ForwardDiff.derivative(dz -> fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, dz, besselroots), z)
+    end
+end
+"""
+    flux_DA_Nlay_cylinder_CW(data, besselroots)
+
+Wrapper to flux_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots) with inputs given as a structure (data).
+
+# Examples
+julia> data = Nlayer_cylinder(a = 10.0, l = [1.0, 1.0, 1.0, 2.0], z = 5.0)
+julia> `flux_DA_Nlay_cylinder_CW(data, besselroots)`
+"""
+function flux_DA_Nlay_cylinder_CW(data, besselroots)
+    return flux_DA_Nlay_cylinder_CW(data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.l, data.a, data.z, besselroots)
+end
+
+#####################################
 # Time-Domain Fluence 
 #####################################
 """
-    fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; ; N = 24, ILT = hyper_fixed)
+    fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 24, ILT = hyper_fixed)
 
 Compute the time-domain fluence in an N-layered cylinder. Source is assumed to be located on the top middle of the cylinder.
 It is best to use `hyper_fixed` as the inverse laplace transform if t consists of many time points. Utilize `hyperbola` for a single time point.
@@ -96,17 +141,11 @@ The lowest fluence value you can compute will be no less than the machine precis
 # Examples
 julia> `fluence_DA_Nlay_cylinder_TD(0.1:0.1:2.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [4.5, 4.5], 10.0, 0.0, besselroots)`
 """
-function fluence_DA_Nlay_cylinder_TD(t::AbstractFloat, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 24, ILT = hyperbola)
-    Rt = zero(eltype(t))
-    Rt = ILT(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z, s, besselroots), t, N = N)
-
-    return Rt
+function fluence_DA_Nlay_cylinder_TD(t::AbstractFloat, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 18, ILT = hyperbola)
+    return ILT(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z, s, besselroots), t, N = N)
 end
 function fluence_DA_Nlay_cylinder_TD(t::AbstractArray, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 24, ILT = hyper_fixed)
-    Rt = zeros(eltype(μa), length(t))
-    Rt = ILT(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z, s, besselroots), t, N = N)
-
-    return Rt
+    return ILT(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z, s, besselroots), t, N = N)
 end
 """
     fluence_DA_Nlay_cylinder_TD(data; besselroots, ILT = hyper_fixed)
@@ -121,12 +160,68 @@ function fluence_DA_Nlay_cylinder_TD(t, data; bessels = besselroots,  N = 24)
     return fluence_DA_Nlay_cylinder_TD(t, data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.l, data.a, data.z, bessels, N = N)
 end
 
-# this function is the base for the laplace transform in the time domain
-function _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z, s, besselroots)
-    ν = ν_coeff.(n_med)
-    μa_complex = μa .+ s ./ ν
+#####################################
+# Time-Domain Flux 
+#####################################
+"""
+    flux_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 24)
 
-    return fluence_DA_Nlay_cylinder_CW(ρ, μa_complex, μsp, n_ext, n_med, l, a, z, besselroots)
+Compute the time-domain flux using Fick's law D[1]*∂ϕ(ρ, t)/∂z for z = 0 (reflectance) and -D[end]*∂ϕ(ρ, t)/∂z for z = sum(l) (transmittance) in an N-layered cylinder. 
+Source is assumed to be located on the top middle of the cylinder. z must be equal to 0 or the total length sum(l) of cylinder.
+Uses the hyperbola contour if t is an AbstractFloat and the fixed hyperbola contour if t is an AbstractVector.
+∂ϕ(ρ, t)/∂z is calculated using forward mode auto-differentiation with ForwardDiff.jl
+
+# Arguments
+- `t`: time point or vector (ns)
+- `ρ`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
+- `μa`: absorption coefficient (cm⁻¹)
+- `μsp`: reduced scattering coefficient (cm⁻¹)
+- `n_ext`: the boundary's index of refraction (air or detector)
+- `n_med`: the sample medium's index of refraction
+- `l`: layer thicknesses (cm)
+- `a`: cylinder radius (cm)
+- `z`: source depth within cylinder
+- `besselroots`: roots of bessel function of first kind zero order J0(x) = 0
+- `N`: number of Hankel-Laplace calculations
+
+# Examples
+julia> `fluence_DA_Nlay_cylinder_TD(0.1:0.1:2.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [4.5, 4.5], 10.0, 0.0, besselroots)`
+"""
+function flux_DA_Nlay_cylinder_TD(t::AbstractVector, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 24)
+    @assert z == zero(eltype(z)) || z == sum(l)
+    D = D_coeff.(μsp, μa)
+
+    ## need to know the type of z to preallocate vectors coorectly in hyper_fixed for autodiff
+    function _ILT(z::T) where {T} 
+        return hyper_fixed(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z, s, besselroots), t, N = N, T = T)
+    end
+    if z == zero(eltype(z))
+        return D[1]*ForwardDiff.derivative(_ILT, z)
+    elseif z == sum(l)
+        return -D[end]*ForwardDiff.derivative(_ILT, z)
+    end
+end
+function flux_DA_Nlay_cylinder_TD(t::AbstractFloat, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 24)
+    @assert z == zero(eltype(z)) || z == sum(l)
+    D = D_coeff.(μsp, μa)  
+    if z == zero(eltype(z))
+        return D[1] * ForwardDiff.derivative(dz -> hyperbola(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, dz, s, besselroots), t, N = N), 0.0)
+    elseif z == sum(l)
+        return -D[end] * ForwardDiff.derivative(dz -> hyperbola(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, dz, s, besselroots), t, N = N), sum(l))
+    end
+end
+
+"""
+    flux_DA_Nlay_cylinder_TD(t, data; besselroots, N = 24)
+
+Wrapper to flux_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 24) with inputs given as a structure (data).
+
+# Examples
+julia> data = Nlayer_cylinder(a = 10.0, l = [1.0, 1.0, 1.0, 2.0], z = 5.0)
+julia> `flux_DA_Nlay_cylinder_TD(0.5:1.0:2.5, data, bessels = besselroots[1:600])`
+"""
+function flux_DA_Nlay_cylinder_TD(t, data; bessels = besselroots,  N = 24)
+    return flux_DA_Nlay_cylinder_TD(t, data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.l, data.a, data.z, bessels, N = N)
 end
 
 #####################################
@@ -169,6 +264,16 @@ julia> `fluence_DA_Nlay_cylinder_FD(data, besselroots)`
 """
 function fluence_DA_Nlay_cylinder_FD(data, besselroots)
     return fluence_DA_Nlay_cylinder_FD(data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.l, data.a, data.z, data.ω, besselroots)
+end
+
+################################################################################
+# this function is the base for the laplace transform in the time-domain
+################################################################################
+function _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z, s, besselroots)
+    ν = ν_coeff.(n_med)
+    μa_complex = μa .+ s ./ ν
+
+    return fluence_DA_Nlay_cylinder_CW(ρ, μa_complex, μsp, n_ext, n_med, l, a, z, besselroots)
 end
 
 ################################################################################

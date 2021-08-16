@@ -68,10 +68,9 @@ function hyperbola(f::Function, t::AbstractFloat; N = 16)
     return imag(a) * h / pi
 end
 
-# loop through an entire time array with multithreads
-function hyperbola(f::Function, t::AbstractVector; N = 16)
-    out = similar(t)
-    Threads.@threads for ind in eachindex(t)
+function hyperbola(f::Function, t::AbstractArray; N = 16)
+    out = fill(f(t[1]), length(t))
+    Threads.@threads for ind in 2:length(t)
         out[ind] = hyperbola(f, t[ind], N = N)
     end
     return out
@@ -93,10 +92,10 @@ s_fixed(θ, μ; ϕ = 1.09) = μ + im * μ * sinh(θ + im * ϕ)
 ds_fixed(θ, μ; ϕ = 1.09) = im * μ * cosh(θ + im * ϕ)
 
 # compute the function values over the fixed contour nodes
-function fixed_sk(f::Function, N, t::AbstractVector)
+function fixed_sk(f::Function, N, t::AbstractVector, T)
     μ, h = hyper_coef(N, t)
-    a = zeros(Complex{eltype(h)}, Int(N))
-    sk = similar(a)
+    a = zeros(Complex{eltype(T)}, N)
+    sk = zeros(Complex{eltype(t)}, N)
     Threads.@threads for k in 0:Int(N)-1
         sk[k+1] = s_fixed((k + 1/2) * h, μ)
         dsk = ds_fixed((k + 1/2) * h, μ)
@@ -113,18 +112,11 @@ function hyper_fixed_points(a, sk, h, t::AbstractFloat)
     return imag(b) * h / π
 end
 
-
-
-function hyper_fixed(f::Function, t::AbstractVector; N = 24)
-    N = convert(eltype(t), N)
-    a, sk, h = fixed_sk(f, N, t)
-    out = zeros(eltype(h), length(t))
+function hyper_fixed(f::Function, t::AbstractVector; N = 24, T = eltype(t))
+    a, sk, h = fixed_sk(f, N, t, T)
+    out = zeros(T, length(t))
     Threads.@threads for ind in eachindex(t)
         out[ind] = hyper_fixed_points(a, sk, h, t[ind])
     end
     return out
 end
-
-# run as
-# LT_hyper_fixed(s -> fluence_DA_inf_FD(1.0, [0.1, 10.0], s),28, t)
-

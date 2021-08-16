@@ -145,4 +145,29 @@ a96 = fluence_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:600]
 @test a72 ≈ slab
 @test a96 ≈ slab
 
+
+### Flux tests
+
+# CW 
+cylinder_data = Nlayer_cylinder(ρ = 1.0, μsp = [10.0, 10.0], μa = [0.1, 0.1], l = [10.0, 10.0], n_med = [1.0, 1.0], n_ext = 1.0, a = 40.0)
+@test flux_DA_Nlay_cylinder_CW(cylinder_data, besselroots[1:10000]) ≈ flux_DA_semiinf_CW(1.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0)
+
+cylinder_data = Nlayer_cylinder(ρ = 1.0, μsp = [10.0, 10.0], μa = [0.1, 0.1], l = [2.0, 2.0], z = 4.0, n_med = [1.0, 1.0], n_ext = 1.0, a = 40.0)
+@test flux_DA_Nlay_cylinder_CW(cylinder_data, besselroots[1:10000]) ≈ flux_DA_slab_CW(1.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 4.0, z = 4.0, xs = 15)
+
+# TD
+t = 1.0
+cylinder_data = Nlayer_cylinder(ρ = 1.0, μsp = [10.0, 10.0], μa = [0.1, 0.1], l = [10.0, 10.0], n_med = [1.0, 1.0], n_ext = 1.0, a = 40.0)
+@test flux_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:10000]) ≈ flux_DA_semiinf_TD(t, 1.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0)
+
+cylinder_data = Nlayer_cylinder(ρ = 1.0, μsp = [10.0, 10.0], μa = [0.1, 0.1], l = [2.0, 2.0], z = 4.0, n_med = [1.0, 1.0], n_ext = 1.0, a = 40.0)
+@test flux_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:10000]) ≈ flux_DA_slab_TD(t, 1.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 4.0, z = 4.0, xs = 15)
+
+t = 0.5:0.1:1.5
+cylinder_data = Nlayer_cylinder(ρ = 1.0, μsp = [10.0, 10.0], μa = [0.1, 0.1], l = [10.0, 10.0], n_med = [1.0, 1.0], n_ext = 1.0, a = 40.0)
+@test flux_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:10000]) ≈ flux_DA_semiinf_TD(t, 1.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0)
+
+cylinder_data = Nlayer_cylinder(ρ = 1.0, μsp = [10.0, 10.0], μa = [0.1, 0.1], l = [2.0, 2.0], z = 4.0, n_med = [1.0, 1.0], n_ext = 1.0, a = 40.0)
+@test flux_DA_Nlay_cylinder_TD(t, cylinder_data, bessels = besselroots[1:10000]) ≈ flux_DA_slab_TD(t, 1.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 4.0, z = 4.0, xs = 15)
+
 end # module

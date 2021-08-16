@@ -10,16 +10,29 @@ fluence_DA_inf_TD
 ```@docs
 fluence_DA_semiinf_CW
 fluence_DA_semiinf_TD
+flux_DA_semiinf_CW
+flux_DA_semiinf_TD
 ```
 
 ## Slab
 ```@docs
 fluence_DA_slab_CW
 fluence_DA_slab_TD
+flux_DA_slab_CW
+flux_DA_slab_TD
 ```
 
 ## Parallelepiped
 ```@docs
 fluence_DA_paralpip_CW
 fluence_DA_paralpip_TD
+```
+
+## Layered Cylinder
+```@docs
+fluence_DA_Nlay_cylinder_CW
+fluence_DA_Nlay_cylinder_TD
+
+flux_DA_Nlay_cylinder_CW
+flux_DA_Nlay_cylinder_TD
 ```
