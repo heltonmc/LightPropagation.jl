@@ -12,9 +12,10 @@ makedocs(
     format = Documenter.HTML(),
     pages = [ 
                 "Home" => "index.md",
-                "API" => "API.md",
+                "Installation" => "install.md",
                 "Getting Started" => "getting-started.md",
                 "Tutorials" => Any[
+                    "Inverse Fitting" => "inversefitting.md",
                     "When is semi-infinite semi-infinite?" => "whensemiinf.md"
                 ],
                 "Forward Models" => Any[
@@ -23,6 +24,7 @@ makedocs(
                     "N-layer Cylinder" => "Nlayer_cyl.md"
                      ],
                 ],
+                "API" => "API.md"
     ]
 )
 
