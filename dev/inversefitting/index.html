@@ -26,12 +26,12 @@ julia&gt; ydata = fluence_DA_semiinf_TD(t_arr, ρ, μa_true, μsp_true)</code></
 julia&gt; y_noise = poisson(log10.(ydata), 500)
 
 # need to set the bounds in the inverse problem 
-ub = [1.0, 50.0] # upper bound for [μa, μsp]
-lb = [0.01, 3.0] # lower bound for [μa, μsp]
-p0 = [0.12, 18.2] # some initial guess for our algorithm
+julia&gt; ub = [1.0, 50.0] # upper bound for [μa, μsp]
+julia&gt; lb = [0.01, 3.0] # lower bound for [μa, μsp]
+julia&gt; p0 = [0.12, 18.2] # some initial guess for our algorithm
 
 # set up our model we want to fit with
-model(t, β) = log10.(fluence_DA_semiinf_TD(t, ρ, β[1], β[2]))</code></pre><p>We are now ready to fit...</p><pre><code class="language-julia hljs">julia&gt; using LsqFit
+julia&gt; model(t, β) = log10.(fluence_DA_semiinf_TD(t, ρ, β[1], β[2]))</code></pre><p>We are now ready to fit...</p><pre><code class="language-julia hljs">julia&gt; using LsqFit
 julia&gt; fit = curve_fit(model, t_arr, y_noise, p0, lower=lb, upper=ub)
 
 ## Let&#39;s quickly plot our results
@@ -73,4 +73,4 @@ julia&gt; fit.param
  0.12000000000085953
  8.200000000001857
  12.799999999834535
- 1.0000000000043645</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../getting-started/">« Getting Started</a><a class="docs-footer-nextpage" href="../whensemiinf/">When is semi-infinite semi-infinite? »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.5 on <span class="colophon-date" title="Wednesday 18 August 2021 22:56">Wednesday 18 August 2021</span>. Using Julia version 1.5.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+ 1.0000000000043645</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../getting-started/">« Getting Started</a><a class="docs-footer-nextpage" href="../whensemiinf/">When is semi-infinite semi-infinite? »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.5 on <span class="colophon-date" title="Thursday 19 August 2021 00:29">Thursday 19 August 2021</span>. Using Julia version 1.5.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
