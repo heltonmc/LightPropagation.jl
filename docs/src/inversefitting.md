@@ -79,12 +79,12 @@ julia> using Noise
 julia> y_noise = poisson(log10.(ydata), 500)
 
 # need to set the bounds in the inverse problem 
-ub = [1.0, 50.0] # upper bound for [μa, μsp]
-lb = [0.01, 3.0] # lower bound for [μa, μsp]
-p0 = [0.12, 18.2] # some initial guess for our algorithm
+julia> ub = [1.0, 50.0] # upper bound for [μa, μsp]
+julia> lb = [0.01, 3.0] # lower bound for [μa, μsp]
+julia> p0 = [0.12, 18.2] # some initial guess for our algorithm
 
 # set up our model we want to fit with
-model(t, β) = log10.(fluence_DA_semiinf_TD(t, ρ, β[1], β[2]))
+julia> model(t, β) = log10.(fluence_DA_semiinf_TD(t, ρ, β[1], β[2]))
 ```
 
 We are now ready to fit...
@@ -105,7 +105,6 @@ julia> fit.param
   0.2600394078015929
  12.913002920897537
 ```
-
 
 ## Fitting in layered media
 
