@@ -125,7 +125,7 @@ julia> ρ = 1.0; n_med = [1.0, 1.0]; n_ext = 1.0; a = 5.0; z = 0.0
 julia> μa = [0.01, 0.12]
 julia> μsp = [8.2, 12.8]
 julia> l = [1.0, 4.0]
-julia> ydata = log10.(abs.(fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots[1:600])))
+julia> ydata = log10.(abs.(fluence_DA_Nlay_cylinder_TD(t_arr, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots[1:600])))
 ```
 
 One thing we need to be careful about is the fluence returning a negative value so we take the absolute value here. We can also use structures to pass arguments to the function. The next step is to set up our model but here `β` must contain an array of all our parameters...
@@ -185,3 +185,76 @@ julia> fit.param
  12.799999999834535
  1.0000000000043645
 ```
+
+We could also set this up as a general optimization problem like...
+```julia
+julia> function optim_model(β, t, ydata; ρ = 1.0, l = 10.0, z = 0.0, n_ext = 1.0, n_med = [1.0, 1.0])
+    ymodel = log10.(abs.(fluence_DA_Nlay_cylinder_TD(t, ρ, [β[1], β[2]], [β[3], β[4]], n_ext, n_med, [β[5],l], a, z, besselroots[1:600])))
+
+    return sum((ydata .- ymodel).^2)
+end
+
+julia> using BlackBoxOptim
+julia> bboptimize(β -> optim_model(β, t_arr, ydata), p0; SearchRange = [(0.005, 1.0), (0.01, 1.0), (3.0, 50.0), (3.0, 50.0), (0.4, 4.0)], MaxTime = 60.0, Method = :adaptive_de_rand_1_bin)
+Optimization stopped after 44479 steps and 60.00 seconds
+Termination reason: Max time (60.0 s) reached
+Steps per second = 741.31
+Function evals per second = 743.03
+Improvements/step = Inf
+Total function evaluations = 44582
+
+
+Best candidate found: [0.01, 0.220412, 8.17724, 3.0, 1.51944]
+
+Fitness: 0.022200604
+```
+
+Though, such a naive implementation does not produce great results even after a minute of optimization. 
+
+### Automatic Differentiation
+
+Because we do have access to gradient/jacobian information it is probably best to use it. In the previous examples using `LsqFit.jl` a central differences technique was utilized to find gradient information, however this can be significantly slower and less accurate. Let's looks at fitting layered solutions in the spatial domain using auto-diff.
+
+```julia
+julia> ρ_arr = range(0.5, stop = 4.0, length = 10)
+julia> ub = [1.0, 1.0, 50.0, 50.0, 4.0] # upper bound for [μa1, μa2, μsp1, μsp2, l1]
+julia> lb = [0.01, 0.01, 3.0, 3.0, 0.4] # upper bound for [μa1, μa2, μsp1, μsp2, l1]
+julia> p0 = [0.02, 0.02, 11.0, 11.0, 2.0] # initial guess for [μa1, μa2, μsp1, μsp2, l1]
+julia> n_med = [1.0, 1.0]; n_ext = 1.0; a = 5.0; z = 0.0
+julia> μa = [0.01, 0.12]
+julia> μsp = [8.2, 12.8]
+julia> l = [1.0, 4.0]
+julia> ydata = log10.(abs.(map(ρ -> fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots[1:600]), ρ_arr)))
+
+julia> model(ρ_arr, β) = log10.(abs.((map(ρ -> fluence_DA_Nlay_cylinder_CW(ρ, [β[1], β[2]], [β[3], β[4]], n_ext, n_med, [β[5],l[2]], a, z, besselroots[1:600]), 
+ρ_arr))))
+## Let's do central difference first
+julia> fit = curve_fit(model, ρ_arr, ydata, p0, lower=lb, upper=ub)
+julia> fit.param
+5-element Vector{Float64}:
+  0.01
+  0.12000000008686881
+  8.200000000444339
+ 12.799999996164786
+  1.0000000001194502
+```
+This interestingly enough produces near exact values with this initial guess... though in a slightly different setup the time-domain struggled to converge. Let's check the time to run the curve fitting...
+```julia
+julia> @btime fit = curve_fit(model, ρ_arr, ydata, p0, lower=lb, upper=ub)
+  1.961 s (240847 allocations: 102.07 MiB)
+```
+So this took close to 2 seconds to run. This implementation is rather naive because we are regenerating new fluence values at each SDS from scratch which repeats a lot of similar code. Further optimizing this along with multi-threading could siginificantly decrease this time. Anyway let's see the output and benchmarks when we use autodiff instead for gradient/jacobian information...
+```julia
+julia> @btime fit = curve_fit(model, ρ_arr, ydata, p0, lower=lb, upper=ub; autodiff=:forwarddiff)
+  518.778 ms (60068 allocations: 23.80 MiB)julia> fit.param
+5-element Vector{Float64}:
+  0.010000000014621547
+  0.11999999992354275
+  8.199999999622381
+ 12.800000003128938
+  0.9999999998932497
+```
+So this example take almost half a second which is ~4x faster than the central difference approach. 
+
+
+
