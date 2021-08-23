@@ -47,7 +47,7 @@ julia&gt; p0 = [0.02, 0.02, 11.0, 11.0] # initial guess for [μa1, μa2, μsp1, 
 julia&gt; μa = [0.01, 0.12]
 julia&gt; μsp = [8.2, 12.8]
 julia&gt; l = [1.0, 4.0]
-julia&gt; ydata = log10.(abs.(fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots[1:600])))</code></pre><p>One thing we need to be careful about is the fluence returning a negative value so we take the absolute value here. We can also use structures to pass arguments to the function. The next step is to set up our model but here <code>β</code> must contain an array of all our parameters...</p><pre><code class="language-julia hljs">julia&gt; model(t, β) = log10.(abs.(fluence_DA_Nlay_cylinder_TD(t, ρ, [β[1], β[2]], [β[3], β[4]], n_ext, n_med, l, a, z, besselroots[1:600])))
+julia&gt; ydata = log10.(abs.(fluence_DA_Nlay_cylinder_TD(t_arr, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots[1:600])))</code></pre><p>One thing we need to be careful about is the fluence returning a negative value so we take the absolute value here. We can also use structures to pass arguments to the function. The next step is to set up our model but here <code>β</code> must contain an array of all our parameters...</p><pre><code class="language-julia hljs">julia&gt; model(t, β) = log10.(abs.(fluence_DA_Nlay_cylinder_TD(t, ρ, [β[1], β[2]], [β[3], β[4]], n_ext, n_med, l, a, z, besselroots[1:600])))
 ## we can then fit as before
 julia&gt; fit = curve_fit(model, t_arr, ydata, p0, lower=lb, upper=ub)</code></pre><p>And now again we can see how the model did (with no noise)...</p><pre><code class="language-julia hljs">julia&gt; fit.param
 4-element Vector{Float64}:
@@ -73,4 +73,50 @@ julia&gt; fit.param
  0.12000000000085953
  8.200000000001857
  12.799999999834535
- 1.0000000000043645</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../getting-started/">« Getting Started</a><a class="docs-footer-nextpage" href="../whensemiinf/">When is semi-infinite semi-infinite? »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.5 on <span class="colophon-date" title="Thursday 19 August 2021 00:29">Thursday 19 August 2021</span>. Using Julia version 1.5.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+ 1.0000000000043645</code></pre><p>We could also set this up as a general optimization problem like...</p><pre><code class="language-julia hljs">julia&gt; function optim_model(β, t, ydata; ρ = 1.0, l = 10.0, z = 0.0, n_ext = 1.0, n_med = [1.0, 1.0])
+    ymodel = log10.(abs.(fluence_DA_Nlay_cylinder_TD(t, ρ, [β[1], β[2]], [β[3], β[4]], n_ext, n_med, [β[5],l], a, z, besselroots[1:600])))
+
+    return sum((ydata .- ymodel).^2)
+end
+
+julia&gt; using BlackBoxOptim
+julia&gt; bboptimize(β -&gt; optim_model(β, t_arr, ydata), p0; SearchRange = [(0.005, 1.0), (0.01, 1.0), (3.0, 50.0), (3.0, 50.0), (0.4, 4.0)], MaxTime = 60.0, Method = :adaptive_de_rand_1_bin)
+Optimization stopped after 44479 steps and 60.00 seconds
+Termination reason: Max time (60.0 s) reached
+Steps per second = 741.31
+Function evals per second = 743.03
+Improvements/step = Inf
+Total function evaluations = 44582
+
+
+Best candidate found: [0.01, 0.220412, 8.17724, 3.0, 1.51944]
+
+Fitness: 0.022200604</code></pre><p>Though, such a naive implementation does not produce great results even after a minute of optimization. </p><h3 id="Automatic-Differentiation"><a class="docs-heading-anchor" href="#Automatic-Differentiation">Automatic Differentiation</a><a id="Automatic-Differentiation-1"></a><a class="docs-heading-anchor-permalink" href="#Automatic-Differentiation" title="Permalink"></a></h3><p>Because we do have access to gradient/jacobian information it is probably best to use it. In the previous examples using <code>LsqFit.jl</code> a central differences technique was utilized to find gradient information, however this can be significantly slower and less accurate. Let&#39;s looks at fitting layered solutions in the spatial domain using auto-diff.</p><pre><code class="language-julia hljs">julia&gt; ρ_arr = range(0.5, stop = 4.0, length = 10)
+julia&gt; ub = [1.0, 1.0, 50.0, 50.0, 4.0] # upper bound for [μa1, μa2, μsp1, μsp2, l1]
+julia&gt; lb = [0.01, 0.01, 3.0, 3.0, 0.4] # upper bound for [μa1, μa2, μsp1, μsp2, l1]
+julia&gt; p0 = [0.02, 0.02, 11.0, 11.0, 2.0] # initial guess for [μa1, μa2, μsp1, μsp2, l1]
+julia&gt; n_med = [1.0, 1.0]; n_ext = 1.0; a = 5.0; z = 0.0
+julia&gt; μa = [0.01, 0.12]
+julia&gt; μsp = [8.2, 12.8]
+julia&gt; l = [1.0, 4.0]
+julia&gt; ydata = log10.(abs.(map(ρ -&gt; fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots[1:600]), ρ_arr)))
+
+julia&gt; model(ρ_arr, β) = log10.(abs.((map(ρ -&gt; fluence_DA_Nlay_cylinder_CW(ρ, [β[1], β[2]], [β[3], β[4]], n_ext, n_med, [β[5],l[2]], a, z, besselroots[1:600]), 
+ρ_arr))))
+## Let&#39;s do central difference first
+julia&gt; fit = curve_fit(model, ρ_arr, ydata, p0, lower=lb, upper=ub)
+julia&gt; fit.param
+5-element Vector{Float64}:
+  0.01
+  0.12000000008686881
+  8.200000000444339
+ 12.799999996164786
+  1.0000000001194502</code></pre><p>This interestingly enough produces near exact values with this initial guess... though in a slightly different setup the time-domain struggled to converge. Let&#39;s check the time to run the curve fitting...</p><pre><code class="language-julia hljs">julia&gt; @btime fit = curve_fit(model, ρ_arr, ydata, p0, lower=lb, upper=ub)
+  1.961 s (240847 allocations: 102.07 MiB)</code></pre><p>So this took close to 2 seconds to run. This implementation is rather naive because we are regenerating new fluence values at each SDS from scratch which repeats a lot of similar code. Further optimizing this along with multi-threading could siginificantly decrease this time. Anyway let&#39;s see the output and benchmarks when we use autodiff instead for gradient/jacobian information...</p><pre><code class="language-julia hljs">julia&gt; @btime fit = curve_fit(model, ρ_arr, ydata, p0, lower=lb, upper=ub; autodiff=:forwarddiff)
+  518.778 ms (60068 allocations: 23.80 MiB)julia&gt; fit.param
+5-element Vector{Float64}:
+  0.010000000014621547
+  0.11999999992354275
+  8.199999999622381
+ 12.800000003128938
+  0.9999999998932497</code></pre><p>So this example take almost half a second which is ~4x faster than the central difference approach. </p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../getting-started/">« Getting Started</a><a class="docs-footer-nextpage" href="../whensemiinf/">When is semi-infinite semi-infinite? »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.5 on <span class="colophon-date" title="Monday 23 August 2021 14:15">Monday 23 August 2021</span>. Using Julia version 1.5.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
