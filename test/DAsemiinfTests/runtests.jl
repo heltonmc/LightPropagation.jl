@@ -1,8 +1,8 @@
 module DAsemiinfTests
 
 using Test
-using LightPropagation: fluence_DA_semiinf_CW, fluence_DA_semiinf_TD
-
+using LightPropagation: fluence_DA_semiinf_CW, fluence_DA_semiinf_TD, flux_DA_semiinf_TD
+using ForwardDiff
 
 # Hard code DA semiinf solution to compare other geometries
 

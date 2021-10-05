@@ -12,7 +12,7 @@
     n_med::Vector{T} = [1.0, 1.0, 1.0, 1.0]    # layers index of refraction
 
     l::Vector{T} = [0.5, 0.8, 1.0, 5.0]        # length of cylinder layers (cm)
-    ρ::T = 1.0                                 # source-detector separation (cm)
+    ρ::Union{T, AbstractVector{T}} = 1.0       # source-detector separation (cm)
     a::T = 5.0                                 # radius of cylinder (cm)
     z::T = 0.0                                 # detector depth (cm)
 
@@ -283,7 +283,7 @@ end
 # D is the diffusion coefficient and N is the number of layers.
 # green is the Green's function for either the first or bottom layer (below).
 ################################################################################
-function _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, besselroots, green, N)
+function _kernel_fluence_DA_Nlay_cylinder(ρ::AbstractFloat, D, μa, a, zb, z, z0, l, n_med, besselroots, green, N)
     ϕ = zero(eltype(μa))
     ϕ_tmp = zero(eltype(μa))
     α = zeros(eltype(μa), N)
@@ -298,6 +298,22 @@ function _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, be
     return ϕ
 end
 
+function _kernel_fluence_DA_Nlay_cylinder(ρ::AbstractVector, D, μa, a, zb, z, z0, l, n_med, besselroots, green, N)
+    ϕ = zeros(eltype(μa), length(ρ))
+    ϕ_tmp = zero(eltype(μa))
+    α = zeros(eltype(μa), N)
+
+    for ind in eachindex(besselroots)
+        tmp = besselroots[ind] / (a + zb[1])
+        ϕ_tmp = green(α, tmp, μa, D, z, z0, zb, l, n_med, N)
+        ϕ_tmp /= (besselj1(besselroots[ind]))^2
+        for ρ_ind in eachindex(ρ)
+            ϕ[ρ_ind] += ϕ_tmp * besselj0(tmp * ρ[ρ_ind])
+        end
+    end
+
+    return ϕ
+end
 ###########################################################################################
 # Calculates the Green's function in the first (top) and last (bottom) layer
 # sinh and cosh have been expanded as exponentials.
