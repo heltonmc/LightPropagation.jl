@@ -57,8 +57,13 @@ cyl_4 = Nlayer_cylinder(ρ = 1.0, μsp = [10.0, 10.0, 10.0, 10.0], μa = [0.1, 0
 @test fluence_DA_Nlay_cylinder_CW(0.0, [0.1, 0.1, 0.1, 0.1, 0.1, 0.1], [10.0, 10.0, 10.0, 10.0, 10.0, 10.0], 1.0, [1.0, 1.0, 1.0, 1.0, 1.0, 1.0], [0.5, 0.5, 0.5, 0.5, 0.5, 0.5], 10.0, 3.0, besselroots[1:10000]) ≈ fluence_DA_slab_CW(0.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 3.0, z = 3.0, xs = 50)
 @test fluence_DA_Nlay_cylinder_CW(0.0, [0.1, 0.1, 0.1, 0.1, 0.1, 0.1], [10.0, 10.0, 10.0, 10.0, 10.0, 10.0], 1.0, [1.0, 1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0, 1.0], 10.0, 6.0, besselroots[1:10000]) ≈ fluence_DA_slab_CW(0.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 6.0, z = 6.0, xs = 50)
 
+### test that scalar and vector ρ matches (they call different routines)
+data = Nlayer_cylinder(ρ = 1.0:0.1:2.0)
+@test fluence_DA_Nlay_cylinder_CW(data, besselroots[1:1000]) ≈ map(ρ -> fluence_DA_Nlay_cylinder_CW(Nlayer_cylinder(ρ = ρ), besselroots[1:1000]), 1.0:0.1:2.0)
 
-# TD
+#########
+# Time-Domain
+##########
 
 ## test reflectance in first layer
 # test long times at SDS = 0.5 cm

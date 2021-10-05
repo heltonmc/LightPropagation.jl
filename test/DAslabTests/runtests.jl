@@ -4,11 +4,10 @@ using Test
 using ForwardDiff
 using LightPropagation: fluence_DA_semiinf_CW, fluence_DA_semiinf_TD
 using LightPropagation: fluence_DA_slab_CW, fluence_DA_slab_TD
-using LightPropagation: refl_DA_slab_TD, trans_DA_slab_TD
+using LightPropagation: flux_DA_slab_CW, flux_DA_slab_TD, flux_DA_semiinf_TD, flux_DA_semiinf_CW
 
 
 # Test slabs against semi-inf for sufficiently thick slabs
-fluence_DA_slab_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 0.0, xs = 10)
 
 # CW
 @test fluence_DA_slab_CW(1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, s = 20.0, z = 0.0) == 0.024035998288332954
