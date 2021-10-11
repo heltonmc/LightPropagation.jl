@@ -1,62 +1,44 @@
 # LightPropagation.jl
 
-![Repo status](https://www.repostatus.org/badges/latest/active.svg?style=flat-square)  [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://heltonmc.github.io/LightPropagation.jl/stable/) [![Join the chat at https://gitter.im/LightPropagation/community?source=orgpage](https://badges.gitter.im/LightPropagation/community.svg)](https://gitter.im/LightPropagation/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) ![GitHub tag (latest SemVer pre-release)](https://img.shields.io/github/v/tag/heltonmc/LightPropagation.jl?include_prereleases&label=latest%20version&logo=github&sort=semver&style=flat-square) ![MIT license](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)
+![Repo status](https://www.repostatus.org/badges/latest/active.svg?style=flat-square)  [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://heltonmc.github.io/LightPropagation.jl/stable/)![GitHub tag (latest SemVer pre-release)](https://img.shields.io/github/v/tag/heltonmc/LightPropagation.jl?include_prereleases&label=latest%20version&logo=github&sort=semver&style=flat-square) ![MIT license](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)
 
 ## Overview
 
-LightPropagation.jl provides a set of tools to model and analyze the propagation of light in turbid media written in the [Julia programming language](https://julialang.org/). The primary goals of this project are to create robust analytical solutions of light transport that are easy to use, fast, accurate, and well tested. Current development is focused on robust implementations of solutions to the Diffusion Equation. 
+LightPropagation.jl provides a set of tools to simulate the propagation of light in turbid media written in the [Julia programming language](https://julialang.org/). The primary goals of this project are to create robust implementations of analytical solutions to radiative transport theory and its approximations that are easy to use, fast, accurate, and well tested.
 
+Current development is focused on implementations of solutions to the Diffusion Equation.
 The library currently supports simulating the fluence and flux (using Fick's law) in the following geometries under the diffusion approximation: **(a) Infinite, (b) Semi-Infinite, (c) Slab, (d) Parallelepiped, (e) Cylinder, (f) N-Layered Cylinder** for the Steady-State (CW), Frequency-Domain (FD), and Time-Domains (TD). We also provide a fitting routine for time-domain measurements using the standard Levenberg-Marquardt algorithm with consideration of the Instrument Response Function (IRF). 
 
 ## Installation
 
-Install Julia by [downloading](https://julialang.org/downloads/) the latest version from the offical site and following the [platform specific installations](https://julialang.org/downloads/platform/). 
+Install Julia by [downloading](https://julialang.org/downloads/) the latest version from the offical site and following the [platform specific installations](https://julialang.org/downloads/platform/). This package requires Julia versions >=1.5.
 
-Then, use Julia's  built-in package manager (accessed by pressing `]` in the Julia REPL command prompt) to add the package and build all the required dependencies.
+**LightPropagation.jl** is a [registered package](https://juliahub.com/ui/Packages/LightPropagation/Wheva/) in the Julia package manager.
+Just add the package to your environment using Julia's built-in package manager (accessed by pressing `]` in the Julia REPL command prompt) to add the package and build all the required dependencies.
 
 ```julia
-julia>]
-(@v1.6) pkg> add "https://github.com/heltonmc/LightPropagation.jl.git"
+julia> ] add LightPropagation
 
 julia> using LightPropagation
 ```
 
-LightPropagation.jl can be updated to the latest tagged release from the package manager by typing
+This will add the latest tagged release to your environment. LightPropagation.jl can be updated to the latest tagged release from the package manager with
 
 ```julia
-(@v1.6) pkg> update LightPropagation
+julia> ] update LightPropagation
 ```
+
+You can also add the package directly from GitHub to get the latest changes between releases:
+```
+julia> ] add "https://github.com/heltonmc/LightPropagation.jl.git"
+```
+
 LightPropagation.jl is only tested on Julia v1.5 and later. The package is under rapid development and breaking changes to the user API do occur, so update with care. Please open an issue if something breaks or doesn't seem right!
 
 ## Quick Start
 
-To see a list of all exported models check out the [API in the documentation](https://heltonmc.github.io/LightPropagation.jl/stable/API/). A list of all exported names can also be found using the `names` function in the Julia REPL:
-```julia
-julia> names(LightPropagation)
-26-element Vector{Symbol}:
- ....
- ....
- :fluence_DA_Nlay_cylinder_CW
- :fluence_DA_Nlay_cylinder_TD
- :fluence_DA_inf_CW
- :fluence_DA_inf_TD
- :fluence_DA_paralpip_CW
- :fluence_DA_paralpip_TD
- :fluence_DA_semiinf_CW
- :fluence_DA_semiinf_TD
- :fluence_DA_slab_CW
- :fluence_DA_slab_TD
- :flux_DA_Nlay_cylinder_CW
- :flux_DA_Nlay_cylinder_TD
- :flux_DA_semiinf_CW
- :flux_DA_semiinf_TD
- :flux_DA_slab_CW
- :flux_DA_slab_TD
- ....
- ....
-```
-
-LightPropagation.jl follows a naming pattern like PhysicalQuantity_Approximation_Geometry_MeasurementDomain. For example, `fluence_DA_semiinf_CW` models the fluence under the diffusion approximation for the semi-infinite geometry in the steady-state (continuous wave) domain.
+To see a list of all exported models check out the [API in the documentation](https://heltonmc.github.io/LightPropagation.jl/stable/API/). 
+LightPropagation.jl follows a naming pattern like PhysicalQuantity_Approximation_Geometry_Domain. For example, `fluence_DA_semiinf_CW` models the fluence under the diffusion approximation for the semi-infinite geometry in the steady-state (continuous wave) domain.
 
 To see how to use a specific model we can type `?` in the Julia REPL followed by the name of the model:
 ```julia
@@ -90,15 +72,15 @@ search: fluence_DA_semiinf_TD fluence_DA_semiinf_CW
 
   julia> fluence_DA_semiinf_TD(0.1:0.1:1.0, 1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, z = 0.0)
 ```
-This will give the function header, a description of the model, description of arguments, and an example on how to execute it. More detailed information on usage and examples can be found in the [documentation](https://heltonmc.github.io/LightPropagation.jl/stable/). If any problem is observed in the documentation or running a model please file an issue!
 
-### Contributing to LightPropagation.jl
+This will give the function header, a description of the model, description of arguments, and an example on how to execute it. 
+More detailed information on usage and examples can be found in the [documentation](https://heltonmc.github.io/LightPropagation.jl/stable/). If any problem is observed in the documentation or running a model please file an issue!
 
-One of the primary goals of LightPropagation.jl was to create robust implementations of analytical models of light transport in turbid media. Ideally, such models would be applicable to a wide variety of research problems and would be highly tested, accurate, and performant. 
+### How to support and contribute
 
-If you are interested in contributing in any way we would love to have your help no matter the size of contribution. If a model is not giving expected results, not performing the way you would expect, not matching your implementation please let us know! Some good first issues would be increasing performance of existing functions, adding more tests, or creating better documentation.
+You can support the project by actively using it and [raising issues](https://github.com/heltonmc/LightPropagation.jl/issues/new). User feedback on API is especially appreciated as we hope to get to a more stable (v1.0) release. If you like the project you can also leave a star. Feature requests are especially important as we want this to be in anway helpful in your research or personal enjoyment. For example, if you need more example scripts for loading that weird TCSPC data... or you want us to support a new model... let us know! Opening an issue or a [discussion](https://github.com/heltonmc/LightPropagation.jl/discussions/new) will be the best place to do this.
 
-Let us know by [opening an issue](https://github.com/heltonmc/LightPropagation.jl/issues/new) if you would like to work on a new feature or if you are new to open-source and want to find a cool little project or issue to work on that fits your interests! We are more than happy to help you along the way.
+Contributions via pull request are also greatly appreciated and we would love to have your help no matter the size of contribution. If new to Julia or Git, we are happy to help you through the process. Let us know by [opening an issue](https://github.com/heltonmc/LightPropagation.jl/issues/new) if you would like to work on a new feature or if you are new to open-source and want to find a cool little project or issue to work on that fits your interests! We are more than happy to help you along the way. If a model is not giving expected results, not performing the way you would expect, not matching your implementation please let us know! Some good first issues would be increasing performance of existing functions, adding more tests, or creating better documentation.
 
 ### Citing
 
