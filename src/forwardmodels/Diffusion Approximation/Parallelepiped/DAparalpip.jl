@@ -1,12 +1,12 @@
-#########################################################################################################################################
+#----------------------------------------------------------------------------------------------------------------------------------------
 # Implements solution to the diffusion equation in the steady-state and time-domain through a turbid parallelepiped [1]
 
 # [1] Alwin Kienle, "Light diffusion through a turbid parallelepiped," J. Opt. Soc. Am. A 22, 1883-1888 (2005) 
-#########################################################################################################################################
+#----------------------------------------------------------------------------------------------------------------------------------------
 
-#####################################
+#--------------------------------------
 # Steady-State Fluence 
-#####################################
+#--------------------------------------
 """
     fluence_DA_paralpip_CW(μa, μsp; n_ext = 1.0, n_med = 1.0, rd = [4.0, 5.0, 0.0], rs = [5.0, 5.0], L = [10.0, 10.0, 10.0], xs = 10)
 
@@ -26,7 +26,7 @@ Compute the steady-state fluence in a parallelepiped [lx, ly, lz].
 julia> `fluence_DA_paralpip_CW(0.1, 10.0, n_ext = 1.0, n_med = 1.0, rd = [24.0, 25.0, 0.0], rs = [25.0,25.0], L = [50.0,50.0,50.0], xs = 20)`
 """
 function fluence_DA_paralpip_CW(μa, μsp; n_ext = 1.0, n_med = 1.0, rd = [4.0, 5.0, 0.0], rs = [5.0, 5.0], L = [10.0, 10.0, 10.0], xs = 10)
-    D = D_coeff(μsp, μa)
+    D = D_coeff(μsp)
     A = A_coeff(n_med / n_ext)
 	
     z0 = z0_coeff(μsp)
@@ -77,9 +77,9 @@ end
     return ϕ
 end
 
-#####################################
+#--------------------------------------
 # Time-Domain Fluence 
-#####################################
+#--------------------------------------
 """
     fluence_DA_paralpip_TD(t, μa, μsp; n_ext = 1.0, n_med = 1.0, rd = [4.0, 5.0, 0.0], rs = [5.0, 5.0], L = [10.0, 10.0, 10.0], xs = 10)
 
@@ -100,7 +100,7 @@ Compute the time-domain fluence in a parallelepiped [lx, ly, lz].
 julia> `fluence_DA_paralpip_TD(0.5, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, rd = [24.0, 25.0, 0.0], rs = [25.0,25.0], L = [50.0,50.0,50.0], xs = 20)`
 """
 function fluence_DA_paralpip_TD(t, μa, μsp; n_ext = 1.0, n_med = 1.0, rd = [4.0, 5.0, 0.0], rs = [5.0, 5.0], L = [10.0, 10.0, 10.0], xs = 10)
-    D = D_coeff(μsp, μa)
+    D = D_coeff(μsp)
     A = A_coeff(n_med / n_ext)
     ν = ν_coeff(n_med)
 	
