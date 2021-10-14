@@ -6,6 +6,21 @@ Abstract type for all input structures to diffusion functions.
 abstract type DiffusionParameters end
 
 """
+    DiffusionKernelParams
+
+Structure that contains the dependent coefficients used in most of the diffusion theory calculations
+"""
+struct DiffusionKernelParams{T <: AbstractFloat} <: DiffusionParameters
+    D::T                    # Diffusion coefficient
+    z0::T                   # isotropic source depth
+    ν::T                    # speed of light in medium
+    zb::T                   # extrapolation length (EBC)
+end
+DiffusionKernelParams(μsp::T) where {T<:AbstractFloat} = DiffusionKernelParams{T}(D_coeff(μsp), z0_coeff(μsp), zero(eltype(T)), zero(eltype(T)))
+DiffusionKernelParams(μsp::T, n_med::T) where {T<:AbstractFloat} = DiffusionKernelParams{T}(D_coeff(μsp), z0_coeff(μsp), ν_coeff(n_med), zero(eltype(T)))
+DiffusionKernelParams(μsp::T, n_med::T, n_ext::T) where {T<:AbstractFloat} = DiffusionKernelParams{T}(D_coeff(μsp), z0_coeff(μsp), ν_coeff(n_med), zb_coeff(A_coeff(n_med / n_ext), D_coeff(μsp)))
+
+"""
     A_coeff(n)
 
 Function to approximate the A coefficient (mismatch between external and internal index of refractions) given in Eq. 25 from Ref. [1]. 
