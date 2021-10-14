@@ -23,7 +23,7 @@ struct DAsemiinf{T <: AbstractFloat} <: DiffusionParameters
     z0::T                                # isotroptic source depth
     zb::T                                # Extrapolation length
     function DAsemiinf{T}(ρ::T, μa::T, μsp::T, n_med::T, n_ext::T, ω::T, z::T) where {T <: AbstractFloat}
-        @assert ρ > zero(T) "ρ must be positive"
+        @assert ρ >= zero(T) "ρ must greater than or equal to 0"
         @assert μa >= zero(T) "μa must greater than or equal to 0"
         @assert μsp > zero(T) "μsp must greater than 0"
         D = D_coeff(μsp)
