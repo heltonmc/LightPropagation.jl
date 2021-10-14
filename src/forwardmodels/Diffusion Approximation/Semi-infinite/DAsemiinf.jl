@@ -135,7 +135,7 @@ julia> fluence_DA_semiinf_TD(0.2:0.2:1.0, 1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1
 """
 function fluence_DA_semiinf_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0)
     params = DiffusionKernelParams(μsp, n_med, n_ext)
-    return _kernel_fluence_DA_semiinf_TD.(params.D, params.ν, t, μa, z, params.z0, ρ, params.zb)
+    return map(t -> _kernel_fluence_DA_semiinf_TD(params.D, params.ν, t, μa, z, params.z0, ρ, params.zb), t)
 end
 
 """
@@ -151,7 +151,7 @@ julia> fluence_DA_semiinf_TD(0.1:0.1:2.0, data) # then call the function
 """
 function fluence_DA_semiinf_TD(t, data::DiffusionParameters)
     @assert all(t .> zero(eltype(data.μa)))
-    return _kernel_fluence_DA_semiinf_TD.(data.D, data.ν, t, data.μa, data.z, data.z0, data.ρ, data.zb)
+    return map(t -> _kernel_fluence_DA_semiinf_TD(data.D, data.ν, t, data.μa, data.z, data.z0, data.ρ, data.zb), t)
 end
 
 @inline function _kernel_fluence_DA_semiinf_TD(D, ν, t, μa, z, z0, ρ, zb)
@@ -234,7 +234,7 @@ function flux_DA_semiinf_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0)
     z3m = - params.z0
     z4m = 2 * params.zb + params.z0
 
-    return _kernel_flux_DA_semiinf_TD.(params.D, params.ν, t, μa, z3m, z4m, ρ)
+    return map(t -> _kernel_flux_DA_semiinf_TD(params.D, params.ν, t, μa, z3m, z4m, ρ), t)
  end
 
  """
@@ -253,7 +253,7 @@ function flux_DA_semiinf_TD(t, data::DiffusionParameters)
     z3m = - data.z0
     z4m = 2 * data.zb + data.z0
 
-    return _kernel_flux_DA_semiinf_TD.(data.D, data.ν, t, data.μa, z3m, z4m, data.ρ)
+    return map(t -> _kernel_flux_DA_semiinf_TD(data.D, data.ν, t, data.μa, z3m, z4m, data.ρ), t)
 end
 
 @inline function _kernel_flux_DA_semiinf_TD(D, ν, t, μa, z3m, z4m, ρ)

@@ -155,7 +155,7 @@ julia> fluence_DA_inf_TD(0.1:0.5:5.0, 1.0, 0.1, 10.0, n_med = 1.4)
 """
 function fluence_DA_inf_TD(t, ρ, μa, μsp; n_med = 1.0)
     params = DiffusionKernelParams(μsp, n_med)
-    return _kernel_fluence_DA_inf_TD.(t, ρ, μa, params.ν, params.D)
+    return map(t -> _kernel_fluence_DA_inf_TD(t, ρ, μa, params.ν, params.D), t)
 end
 """
     fluence_DA_inf_TD(data::DiffusionParameters)
@@ -170,7 +170,7 @@ julia> fluence_DA_inf_TD(0.1:0.05:2.0, data) # then call the function
 """
 function fluence_DA_inf_TD(t, data::DiffusionParameters)
     @assert all(t .> zero(eltype(data.μa)))
-    return _kernel_fluence_DA_inf_TD.(t, data.ρ, data.μa, data.ν, data.D)
+    return map(t -> _kernel_fluence_DA_inf_TD.(t, data.ρ, data.μa, data.ν, data.D), t)
 end
 
 @inline function _kernel_fluence_DA_inf_TD(t, ρ, μa, ν, D)

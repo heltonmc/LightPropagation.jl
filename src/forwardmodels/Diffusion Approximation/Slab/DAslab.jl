@@ -161,7 +161,7 @@ julia> `fluence_DA_slab_TD(0.1, 1.0, 0.1, 10.0, s = 40.0)`
 """
 function fluence_DA_slab_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 1.0, z = 0.0, xs = 10)
     params = DiffusionKernelParams(μsp, n_med, n_ext)
-    return _kernel_fluence_DA_slab_TD.(params.D, params.ν, t, ρ, μa, s, params.zb, params.z0, z, xs)
+    return map(t-> _kernel_fluence_DA_slab_TD(params.D, params.ν, t, ρ, μa, s, params.zb, params.z0, z, xs), t)
 end
 
 """
@@ -177,7 +177,7 @@ julia> fluence_DA_slab_TD(0.1:0.1:2.0, data) # then call the function
 """
 function fluence_DA_slab_TD(t, data::DiffusionParameters)
     @assert all(t .> zero(eltype(data.μa)))
-    return _kernel_fluence_DA_slab_TD.(data.D, data.ν, t, data.ρ, data.μa, data.s, data.zb, data.z0, data.z, data.xs)
+    return map(t -> _kernel_fluence_DA_slab_TD(data.D, data.ν, t, data.ρ, data.μa, data.s, data.zb, data.z0, data.z, data.xs), t)
 end
 
 function _kernel_fluence_DA_slab_TD(D, ν, t, ρ, μa, s, zb, z0, z, xs)
@@ -228,9 +228,9 @@ julia> `flux_DA_slab_TD(1.0, 1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, z = 0.0, 
 """
 function flux_DA_slab_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0, s = 1.0, xs = 15)
     if z == zero(eltype(z))
-        return _refl_DA_slab_TD(t, ρ, μa, μsp, n_ext = n_ext, n_med = n_med, s = s, xs = xs)
+        return _refl_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s, xs)
     elseif z == s
-        return _trans_DA_slab_TD(t, ρ, μa, μsp, n_ext = n_ext, n_med = n_med, s = s, xs = xs)
+        return _trans_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s, xs)
     else 
         return D * ForwardDiff.derivative(dz -> fluence_DA_slab_TD(t, ρ, μa, μsp, n_ext = n_ext, n_med = n_med, s = s, z = dz, xs = xs), z)
     end
@@ -257,9 +257,9 @@ end
 Compute the time-domain flux or reflectance at the top surface from a slab geometry (x,y->inf, z-> finite). 
 
 """
-function _refl_DA_slab_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 1.0, xs = 15)
+function _refl_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s, xs)
     params = DiffusionKernelParams(μsp, n_med, n_ext)
-    return _kernel_refl_DA_slab_TD.(ρ, params.D, params.ν, t, μa, xs, s, params.zb, params.z0)
+    return map(t -> _kernel_refl_DA_slab_TD(ρ, params.D, params.ν, t, μa, xs, s, params.zb, params.z0), t)
 end
 
 @inline function _kernel_refl_DA_slab_TD(ρ, D, ν, t, μa, xs, s, zb, z0)
@@ -279,9 +279,9 @@ end
 
 Compute the time-domain transmittance (flux) from a slab geometry (x,y -> inf, z -> finite) with Eqn. 39 from Contini 97. 
 """
-function _trans_DA_slab_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 1.0, xs = 15)
+function _trans_DA_slab_TD(t, ρ, μa, μsp, n_ext, n_med, s, xs)
     params = DiffusionKernelParams(μsp, n_med, n_ext)
-    return _kernel_trans_DA_slab_TD.(ρ, params.D, params.ν, t, μa, xs, s, params.zb, params.z0)
+    return map(t -> _kernel_trans_DA_slab_TD(ρ, params.D, params.ν, t, μa, xs, s, params.zb, params.z0), t)
 end
 
 @inline function _kernel_trans_DA_slab_TD(ρ, D, ν, t, μa, xs, s, zb, z0)

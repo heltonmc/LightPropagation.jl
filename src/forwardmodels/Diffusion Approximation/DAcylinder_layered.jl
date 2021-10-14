@@ -42,7 +42,7 @@ Compute the steady-state fluence in an N-layered cylinder. Source is assumed to 
 julia> `fluence_DA_Nlay_cylinder_CW(1.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [4.5, 4.5], 10.0, 0.0, besselroots)`
 """
 function fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots)
-    D = D_coeff.(μsp, μa)
+    D = D_coeff.(μsp)
     N = length(D)
     A = A_coeff.(n_med / n_ext)
     z0 = z0_coeff(μsp[1])
@@ -93,7 +93,7 @@ julia> `flux_DA_Nlay_cylinder_CW(1.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0],
 """
 function flux_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots)
     @assert z == zero(eltype(z)) || z == sum(l)
-    D = D_coeff.(μsp, μa)
+    D = D_coeff.(μsp)
     if z == zero(eltype(z))
         return D[1] * ForwardDiff.derivative(dz -> fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, dz, besselroots), z)
     elseif z == sum(l)
@@ -190,7 +190,7 @@ julia> `fluence_DA_Nlay_cylinder_TD(0.1:0.1:2.0, [0.1, 0.1], [10.0, 10.0], 1.0, 
 """
 function flux_DA_Nlay_cylinder_TD(t::AbstractVector, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 24)
     @assert z == zero(eltype(z)) || z == sum(l)
-    D = D_coeff.(μsp, μa)
+    D = D_coeff.(μsp)
 
     ## need to know the type of z to preallocate vectors coorectly in hyper_fixed for autodiff
     function _ILT(z::T) where {T} 
@@ -204,7 +204,7 @@ function flux_DA_Nlay_cylinder_TD(t::AbstractVector, ρ, μa, μsp, n_ext, n_med
 end
 function flux_DA_Nlay_cylinder_TD(t::AbstractFloat, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 24)
     @assert z == zero(eltype(z)) || z == sum(l)
-    D = D_coeff.(μsp, μa)  
+    D = D_coeff.(μsp)  
     if z == zero(eltype(z))
         return D[1] * ForwardDiff.derivative(dz -> hyperbola(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, dz, s, besselroots), t, N = N), 0.0)
     elseif z == sum(l)
