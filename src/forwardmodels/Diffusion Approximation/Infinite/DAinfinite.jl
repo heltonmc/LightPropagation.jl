@@ -5,6 +5,7 @@
 # [1] Patterson et. al., "Time resolved reflectance and transmittance for the noninvasive measurement of tissue optical properties," 
 #     Appl. Opt. 28, 2331-2336 (1989)
 #-------------------------------------------------------------------------------------------------------------------------
+
 """ Structure containing inputs for simulating the fluence under the diffusion approximation in the infinite space."""
 struct DAinfinite{T <: AbstractFloat} <: DiffusionParameters
     ρ::T                                 # distance away from isotropic point source (cm)
