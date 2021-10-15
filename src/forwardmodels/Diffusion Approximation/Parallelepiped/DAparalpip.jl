@@ -216,5 +216,5 @@ function _flux_DA_paralpip_TD(t, μa, D, ν, z0, zb, rd, rs, L, xs)
 	return Rt1
 end
 
-_refl_DA_paralpip_TD(z1n, tmp, z2n, lz) = z1n * exp(-z1n^2 / tmp) - z2n' * exp(-z2n^2 / tmp)
+_refl_DA_paralpip_TD(z1n, tmp, z2n, lz) = z1n * exp(-z1n^2 / tmp) - z2n * exp(-z2n^2 / tmp)
 _trans_DA_paralpip_TD(z1n, tmp, z2n, lz) = (lz - z1n) * exp(-(lz - z1n)^2 / tmp) - (lz - z2n) * exp(-(lz - z2n)^2 / tmp)

@@ -1,27 +1,28 @@
-################################################################################################################################## 
+#---------------------------------------------------------------------------------------------------------------------------------------- 
 # Implements solution to the diffusion equation in a N-layered finite cylinder as given in [1].
 # Solutions are given in the spatial, frequency, and time domains for a point source located in the middle of the cylinder top.
 #
 # [1] André Liemert and Alwin Kienle, "Light diffusion in a turbid cylinder. II. Layered case," Opt. Express 18, 9266-9279 (2010) 
-################################################################################################################################## 
+#---------------------------------------------------------------------------------------------------------------------------------------- 
 
-@with_kw struct Nlayer_cylinder{T <: Real}
-    μsp::Vector{T} = [10.0, 10.0, 10.0, 10.0]  # reduced scattering coefficient (1/cm)
-    μa::Vector{T} = [0.1, 0.1, 0.1, 0.1]       # absorption coefficient (1/cm)
-    n_ext::T = 1.0                             # surrounding index of refraction
-    n_med::Vector{T} = [1.0, 1.0, 1.0, 1.0]    # layers index of refraction
+@with_kw struct Nlayer_cylinder{T <: Real} <: DiffusionParameters
+    μsp::Vector{T} = [10.0, 10.0, 10.0, 10.0]               # reduced scattering coefficient (1/cm)
+    μa::Vector{T} = [0.1, 0.1, 0.1, 0.1]                    # absorption coefficient (1/cm)
+    n_ext::T = 1.0                                          # surrounding index of refraction
+    n_med::Vector{T} = [1.0, 1.0, 1.0, 1.0]                 # layers index of refraction
 
-    l::Vector{T} = [0.5, 0.8, 1.0, 5.0]        # length of cylinder layers (cm)
-    ρ::Union{T, AbstractVector{T}} = 1.0       # source-detector separation (cm)
-    a::T = 5.0                                 # radius of cylinder (cm)
-    z::T = 0.0                                 # detector depth (cm)
+    l::Vector{T} = [0.5, 0.8, 1.0, 5.0]                     # length of cylinder layers (cm)
+    ρ::Union{T, AbstractVector{T}} = 1.0                    # source-detector separation (cm)
+    a::T = 5.0                                              # radius of cylinder (cm)
+    z::T = 0.0                                              # detector depth (cm)
 
-    ω::T = 0.0                                 # modulation frequency
+    ω::T = 0.0                                              # modulation frequency
+    bessels::AbstractVector{T} = besselroots[1:1000]        # roots of J0
 end
 
-#####################################
+#-------------------------------------------
 # Steady-State Fluence 
-#####################################
+#-------------------------------------------
 """
     fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots)
 
@@ -56,21 +57,21 @@ function fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, besse
     end
 end
 """
-    fluence_DA_Nlay_cylinder_CW(data, besselroots)
+    fluence_DA_Nlay_cylinder_CW(data)
 
 Wrapper to fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots) with inputs given as a structure (data).
 
 # Examples
 julia> data = Nlayer_cylinder(a = 10.0, l = [1.0, 1.0, 1.0, 2.0], z = 5.0)
-julia> `fluence_DA_Nlay_cylinder_CW(data, besselroots)`
+julia> `fluence_DA_Nlay_cylinder_CW(data)`
 """
-function fluence_DA_Nlay_cylinder_CW(data, besselroots)
-    return fluence_DA_Nlay_cylinder_CW(data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.l, data.a, data.z, besselroots)
+function fluence_DA_Nlay_cylinder_CW(data)
+    return fluence_DA_Nlay_cylinder_CW(data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.l, data.a, data.z, data.bessels)
 end
 
-#####################################
+#-------------------------------------------
 # Steady-State Flux 
-#####################################
+#-------------------------------------------
 """
     flux_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots)
 
@@ -109,13 +110,13 @@ Wrapper to flux_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, bessel
 julia> data = Nlayer_cylinder(a = 10.0, l = [1.0, 1.0, 1.0, 2.0], z = 5.0)
 julia> `flux_DA_Nlay_cylinder_CW(data, besselroots)`
 """
-function flux_DA_Nlay_cylinder_CW(data, besselroots)
-    return flux_DA_Nlay_cylinder_CW(data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.l, data.a, data.z, besselroots)
+function flux_DA_Nlay_cylinder_CW(data)
+    return flux_DA_Nlay_cylinder_CW(data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.l, data.a, data.z, data.bessels)
 end
 
-#####################################
+#-------------------------------------------
 # Time-Domain Fluence 
-#####################################
+#-------------------------------------------
 """
     fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 24, ILT = hyper_fixed)
 
@@ -149,21 +150,21 @@ function fluence_DA_Nlay_cylinder_TD(t::AbstractArray, ρ, μa, μsp, n_ext, n_m
     return ILT(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z, s, besselroots), t, N = N, T = T)
 end
 """
-    fluence_DA_Nlay_cylinder_TD(data; besselroots, ILT = hyper_fixed)
+    fluence_DA_Nlay_cylinder_TD(t, data; N = 24)
 
 Wrapper to fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 24, ILT = hyper_fixed) with inputs given as a structure (data).
 
 # Examples
 julia> data = Nlayer_cylinder(a = 10.0, l = [1.0, 1.0, 1.0, 2.0], z = 5.0)
-julia> `fluence_DA_Nlay_cylinder_TD(0.5:1.0:2.5, data, besselroots)`
+julia> `fluence_DA_Nlay_cylinder_TD(0.5:1.0:2.5, data)`
 """
-function fluence_DA_Nlay_cylinder_TD(t, data; bessels = besselroots,  N = 24)
-    return fluence_DA_Nlay_cylinder_TD(t, data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.l, data.a, data.z, bessels, N = N)
+function fluence_DA_Nlay_cylinder_TD(t, data; N = 24)
+    return fluence_DA_Nlay_cylinder_TD(t, data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.l, data.a, data.z, data.bessels, N = N)
 end
 
-#####################################
+#-------------------------------------------
 # Time-Domain Flux 
-#####################################
+#-------------------------------------------
 """
     flux_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 24)
 
@@ -213,21 +214,21 @@ function flux_DA_Nlay_cylinder_TD(t::AbstractFloat, ρ, μa, μsp, n_ext, n_med,
 end
 
 """
-    flux_DA_Nlay_cylinder_TD(t, data; besselroots, N = 24)
+    flux_DA_Nlay_cylinder_TD(t, data; N = 24)
 
 Wrapper to flux_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 24) with inputs given as a structure (data).
 
 # Examples
 julia> data = Nlayer_cylinder(a = 10.0, l = [1.0, 1.0, 1.0, 2.0], z = 5.0)
-julia> `flux_DA_Nlay_cylinder_TD(0.5:1.0:2.5, data, bessels = besselroots[1:600])`
+julia> `flux_DA_Nlay_cylinder_TD(0.5:1.0:2.5, data)`
 """
-function flux_DA_Nlay_cylinder_TD(t, data; bessels = besselroots,  N = 24)
-    return flux_DA_Nlay_cylinder_TD(t, data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.l, data.a, data.z, bessels, N = N)
+function flux_DA_Nlay_cylinder_TD(t, data;  N = 24)
+    return flux_DA_Nlay_cylinder_TD(t, data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.l, data.a, data.z, data.bessels, N = N)
 end
 
-#####################################
+#-------------------------------------------
 # Frequency-Domain Fluence 
-#####################################
+#-------------------------------------------
 """
     fluence_DA_Nlay_cylinder_FD(ρ, μa, μsp, n_ext, n_med, l, a, z, ω, besselroots)
 
@@ -255,21 +256,21 @@ function fluence_DA_Nlay_cylinder_FD(ρ, μa, μsp, n_ext, n_med, l, a, z, ω, b
     return fluence_DA_Nlay_cylinder_CW(ρ, μa_complex, μsp, n_ext, n_med, l, a, z, besselroots)
 end
 """
-    fluence_DA_Nlay_cylinder_FD(data, besselroots)
+    fluence_DA_Nlay_cylinder_FD(data)
 
 Wrapper to fluence_DA_Nlay_cylinder_FD(ρ, μa, μsp, n_ext, n_med, l, a, z, ω, besselroots) with inputs given as a structure (data).
 
 # Examples
 julia> data = Nlayer_cylinder(a = 10.0, l = [1.0, 1.0, 1.0, 2.0], z = 5.0, ω = 1.0)
-julia> `fluence_DA_Nlay_cylinder_FD(data, besselroots)`
+julia> `fluence_DA_Nlay_cylinder_FD(data)`
 """
-function fluence_DA_Nlay_cylinder_FD(data, besselroots)
-    return fluence_DA_Nlay_cylinder_FD(data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.l, data.a, data.z, data.ω, besselroots)
+function fluence_DA_Nlay_cylinder_FD(data)
+    return fluence_DA_Nlay_cylinder_FD(data.ρ, data.μa, data.μsp, data.n_ext, data.n_med, data.l, data.a, data.z, data.ω, data.bessels)
 end
 
-################################################################################
+#-------------------------------------------------------------------------------
 # this function is the base for the laplace transform in the time-domain
-################################################################################
+#-------------------------------------------------------------------------------
 function _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z, s, besselroots)
     ν = ν_coeff.(n_med)
     μa_complex = μa .+ s ./ ν
@@ -277,12 +278,12 @@ function _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z,
     return fluence_DA_Nlay_cylinder_CW(ρ, μa_complex, μsp, n_ext, n_med, l, a, z, besselroots)
 end
 
-################################################################################
+#-------------------------------------------------------------------------------
 # _kernel_fluence_DA_Nlay_cylinder provides the main kernel of the program.
 # The inputs are similar to fluence_DA_Nlay_cylinder_CW.
 # D is the diffusion coefficient and N is the number of layers.
 # green is the Green's function for either the first or bottom layer (below).
-################################################################################
+#-------------------------------------------------------------------------------
 function _kernel_fluence_DA_Nlay_cylinder(ρ::AbstractFloat, D, μa, a, zb, z, z0, l, n_med, besselroots, green, N)
     ϕ = zero(eltype(μa))
     ϕ_tmp = zero(eltype(μa))
@@ -314,13 +315,13 @@ function _kernel_fluence_DA_Nlay_cylinder(ρ::AbstractVector, D, μa, a, zb, z, 
 
     return ϕ
 end
-###########################################################################################
+#-------------------------------------------------------------------------------
 # Calculates the Green's function in the first (top) and last (bottom) layer
 # sinh and cosh have been expanded as exponentials.
 # A common term has been factored out. This cancels for G1 but not GN (see _βγN_correction)
 # For N = 2, 3, 4 coefficients are explicitly calculated.
 # For N > 4, β and γ are calculated recursively using eqn. 17 & 18.
-###########################################################################################
+#-------------------------------------------------------------------------------
 @inline function α_coeff!(α, μa, D, sn)
     @inbounds for ind in 1:length(μa)
         α[ind] = sqrt(μa[ind] / D[ind] + sn^2)
@@ -381,13 +382,13 @@ end
     return gN
  end
 
-###########################################################################################
+#-------------------------------------------------------------------------------
 # Calculate β and γ coefficients with eqn. 17 in [1].
 # sinh and cosh have been expanded as exponentials.
 # A common term has been factored out. This cancels for G1 but not GN (see _βγN_correction)
 # For N = 2, 3, 4 coefficients are explicitly calculated.
 # For N > 4, β and γ are calculated recursively using eqn. 17 & 18.
-###########################################################################################
+#-------------------------------------------------------------------------------
 @inline function _get_βγ2(α, D, n, zb, l)
     tmp1 = exp(-2 * α[2] * (l[2] + zb[2]))
     
@@ -462,13 +463,13 @@ end
     return βN, γN
 end
 
-##########################################################################
+#-------------------------------------------------------------------------------
 # Calculate βγ correction for N layer green's function.
 # This is done because a common term was factored out from general expressions
 # They don't cancel for the N layer so have to divide them out.
 # For N = 2, 3, 4 coefficients are explicitly calculated.
 # For N > 4, β and γ are calculated recursively
-##########################################################################
+#-------------------------------------------------------------------------------
 @inline function _βγ2_correction(α, zb, l)  
     return α[2] * (l[2] + zb[2])
 end
@@ -488,4 +489,4 @@ end
     end
     return out
 end
-##########################################################################
+#-------------------------------------------------------------------------------
