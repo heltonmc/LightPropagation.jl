@@ -1,9 +1,7 @@
 module DAinfTests
 
 using Test
-using LightPropagation: fluence_DA_inf_CW, fluence_DA_inf_TD, fluence_DA_semiinf_CW, fluence_DA_semiinf_TD
-
-abstract type DiffusionParameters end
+using LightPropagation
 
 struct DAsemiinf_test{T <: AbstractFloat} <: DiffusionParameters
     ρ::T                                 # distance away from isotropic point source (cm)
