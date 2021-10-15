@@ -3,6 +3,8 @@ module DA_NlayerkernelTests
 using Test
 using Parameters, SpecialFunctions
 
+abstract type DiffusionParameters end
+
 include(joinpath(dirname(@__FILE__), "..", "..","src/forwardmodels/Diffusion Approximation/DAcylinder_layered.jl"))
 
 ## Test the derivations with original
@@ -62,6 +64,5 @@ n = [1.0, 1.0, 1.1]
 z = 0.0
 
 @test _green_Nlaycylin_top(α, sn, μa, D, z, z0, zb, l, n, 3) ≈ green_3layer(α, sn, μa, D, z, z0, zb, l, n)
-
 
 end # module
