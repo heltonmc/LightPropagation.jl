@@ -8,7 +8,7 @@
 #----------------------------------------------------------------------------------------------------------------------------------------
 
 """ Structure containing inputs for simulating the fluence under the diffusion approximation in the semi-infinite space."""
-struct DAsemiinf{T <: AbstractFloat} <: DiffusionParameters
+struct DAsemiinf_params{T <: AbstractFloat} <: DiffusionParameters
     ρ::T                                 # distance away from isotropic point source (cm)
     μa::T                                # absorption coefficient (cm⁻¹)
     μsp::T                               # reduced scattering coefficient (cm⁻¹)
@@ -16,43 +16,58 @@ struct DAsemiinf{T <: AbstractFloat} <: DiffusionParameters
     n_ext::T                             # external medium's index of refraction
     ω::T                                 # modulation frequency (1/ns)
     z::T                                 # z depth of detector within medium (cm)
+    t::Union{T, AbstractVector{T}}       # time vector (ns)
 
     # do not need to provide these arguments (calculated from previous inputs)
     D::T                                 # Diffusion coefficient                        
     ν::T                                 # Speed of light in medium (cm/ns)
     z0::T                                # isotroptic source depth
     zb::T                                # Extrapolation length
-    function DAsemiinf{T}(ρ::T, μa::T, μsp::T, n_med::T, n_ext::T, ω::T, z::T) where {T <: AbstractFloat}
+    function DAsemiinf_params{T}(ρ::T, μa::T, μsp::T, n_med::T, n_ext::T, ω::T, z::T, t::Union{T, AbstractVector{T}}) where {T <: AbstractFloat}
         @assert ρ >= zero(T) "ρ must greater than or equal to 0"
         @assert μa >= zero(T) "μa must greater than or equal to 0"
         @assert μsp > zero(T) "μsp must greater than 0"
+        @assert n_med > zero(T) "n_med must be positive"
+        @assert n_ext > zero(T) "n_ext must be positive"
+        @assert all(t .> zero(T)) "t must be positive"
         D = D_coeff(μsp)
-        return new{T}(ρ, μa, μsp, n_med, n_ext, ω, z, D, ν_coeff(n_med), z0_coeff(μsp), zb_coeff(A_coeff(n_med / n_ext), D))
+        return new{T}(ρ, μa, μsp, n_med, n_ext, ω, z, t, D, ν_coeff(n_med), z0_coeff(μsp), zb_coeff(A_coeff(n_med / n_ext), D))
     end
 end
 
 """
-    Generator function for DAsemiinf structure.
+    Generator function for DAsemiinf_params structure.
 
 Provides default parameters to use in the semi-infinite space fluence calculation in either the CW, FD, or TD.
 
+# Keyword Arguments
+- `ρ`: source-detector separation (cm⁻¹)
+- `μa`: absorption coefficient (cm⁻¹)
+- `μsp`: reduced scattering coefficient (cm⁻¹)
+- `n_med`: medium's index of refraction
+- `n_ext`: external medium's index of refraction (air or detector)
+- `ω`: modulation frequency (1/ns)
+- `z`: the z-depth orthogonal from the boundary (cm)
+- `t`: the time vector (ns). 
+
 # Examples
 ```
-julia> data = DAsemiinf() # return default parameters
-julia> data = DAsemiinf(ρ = 1.5) # return ρ = 1.5 with the rest of the parameters given by defaults
+julia> data = DAsemiinf_params() # return default parameters
+julia> data = DAsemiinf_params(ρ = 1.5) # return ρ = 1.5 with the rest of the parameters given by defaults
 julia> fluence_DA_semiinf_CW(data) # can then be used with corresponding functions
 ```
 """
-function DAsemiinf(;
+function DAsemiinf_params(;
     ρ::T = 1.0,
     μa::T = 0.1,
     μsp::T = 10.0,
     n_med::T = 1.0,
     n_ext::T = 1.0,
     ω::T = 0.0,
-    z::T = 0.0
+    z::T = 0.0,
+    t::Union{T, AbstractVector{T}} = 1.0
 ) where {T<:AbstractFloat}
-    return DAsemiinf{T}(ρ, μa, μsp, n_med, n_ext, ω, z)
+    return DAsemiinf_params{T}(ρ, μa, μsp, n_med, n_ext, ω, z, t)
 end
 
 #------------------------------
@@ -60,16 +75,16 @@ end
 #------------------------------
 
 """
-    fluence_DA_semiinf_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0, D = D_coeff(μsp), zb = zb_coeff(A_coeff(n_med / n_ext), D), z0 = z0_coeff(μsp))
+    fluence_DA_semiinf_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0)
 
-Compute the steady-state fluence in a semi-infinite geometry according to Eqn. 3 of Kienle 1997. 
+Compute the steady-state fluence in a semi-infinite geometry.
 
 # Arguments
 - `ρ`: the source detector separation (cm⁻¹)
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
 
-# Optional arguments
+# Keyword arguments
 - `n_ext`: the boundary's index of refraction (air or detector)
 - `n_med`: the sample medium's index of refraction
 - `z`: the z-depth orthogonal from the boundary (cm)
@@ -92,7 +107,7 @@ Wrapper to `fluence_DA_semiinf_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0
 
 # Examples
 ```
-julia> data = DAsemiinf(ρ = 1.0) # use structure to generate inputs
+julia> data = DAsemiinf_params(ρ = 1.0) # use structure to generate inputs
 julia> fluence_DA_semiinf_CW(data) # then call the function
 ```
 """
@@ -145,13 +160,12 @@ Wrapper to `fluence_DA_semiinf_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z 
 
 # Examples
 ```
-julia> data = DAsemiinf() # use structure to generate inputs
-julia> fluence_DA_semiinf_TD(0.1:0.1:2.0, data) # then call the function
+julia> data = DAsemiinf_params() # use structure to generate inputs
+julia> fluence_DA_semiinf_TD(data) # then call the function
 ```
 """
-function fluence_DA_semiinf_TD(t, data::DiffusionParameters)
-    @assert all(t .> zero(eltype(data.μa)))
-    return map(t -> _kernel_fluence_DA_semiinf_TD(data.D, data.ν, t, data.μa, data.z, data.z0, data.ρ, data.zb), t)
+function fluence_DA_semiinf_TD(data::DiffusionParameters)
+    return map(t -> _kernel_fluence_DA_semiinf_TD(data.D, data.ν, t, data.μa, data.z, data.z0, data.ρ, data.zb), data.t)
 end
 
 @inline function _kernel_fluence_DA_semiinf_TD(D, ν, t, μa, z, z0, ρ, zb)
@@ -173,6 +187,8 @@ Compute the frequency domain fluence in a semi-infinite geometry.
 - `ρ`: the source detector separation (cm⁻¹)
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
+
+# Keyword arguments
 - `n_ext`: the boundary's index of refraction (air or detector)
 - `n_med`: the sample medium's index of refraction
 - `z`: the z-depth orthogonal from the boundary (cm)
@@ -196,7 +212,7 @@ Wrapper to `fluence_DA_semiinf_FD(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0
 
 # Examples
 ```
-julia> data = DAsemiinf(ω = 1.0) # use structure to generate inputs
+julia> data = DAsemiinf_params(ω = 1.0) # use structure to generate inputs
 julia> fluence_DA_semiinf_FD(data) # then call the function
 ```
 """
@@ -220,7 +236,7 @@ Compute the time-domain flux (D*∂ϕ(t)/∂z @ z = 0) from a semi-infinite medi
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
 
-# Optional arguments
+# Keyword arguments
 - `n_ext`: the boundary's index of refraction (air or detector)
 - `n_med`: the sample medium's index of refraction
 
@@ -244,16 +260,15 @@ Wrapper to `flux_DA_semiinf_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0
 
 # Examples
 ```
-julia> data = DAsemiinf() # use structure to generate inputs
-julia> flux_DA_semiinf_TD(0.1:0.1:2.0, data) # then call the function
+julia> data = DAsemiinf_params() # use structure to generate inputs
+julia> flux_DA_semiinf_TD(data) # then call the function
 ```
 """
-function flux_DA_semiinf_TD(t, data::DiffusionParameters)
-    @assert all(t .> zero(eltype(data.μa)))
+function flux_DA_semiinf_TD(data::DiffusionParameters)
     z3m = - data.z0
     z4m = 2 * data.zb + data.z0
 
-    return map(t -> _kernel_flux_DA_semiinf_TD(data.D, data.ν, t, data.μa, z3m, z4m, data.ρ), t)
+    return map(t -> _kernel_flux_DA_semiinf_TD(data.D, data.ν, t, data.μa, z3m, z4m, data.ρ), data.t)
 end
 
 @inline function _kernel_flux_DA_semiinf_TD(D, ν, t, μa, z3m, z4m, ρ)
@@ -298,7 +313,7 @@ Wrapper to `flux_DA_semiinf_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0)`
 
 # Examples
 ```
-julia> data = DAsemiinf(ρ = 1.0) # use structure to generate inputs
+julia> data = DAsemiinf_params(ρ = 1.0) # use structure to generate inputs
 julia> flux_DA_semiinf_CW(data) # then call the function
 ```
 """

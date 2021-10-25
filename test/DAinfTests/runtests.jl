@@ -11,6 +11,7 @@ struct DAsemiinf_test{T <: AbstractFloat} <: DiffusionParameters
     n_ext::T                             # external medium's index of refraction
     ω::T                                 # modulation frequency (1/ns)
     z::T                                 # z depth of detector within medium (cm)
+    t::Union{T, AbstractVector{T}}       # time vector (ns)
 
     # do not need to provide these arguments (calculated from previous inputs)
     D::T                                 # Diffusion coefficient                        
@@ -22,11 +23,11 @@ end
 # this manually changes the definition of the isotropic source depth to bury deep within a semi-infinite medium
 # this approximates an infinite medium when we are close to source to compare the infinite and semi-infinite solutions
 
-SI_test = DAsemiinf_test(0.0, 0.1, 10.0, 1.0, 1.0, 0.0, 20.0, 1.0 / (3.0 * 10.0), 29.9792458, 19.0, 2.0 / (3.0 * 10.0))
+SI_test = DAsemiinf_test(0.0, 0.1, 10.0, 1.0, 1.0, 0.0, 20.0, 0.1:0.1:2.5, 1.0 / (3.0 * 10.0), 29.9792458, 19.0, 2.0 / (3.0 * 10.0))
 @test fluence_DA_semiinf_CW(SI_test) ≈ fluence_DA_inf_CW(1.0, 0.1, 10.0)
 
 t = 0.1:0.1:2.5
-@test fluence_DA_semiinf_TD(t, SI_test) ≈ fluence_DA_inf_TD(t, 1.0, 0.1, 10.0)
+@test fluence_DA_semiinf_TD(SI_test) ≈ fluence_DA_inf_TD(t, 1.0, 0.1, 10.0)
 
 # Hard code DA inf solution to compare other geometries
 

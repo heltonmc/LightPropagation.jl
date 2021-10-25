@@ -7,7 +7,6 @@
 # [2] Martelli et al. Light propagation through biological tissue and other diffusive media: theory, solutions and software. 
 #     Vol. 10. No. 3.824746. Bellingham: SPIE press, 2010.
 #----------------------------------------------------------------------------------------------------------------------------------------
-
 """ Structure containing inputs for simulating the fluence under the diffusion approximation in the slab space."""
 struct DAslab{T <: AbstractFloat} <: DiffusionParameters
     ρ::T                                 # distance away from isotropic point source (cm)
@@ -16,7 +15,8 @@ struct DAslab{T <: AbstractFloat} <: DiffusionParameters
     n_med::T                             # medium's index of refraction
     n_ext::T                             # external medium's index of refraction
     ω::T                                 # modulation frequency (1/ns)
-    z::T                                 # z depth of detector within medium (cm)\
+    z::T                                 # z depth of detector within medium (cm)
+    t::Union{T, AbstractVector{T}}       # time vector (ns)
     s::T                                 # slab thickness (cm) in z direction
     xs::Int                              # the number of sources to compute in the series
 
@@ -25,15 +25,15 @@ struct DAslab{T <: AbstractFloat} <: DiffusionParameters
     ν::T                                 # Speed of light in medium (cm/ns)
     z0::T                                # isotroptic source depth
     zb::T                                # Extrapolation length
-    function DAslab{T}(ρ::T, μa::T, μsp::T, n_med::T, n_ext::T, ω::T, z::T, s::T, xs::Int) where {T <: AbstractFloat}
+    function DAslab{T}(ρ::T, μa::T, μsp::T, n_med::T, n_ext::T, ω::T, z::T, t::Union{T, AbstractVector{T}}, s::T, xs::Int) where {T <: AbstractFloat}
         @assert ρ >= zero(T) "ρ must greater than or equal to 0"
         @assert μa >= zero(T) "μa must greater than or equal to 0"
         @assert μsp > zero(T) "μsp must greater than 0"
         @assert s > zero(T) "s must greater than 0"
         @assert xs > 0 "xs must greater than 0"
-
+        @assert all(t .> zero(T)) "t must be positive"
         D = D_coeff(μsp)
-        return new{T}(ρ, μa, μsp, n_med, n_ext, ω, z, s, xs, D, ν_coeff(n_med), z0_coeff(μsp), zb_coeff(A_coeff(n_med / n_ext), D))
+        return new{T}(ρ, μa, μsp, n_med, n_ext, ω, z, t, s, xs, D, ν_coeff(n_med), z0_coeff(μsp), zb_coeff(A_coeff(n_med / n_ext), D))
     end
 end
 
@@ -41,6 +41,18 @@ end
     Generator function for DAslab structure.
 
 Provides default parameters to use in the semi-infinite space fluence calculation in either the CW, FD, or TD.
+
+# Keyword Arguments
+- `ρ`: source-detector separation (cm⁻¹)
+- `μa`: absorption coefficient (cm⁻¹)
+- `μsp`: reduced scattering coefficient (cm⁻¹)
+- `n_med`: medium's index of refraction
+- `n_ext`: external medium's index of refraction (air or detector)
+- `ω`: modulation frequency (1/ns)
+- `z`: the z-depth orthogonal from the boundary (cm)
+- `t`: the time vector (ns).
+- `s`: the thickness (z) of the slab (cm)
+- `xs`: the number of sources to compute in the series
 
 # Examples
 ```
@@ -57,10 +69,11 @@ function DAslab(;
     n_ext::T = 1.0,
     ω::T = 0.0,
     z::T = 0.0,
+    t::Union{T, AbstractVector{T}} = 1.0,
     s::T = 2.0,
     xs::Int = 10
 ) where {T<:AbstractFloat}
-    return DAslab{T}(ρ, μa, μsp, n_med, n_ext, ω, z, s, xs)
+    return DAslab{T}(ρ, μa, μsp, n_med, n_ext, ω, z, t, s, xs)
 end
 
 #--------------------------------------
@@ -69,7 +82,9 @@ end
 """
     fluence_DA_slab_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 2.0, z = 0.0, xs = 10)
 
-Compute the steady-state fluence from a slab geometry (x, y -> inf, z -> finite). 
+Compute the steady-state fluence from a slab geometry (x, y -> inf, z -> finite).
+The fluence is calculated from an infinite summation that converges rather rapidly.
+Generally only 5 terms are needed (xs = 5), but more terms will be required if ρ >> s.
 
 # Arguments
 - `ρ`: the source detector separation (cm⁻¹)
@@ -141,7 +156,11 @@ end
 """
     fluence_DA_slab_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 1.0, z = 0.0, xs = 10)
 
-Compute the time-domain fluence from a slab geometry (x, y -> inf, z -> finite). 
+Compute the time-domain fluence from a slab geometry (x, y -> inf, z -> finite).
+The fluence is calculated from an infinite summation that converges rather rapidly.
+Generally only 5 terms are needed (xs = 5), but more terms will be required if ρ >> s.
+At long time values (low fluence values), the solution struggles with limited precision.
+Using double floats or BigFloats is advised at these times.
 
 # Arguments
 - `t`: the time vector (ns). 
@@ -172,12 +191,11 @@ Wrapper to `fluence_DA_slab_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, s = 1
 # Examples
 ```
 julia> data = DAslab() # use structure to generate inputs
-julia> fluence_DA_slab_TD(0.1:0.1:2.0, data) # then call the function
+julia> fluence_DA_slab_TD(data) # then call the function
 ```
 """
-function fluence_DA_slab_TD(t, data::DiffusionParameters)
-    @assert all(t .> zero(eltype(data.μa)))
-    return map(t -> _kernel_fluence_DA_slab_TD(data.D, data.ν, t, data.ρ, data.μa, data.s, data.zb, data.z0, data.z, data.xs), t)
+function fluence_DA_slab_TD(data::DiffusionParameters)
+    return map(t -> _kernel_fluence_DA_slab_TD(data.D, data.ν, t, data.ρ, data.μa, data.s, data.zb, data.z0, data.z, data.xs), data.t)
 end
 
 function _kernel_fluence_DA_slab_TD(D, ν, t, ρ, μa, s, zb, z0, z, xs)
@@ -216,7 +234,7 @@ end
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
 
-# Optional arguments
+# Keyword arguments
 - `n_ext`: the boundary's index of refraction (air or detector)
 - `n_med`: the sample medium's index of refraction
 - `s`: the thickness (z-depth) of the slab (cm)
@@ -244,11 +262,11 @@ Wrapper to `flux_DA_slab_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0,
 # Examples
 ```
 julia> data = DAslab(ρ = 1.0) # use structure to generate inputs
-julia> flux_DA_slab_TD(0.1:0.1:2.0, data) # then call the function
+julia> flux_DA_slab_TD(data) # then call the function
 ```
 """
-function flux_DA_slab_TD(t, data)
-    return flux_DA_slab_TD(t, data.ρ, data.μa, data.μsp, n_ext = data.n_ext, n_med = data.n_med, z = data.z, s = data.s)
+function flux_DA_slab_TD(data)
+    return flux_DA_slab_TD(data.t, data.ρ, data.μa, data.μsp, n_ext = data.n_ext, n_med = data.n_med, z = data.z, s = data.s)
 end
 
 """

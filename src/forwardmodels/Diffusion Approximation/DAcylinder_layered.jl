@@ -27,6 +27,13 @@ end
     fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots)
 
 Compute the steady-state fluence in an N-layered cylinder. Source is assumed to be located on the top middle of the cylinder.
+No checks on arguments are made except enforcing that the source is located in the top layer.
+ρ, μa, and z should be >= 0.0.
+μsp, n_ext, n_med, a should be > 0.0.
+Each layer in l should be > 0.0.
+In general, ρ should always be < a.
+All arguments should have the same types and the length of μsp, μa, n_med, l should be equal.
+It is advised to use the Nlayer_cylinder() structure format for inputs.
 
 # Arguments
 - `ρ`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
@@ -121,6 +128,9 @@ end
     fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, besselroots; N = 24, ILT = hyper_fixed)
 
 Compute the time-domain fluence in an N-layered cylinder. Source is assumed to be located on the top middle of the cylinder.
+See notes on fluence_DA_Nlay_cylinder_CW for input checks with the initial constraint that all values of t should be > 0.0 and ordered least to greatest.
+Do not have any value of t be zero or negative.
+
 It is best to use `hyper_fixed` as the inverse laplace transform if t consists of many time points. Utilize `hyperbola` for a single time point.
 The value of N should be proportional to the dynamic range of the time-domain signal needed. For later times you will need a larger N.
 The lowest fluence value you can compute will be no less than the machine precision you utilize. Float64 values are limited to fluence > ~2.2-16.
