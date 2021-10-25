@@ -48,6 +48,9 @@ export flux_DA_Nlay_cylinder_TD
 # Structures
 export Nlayer_cylinder
 
+# Abstract types
+export DiffusionParameters
+
 # constants
 export besselroots
 
