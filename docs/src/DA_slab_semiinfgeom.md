@@ -70,20 +70,4 @@ Where:
 - ``z_{4,m} = -2ms - (4m-2)z_e - z_o``
 
 
-To obtain solution
-```julia
-λ0 = 1 #doesn't matter since everything is normalized to λ0
-k0 = 2π/λ0
-kin = 3k0
-θ_i = 0.0 #incident wave is left->right
-pw = PlaneWave(θ_i)
-N = 260
-P = 10
-shapes = [rounded_star(0.1λ0, 0.05λ0, 5, N)]
-ids = [1] # the particle at centers[1,:] has the parametrization shapes[ids[1]]
-centers = [0.0 0.0] # our particle is centered at the origin
-φs = [0.0] #zero rotation angle
-sp = ScatteringProblem(shapes, ids, centers, φs)
-```
-
 [^1]: Daniele Contini, Fabrizio Martelli, and Giovanni Zaccanti, "Photon migration through a turbid slab described by a model based on diffusion approximation. I. Theory," Appl. Opt. 36, 4587-4599 (1997) 

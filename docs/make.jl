@@ -21,7 +21,8 @@ makedocs(
                 "Forward Models" => Any[
                     "Diffusion Approximation" => Any[
                     "Slab" => "DA_slab_semiinfgeom.md",
-                    "N-layer Cylinder" => "Nlayer_cyl.md"
+                    "N-layer Cylinder" => "Nlayer_cyl.md",
+                    "DCS" => "DA_DCS.md"
                      ],
                 ],
                 "API" => "API.md"
