@@ -12,4 +12,6 @@ using Test
 
 @time @testset "DAinf" begin include("DAinfTests/runtests.jl") end
 
+@time @testset "DAdcs" begin include("DA_DCSTests/runtests.jl") end
+
 end

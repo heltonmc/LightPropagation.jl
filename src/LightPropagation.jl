@@ -45,8 +45,12 @@ export fluence_DA_Nlay_cylinder_TD
 export flux_DA_Nlay_cylinder_CW
 export flux_DA_Nlay_cylinder_TD
 
+# g2 for DCS
+export g2_DA_semiinf_CW, g2_DA_Nlay_cylinder_CW
+
 # Structures
 export Nlayer_cylinder
+export DAsemiinf_DCS, Nlayer_cylinder_DCS
 
 # Abstract types
 export DiffusionParameters
@@ -71,6 +75,8 @@ include("forwardmodels/Diffusion Approximation/Parallelepiped/DAparalpip.jl")
 
 include("forwardmodels/Diffusion Approximation/transforms.jl")
 include("forwardmodels/Diffusion Approximation/DAcylinder_layered.jl")
+
+include("forwardmodels/Diffusion Approximation/DCS/g2.jl")
 
 const besselroots = load(joinpath(@__DIR__,"..", "src/forwardmodels/Diffusion Approximation/besselzeroroots.jld"))["besselroots"]
        
