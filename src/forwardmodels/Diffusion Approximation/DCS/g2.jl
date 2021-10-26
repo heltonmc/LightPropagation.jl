@@ -112,6 +112,7 @@ The arguments defined with a Vector should be the same length and same type.
 - `μsp::Vector{T}`: reduced scattering coefficient (cm⁻¹)
 - `n_med::Vector{T}`: medium's index of refraction
 - `n_ext`: external medium's index of refraction (air or detector)
+- `l`: the thicknesses of each layer (cm)
 - `z`: the z-depth orthogonal from the boundary (cm)
 - `a`: the radius of the cylinder (cm)
 - `β`: constant in Siegert relation dependent on collection optics
@@ -126,7 +127,7 @@ julia> data = Nlayer_cylinder_DCS(ρ = 1.5) # return ρ = 1.5 with the rest of t
 
 # we can now define our correlation times τ
 julia> τ = 10 .^(range(-10,stop=0,length=250))
-julia> g2_DA_Nlay_cylinder_CW(τ, data) # can then simulate g2 in semiinf
+julia> g2_DA_Nlay_cylinder_CW(τ, data)
 ```
 """
 @with_kw struct Nlayer_cylinder_DCS{T <: Real}
@@ -162,6 +163,7 @@ Compute the electric field autocorrelation function function g2 in a N-layered c
 - `n_med::Vector{T}`: medium's index of refraction
 - `n_ext`: external medium's index of refraction (air or detector)
 - `z`: the z-depth orthogonal from the boundary (cm)
+- `l`: the thicknesses of each layer (cm)
 - `a`: the radius of the cylinder (cm)
 - `β`: constant in Siegert relation dependent on collection optics
 - `BFi::Vector{T}`: Blood flow index ~αDb (cm²/s)

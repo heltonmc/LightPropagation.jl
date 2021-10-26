@@ -36,3 +36,12 @@ fluence_DA_Nlay_cylinder_TD
 flux_DA_Nlay_cylinder_CW
 flux_DA_Nlay_cylinder_TD
 ```
+
+## DCS
+```@docs
+DAsemiinf_DCS
+g2_DA_semiinf_CW
+
+Nlayer_cylinder_DCS
+g2_DA_Nlay_cylinder_CW
+```
