@@ -5,10 +5,7 @@ These simulations create a dynamic absorption term from solutions to the diffusi
 
 ## Semi-infinite
 
-To compute the autocorrelation function g2 in a semi-infinite geometry we can use `g2_DA_semiinf_CW`
-```@docs
-g2_DA_semiinf_CW
-```
+To compute the autocorrelation function g2 in a semi-infinite geometry we can use [`g2_DA_semiinf_CW`](@ref) (click to check docs).
 
 This function has four required arguments that must be in order `τ, ρ, μa, μsp` and six keyword arguments `BFi, β, n_ext, n_med, z, λ` that can (or not) be defined using a key value.
 
@@ -30,11 +27,11 @@ julia> g2_DA_semiinf_CW(τ, 1.0,0.1, 10.0) # can simulate with default parameter
  1.0
 ```
 
-Naturally you will want to simulate for more `τ` values by defining `τ = 10 .^(range(-10,stop=0,length=10))`.
+Naturally you will want to simulate for more `τ` values by defining `τ = 10 .^(range(-10,stop=0,length=250))`.
 The previous simulation uses the default parameters. We can use keys to define aditional parameters...
 ```julia
 julia> τ = 10 .^(range(-10,stop=0,length=10))
-julia> g2_DA_semiinf_CW(τ, 1.0,0.1, 10.0, BFi = 1.6e-8, λ = 720.2) # can simulate with default parameters
+julia> g2_DA_semiinf_CW(τ, 1.0,0.1, 10.0, BFi = 1.6e-8, λ = 720.2) # can define BFi, λ
 10-element Vector{Float64}:
  1.9999972677126077
  1.9999647118888721
@@ -48,11 +45,7 @@ julia> g2_DA_semiinf_CW(τ, 1.0,0.1, 10.0, BFi = 1.6e-8, λ = 720.2) # can simul
  1.0
 ```
 
-It sometimes is helpful to use a structure to pass all the arguments. This can be done by defining a structure using `DAsemiinf_DCS`
-
-```@docs
-g2_DA_semiinf_CW
-```
+It sometimes is helpful to use a structure to pass all the arguments. This can be done by defining a structure using [`DAsemiinf_DCS`](@ref).
 
 Now we can define a structure and use that to quickly simulate g2...
 
@@ -68,10 +61,7 @@ julia> g2_DA_semiinf_CW(τ, data)
 
 ## N-layered cylinder
 
-Layered media follow a similar structure to the semi-infinite case with some more arguments. To compute the autocorrelation function g2 in a N-layered cylinder we can use `g2_DA_Nlay_cylinder_CW`
-```@docs
-g2_DA_Nlay_cylinder_CW
-```
+Layered media follow a similar structure to the semi-infinite case with some more arguments. To compute the autocorrelation function g2 in a N-layered cylinder we can use [`g2_DA_Nlay_cylinder_CW`](@ref).
 
 This function has four required arguments that must be in order `τ, ρ, μa, μsp` and nine keyword arguments `BFi, β, n_ext, n_med, z, λ, a, l, bessels` that can (or not) be defined using a key value.
 
@@ -83,10 +73,7 @@ julia> g2_DA_Nlay_cylinder_CW(τ, 1.0, [0.1, 0.1], [10.0, 10.0], BFi = [2.1e-8, 
 
 Notice how some of the inputs are now a vector containing the properties of each layer. Here we have a 2 layer media therefore all the vectors have a length 2. If you are using more than 2 layers make sure each vector has the same length and you are explicitly defining all the key values. Generally, you don't need to define `bessels` as 1000 roots is usually sufficient. You can increase or decrease the number of roots by defining the key `bessels = besselroots[1:2000]` if you need.
 
-Similarly, we can use a structure to define the inputs by using `Nlayer_cylinder_DCS`.
-```@docs
-Nlayer_cylinder_DCS
-```
+Similarly, we can use a structure to define the inputs by using [`Nlayer_cylinder_DCS`](@ref).
 
 Now we can define a structure and use that to quickly simulate g2.... (will explictly define every input)
 ```julia
@@ -100,13 +87,12 @@ julia> BFi = [2.0e-8, 2.0e-8] # Blood flow index ~αDb (cm²/s)
 julia> l = [1.0, 10.0] # thickness of each layer (cm)
 julia> a = 25.0 # radius of cylinder (cm)
 julia> λ = 700.0 # wavelength of light (cm)
-julia> z = 0.0 # depth within medium (cm) (z = 0,0 on top reflecting boudnary)
+julia> z = 0.0 # depth within medium (cm) (z = 0.0 on top reflecting boudnary)
 julia> data = Nlayer_cylinder_DCS(ρ = ρ, μa = μa, μsp = μsp, n_med = n_med, n_ext = n_ext, β = β, λ = λ, BFi = BFi, z = z, a = a, l = l, bessels = besselroots[1:2000])
 
 # we can now define our correlation times τ
 julia> g2_DA_Nlay_cylinder_CW(τ, data) 
 ```
-
 
 ### Comparing 2-layer to semi-infinite solution
 
@@ -122,6 +108,7 @@ julia> layered = g2_DA_Nlay_cylinder_CW(τ, ρ, [0.1, 0.1], [10.0, 10.0], BFi = 
 julia> layered2 = g2_DA_Nlay_cylinder_CW(τ, ρ, [0.1, 0.1], [10.0, 10.0], BFi = [2.0e-8, 5.0e-8], l = [0.5, 10.0])
 julia> layered3 = g2_DA_Nlay_cylinder_CW(τ, ρ, [0.1, 0.1], [10.0, 10.0], BFi = [5.0e-8, 2.0e-8], l = [0.5, 10.0])
 
+julia> using Plots # need to add this package
 julia> scatter(log10.(τ), si, label = "Semi-inf - BFi = 2e-8 cm²/s", ylabel = "g2(τ)", xlabel = "log(τ (s))")
 julia> plot!(log10.(τ), layered, label = "Layered - BFi = [2e-8, 2e-8] cm²/s", lw = 1.5, linecolor =:black)
 julia> plot!(log10.(τ), layered2, label = "Layered - BFi = [2e-8, 5e-8] cm²/s", linestyle=:dash, lw = 1.5, linecolor =:red)
