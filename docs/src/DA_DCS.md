@@ -84,6 +84,7 @@ julia> μsp = [10.0, 10.0] # reduced scattering coefficient of each layer (1/cm)
 julia> n_med = [1.0, 1.0] # index of refraction for each layer
 julia> n_ext = 1.0 # index of refraction of external medium (air or detector)
 julia> BFi = [2.0e-8, 2.0e-8] # Blood flow index ~αDb (cm²/s)
+julia> β = 1.0 # scaling factor in Siegert relation
 julia> l = [1.0, 10.0] # thickness of each layer (cm)
 julia> a = 25.0 # radius of cylinder (cm)
 julia> λ = 700.0 # wavelength of light (cm)
