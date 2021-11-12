@@ -82,6 +82,22 @@ function g2_DA_semiinf_CW(τ::AbstractVector, ρ, μa, μsp; BFi = 2e-8, β = 1.
 
     return g2
 end
+function g1_DA_semiinf_CW(τ::AbstractVector, ρ, μa, μsp; BFi = 2e-8, β = 1.0, n_ext = 1.0, n_med = 1.0, z = 0.0, λ = 700.0)
+    g1 = similar(τ)
+
+    k0 = 2 * π / (λ * 1e-7) # this should be in cm
+    tmp = 2 * μsp * BFi * k0^2
+
+    G0 = fluence_DA_semiinf_CW(ρ, μa, μsp, n_ext = n_ext, n_med = n_med, z = z)
+
+    for ind in eachindex(τ)
+        μa_dynamic = μa + tmp * τ[ind]
+        G1 = fluence_DA_semiinf_CW(ρ, μa_dynamic, μsp, n_ext = n_ext, n_med = n_med, z = z)
+        g1[ind] = G1 / G0
+    end
+
+    return g1
+end
 
 """
     g2_DA_semiinf_CW(τ::AbstractVector, data::DAsemiinf_DCS)
@@ -98,6 +114,68 @@ julia> g2_DA_semiinf_CW(τ, data) # can then simulate g2 in semiinf
 """
 function g2_DA_semiinf_CW(τ::AbstractVector, data::DAsemiinf_DCS)
     return g2_DA_semiinf_CW(τ, data.ρ, data.μa, data.μsp, BFi = data.BFi, n_ext = data.n_ext, n_med = data.n_med, λ = data.λ)
+end
+
+"""
+    g2_DA_semiinf_TD(τ::AbstractVector, t, ρ, μa, μsp; BFi = 2e-8, β = 1.0, n_ext = 1.0, n_med = 1.0, z = 0.0, λ = 700.0)
+
+Compute the electric field autocorrelation function function g2 in a semi-infinite geometry.
+
+# Arguments
+- `τ`: time lags (s)
+- `t`: time (ns)
+- `ρ`: the source detector separation (cm⁻¹)
+- `μa`: absorption coefficient (cm⁻¹)
+- `μsp`: reduced scattering coefficient (cm⁻¹)
+
+# Keyword arguments
+- `BFi`: Blood flow index ~αDb (cm²/s)
+- `β`: constant in Siegert relation dependent on collection optics
+- `n_ext`: the boundary's index of refraction (air or detector)
+- `n_med`: the sample medium's index of refraction
+- `z`: the z-depth orthogonal from the boundary (cm)
+- `λ`: wavelength (nm)
+
+# Examples
+```
+
+julia> τ = 10 .^(range(-10,stop=0,length=250)) # need to define τ vector first
+julia> g2_DA_semiinf_CW(τ, 1.0,0.1, 10.0) # can simulate with default parameters
+julia> g2_DA_semiinf_CW(τ, 1.0,0.1, 10.0, BFi = 2.2e-8, β = 0.8) # manually define Keyword arguments
+```
+"""
+function g2_DA_semiinf_TD(τ::AbstractVector, t, ρ, μa, μsp; BFi = 2e-8, β = 1.0, n_ext = 1.0, n_med = 1.0, z = 0.0, λ = 700.0)
+    g2 = similar(τ)
+
+    k0 = 2 * n_med * π / (λ * 1e-7) # this should be in cm
+    tmp = 2 * μsp * BFi * k0^2
+
+    G0 = fluence_DA_semiinf_TD(t, ρ, μa, μsp, n_ext = n_ext, n_med = n_med, z = z)
+
+    for ind in eachindex(τ)
+        μa_dynamic = μa + tmp * τ[ind]
+        G1 = fluence_DA_semiinf_TD(t, ρ, μa_dynamic, μsp, n_ext = n_ext, n_med = n_med, z = z)
+        g1 = G1 / G0
+        g2[ind] = 1 + β * abs(g1)^2
+    end
+
+    return g2
+end
+function g1_DA_semiinf_TD(τ::AbstractVector, t, ρ, μa, μsp; BFi = 2e-8, n_ext = 1.0, n_med = 1.0, z = 0.0, λ = 700.0)
+    g1 = similar(τ)
+
+    k0 = 2 * n_med * π / (λ * 1e-7) # this should be in cm
+    tmp = 2 * μsp * BFi * k0^2
+
+    G0 = fluence_DA_semiinf_TD(t, ρ, μa, μsp, n_ext = n_ext, n_med = n_med, z = z)
+
+    for ind in eachindex(τ)
+        μa_dynamic = μa + tmp * τ[ind]
+        G1 = fluence_DA_semiinf_TD(t, ρ, μa_dynamic, μsp, n_ext = n_ext, n_med = n_med, z = z)
+        g1[ind] = G1 / G0
+    end
+
+    return g1
 end
 
 """
