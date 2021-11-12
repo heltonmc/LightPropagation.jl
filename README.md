@@ -4,14 +4,17 @@
 
 ## Overview
 
-LightPropagation.jl provides a set of tools to simulate the propagation of light in turbid media written in the [Julia programming language](https://julialang.org/). The primary goals of this project are to create robust implementations of analytical solutions to radiative transport theory and its approximations that are easy to use, fast, accurate, and well tested.
+Numerical implementations of analytical solutions to the radiative transport equation focused on modeling light propagation through turbid media like biological tissue.
 
-Current development is focused on implementations of solutions to the Diffusion Equation.
-The library currently supports simulating the fluence and flux (using Fick's law) in the following geometries under the diffusion approximation: **(a) Infinite, (b) Semi-Infinite, (c) Slab, (d) Parallelepiped, (e) Cylinder, (f) N-Layered Cylinder** for the Steady-State (CW), Frequency-Domain (FD), and Time-Domains (TD). We also provide a fitting routine for time-domain measurements using the standard Levenberg-Marquardt algorithm with consideration of the Instrument Response Function (IRF). 
+Primary goals: provide fast, well-tested numerical recipes for use in inverse problems in biomedical optics research (though solutions can be used for a variety of applications in turbid media)
+
+Current development is focused on solutions to the diffusion equation (and diffuse correlation equation). The library supports simulating the fluence and flux (using Fick's law) in the following geometries under the diffusion approximation: **(a) Infinite, (b) Semi-Infinite, (c) Slab, (d) Parallelepiped, (e) Cylinder, (f) N-Layered Cylinder** for the Steady-State (CW), Frequency-Domain (FD), and Time-Domains (TD). 
+
+We also provide fast interfaces for inverse fitting of time-domain measurements with consideration of the Instrument Response Function.
 
 ## Installation
 
-Install Julia by [downloading](https://julialang.org/downloads/) the latest version from the offical site and following the [platform specific installations](https://julialang.org/downloads/platform/). This package requires Julia versions >=1.5.
+Install Julia by [downloading](https://julialang.org/downloads/) the latest version from the offical site. This package requires Julia versions >=1.5.
 
 **LightPropagation.jl** is a [registered package](https://juliahub.com/ui/Packages/LightPropagation/Wheva/) in the Julia package manager.
 Just add the package to your environment using Julia's built-in package manager (accessed by pressing `]` in the Julia REPL command prompt) to add the package and build all the required dependencies.
@@ -78,7 +81,9 @@ More detailed information on usage and examples can be found in the [documentati
 
 ### How to support and contribute
 
-You can support the project by actively using it and [raising issues](https://github.com/heltonmc/LightPropagation.jl/issues/new). User feedback on API is especially appreciated as we hope to get to a more stable (v1.0) release. If you like the project you can also leave a star. Feature requests are especially important as we want this to be in anway helpful in your research or personal enjoyment. For example, if you need more example scripts for loading that weird TCSPC data... or you want us to support a new model... let us know! Opening an issue or a [discussion](https://github.com/heltonmc/LightPropagation.jl/discussions/new) will be the best place to do this.
+You can support the project by actively using it and [raising issues](https://github.com/heltonmc/LightPropagation.jl/issues/new). User feedback on API is especially appreciated as we hope to get to a more stable (v1.0) release. If you like the project you can also leave a star. 
+
+Feature requests are especially important as we want this to be in anway helpful in your research or personal enjoyment. For example, if you need more example scripts for loading that weird TCSPC data... or you want us to support a new model... let us know! Opening an issue or a [discussion](https://github.com/heltonmc/LightPropagation.jl/discussions/new) will be the best place to do this.
 
 Contributions via pull request are also greatly appreciated and we would love to have your help no matter the size of contribution. If new to Julia or Git, we are happy to help you through the process. Let us know by [opening an issue](https://github.com/heltonmc/LightPropagation.jl/issues/new) if you would like to work on a new feature or if you are new to open-source and want to find a cool little project or issue to work on that fits your interests! We are more than happy to help you along the way. If a model is not giving expected results, not performing the way you would expect, not matching your implementation please let us know! Some good first issues would be increasing performance of existing functions, adding more tests, or creating better documentation.
 
