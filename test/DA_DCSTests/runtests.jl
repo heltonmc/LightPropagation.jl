@@ -20,13 +20,14 @@ using LightPropagation
 @test isapprox(g2_DA_semiinf_TD(τ,[2.101, 2.102], 0.4, 0.01, 12.0), g2_DA_semiinf_TD(τ,2.1015, 0.4, 0.01, 12.0), rtol = 1e-7)
 
 
+
+### test layered against semi-inf
+
 ρ = 1.0; μa = 0.1; μsp = 10.0; n_med = 1.0; n_ext = 1.0
 β = 1.0; λ = 700.0; z = 0.0
 BFi = 2.0e-8
 
 si = g2_DA_semiinf_CW(τ, ρ, μa, μsp, BFi = BFi)
-
-### test layered against semi-inf
 
 μa = [0.1, 0.1]; μsp = [10.0, 10.0]; n_med = [1.0, 1.0]; n_ext = 1.0
 BFi = [2.0e-8, 2.0e-8]; l = [1.0, 10.0]; a = 25.0
