@@ -10,10 +10,6 @@ using SpecialFunctions
 using JLD
 using ForwardDiff
 
-export TPSF_DA_semiinf_refl
-export TPSF_DA_slab_refl
-export TPSF_DA_paralpip_refl
-
 ### Diffusion Theory
 
 # Infinite
