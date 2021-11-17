@@ -29,21 +29,21 @@ julia> g2_DA_Nlay_cylinder_CW(τ, data)
 ```
 """
 @with_kw struct Nlayer_cylinder_DCS{T <: Real}
-μsp::Vector{T} = [10.0, 10.0]                       # reduced scattering coefficient (1/cm)
-μa::Vector{T} = [0.1, 0.1]                          # absorption coefficient (1/cm)
-n_ext::T = 1.0                                      # surrounding index of refraction
-n_med::Vector{T} = [1.0, 1.0]                       # layers index of refraction
+    μsp::Vector{T} = [10.0, 10.0]                       # reduced scattering coefficient (1/cm)
+    μa::Vector{T} = [0.1, 0.1]                          # absorption coefficient (1/cm)
+    n_ext::T = 1.0                                      # surrounding index of refraction
+    n_med::Vector{T} = [1.0, 1.0]                       # layers index of refraction
 
-l::Vector{T} = [0.5, 10.0]                          # length of cylinder layers (cm)
-ρ::Union{T, AbstractVector{T}} = 1.0                # source-detector separation (cm)
-a::T = 20.0                                         # radius of cylinder (cm)
-z::T = 0.0                                          # detector depth (cm)
+    l::Vector{T} = [0.5, 10.0]                          # length of cylinder layers (cm)
+    ρ::Union{T, AbstractVector{T}} = 1.0                # source-detector separation (cm)
+    a::T = 20.0                                         # radius of cylinder (cm)
+    z::T = 0.0                                          # detector depth (cm)
 
-β::T = 1.0                                          # constant in Siegert relation dependent on collection optics
-BFi::Vector{T} = [2.0e-8, 2.0e-8]                   # Blood flow index ~αDb (cm²/s)
-λ::T = 750.0                                        # wavelength (nm)
+    β::T = 1.0                                          # constant in Siegert relation dependent on collection optics
+    BFi::Vector{T} = [2.0e-8, 2.0e-8]                   # Blood flow index ~αDb (cm²/s)
+    λ::T = 750.0                                        # wavelength (nm)
 
-bessels::AbstractVector{T} = besselroots[1:1000]    # roots of J0
+    bessels::AbstractVector{T} = besselroots[1:1000]    # roots of J0
 end
 
 """
@@ -76,22 +76,22 @@ julia> g2_DA_Nlay_cylinder_CW(τ, 1.0, [0.1, 0.1], [10.0, 10.0], BFi = [2.1e-8, 
 ```
 """
 function g2_DA_Nlay_cylinder_CW(τ::AbstractVector, ρ, μa, μsp; BFi = [2e-8, 2e-8], β = 1.0, n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, bessels = besselroots[1:1000])
-g2 = similar(τ)
-μa_dynamic = similar(μa)
+    g2 = similar(τ)
+    μa_dynamic = similar(μa)
 
-k0 = 2 * π * n_med / (λ * 1e-7) # this should be in cm
-tmp = @. 2 * μsp * BFi * k0^2
+    k0 = 2 * π * n_med / (λ * 1e-7) # this should be in cm
+    tmp = @. 2 * μsp * BFi * k0^2
 
-G0 = fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, bessels)
+    G0 = fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, bessels)
 
-Threads.@threads for ind in eachindex(τ)
-    μa_dynamic = μa + tmp * τ[ind]
-    G1 = fluence_DA_Nlay_cylinder_CW(ρ, μa_dynamic, μsp, n_ext, n_med, l, a, z, bessels)
-    g1 = G1 / G0
-    g2[ind] = 1 + β * abs(g1)^2
-end
+    Threads.@threads for ind in eachindex(τ)
+        μa_dynamic = μa + tmp * τ[ind]
+        G1 = fluence_DA_Nlay_cylinder_CW(ρ, μa_dynamic, μsp, n_ext, n_med, l, a, z, bessels)
+        g1 = G1 / G0
+        g2[ind] = 1 + β * abs(g1)^2
+    end
 
-return g2
+    return g2
 end
 
 """
@@ -108,5 +108,5 @@ julia> g2_DA_Nlay_cylinder_CW(τ, data) # can then simulate g2 in semiinf
 ```
 """
 function g2_DA_Nlay_cylinder_CW(τ::AbstractVector, data::Nlayer_cylinder_DCS)
-return g2_DA_Nlay_cylinder_CW(τ, data.ρ, data.μa, data.μsp, BFi = data.BFi, n_ext = data.n_ext, n_med = data.n_med, l = data.l, a = data.a, λ = data.λ, bessels = data.bessels)
+    return g2_DA_Nlay_cylinder_CW(τ, data.ρ, data.μa, data.μsp, BFi = data.BFi, n_ext = data.n_ext, n_med = data.n_med, l = data.l, a = data.a, λ = data.λ, bessels = data.bessels)
 end

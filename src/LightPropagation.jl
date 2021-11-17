@@ -9,6 +9,7 @@ using Parameters
 using SpecialFunctions
 using JLD
 using ForwardDiff
+using FastGaussQuadrature: gausslegendre
 
 ### Diffusion Theory
 
@@ -42,7 +43,11 @@ export flux_DA_Nlay_cylinder_CW
 export flux_DA_Nlay_cylinder_TD
 
 # g2 for DCS
-export g2_DA_semiinf_CW, g2_DA_Nlay_cylinder_CW
+export g1_DA_semiinf_CW, g1_DA_semiinf_TD
+export g2_DA_semiinf_CW, g2_DA_semiinf_TD
+
+
+export g2_DA_Nlay_cylinder_CW
 
 # Structures
 export Nlayer_cylinder
@@ -72,7 +77,10 @@ include("forwardmodels/Diffusion Approximation/Parallelepiped/DAparalpip.jl")
 include("forwardmodels/Diffusion Approximation/transforms.jl")
 include("forwardmodels/Diffusion Approximation/DAcylinder_layered.jl")
 
-include("forwardmodels/Diffusion Approximation/DCS/g2.jl")
+#include("forwardmodels/Diffusion Approximation/DCS/g2.jl")
+include("forwardmodels/Diffusion Approximation/DCS/semiinf.jl")
+include("forwardmodels/Diffusion Approximation/DCS/layered_cylinder.jl")
+
 
 const besselroots = load(joinpath(@__DIR__,"..", "src/forwardmodels/Diffusion Approximation/besselzeroroots.jld"))["besselroots"]
        
