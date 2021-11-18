@@ -110,3 +110,88 @@ julia> g2_DA_Nlay_cylinder_CW(τ, data) # can then simulate g2 in semiinf
 function g2_DA_Nlay_cylinder_CW(τ::AbstractVector, data::Nlayer_cylinder_DCS)
     return g2_DA_Nlay_cylinder_CW(τ, data.ρ, data.μa, data.μsp, BFi = data.BFi, n_ext = data.n_ext, n_med = data.n_med, l = data.l, a = data.a, λ = data.λ, bessels = data.bessels)
 end
+
+
+"""
+g2_DA_Nlay_cylinder_CW(τ::AbstractVector, ρ, μa, μsp; BFi = [2e-8, 2e-8], β = 1.0, n_ext = 1.0, n_med = 1.0, l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, bessels = besselroots[1:1000])
+
+Compute the electric field autocorrelation function function g2 in a N-layered cylinder. μa, μsp, n_med and BFi must be vectors of the same type.
+
+# Arguments
+- `τ`: time lags (s)
+- `ρ`: the source detector separation (cm⁻¹)
+- `μa::Vector{T}`: absorption coefficient (cm⁻¹)
+- `μsp::Vector{T}`: reduced scattering coefficient (cm⁻¹)
+
+# Keyword arguments
+- `n_med::Vector{T}`: medium's index of refraction
+- `n_ext`: external medium's index of refraction (air or detector)
+- `z`: the z-depth orthogonal from the boundary (cm)
+- `l`: the thicknesses of each layer (cm)
+- `a`: the radius of the cylinder (cm)
+- `β`: constant in Siegert relation dependent on collection optics
+- `BFi::Vector{T}`: Blood flow index ~αDb (cm²/s)
+- `λ`: wavelength (nm)
+- `bessels::AbstractVector{T}`: roots of J0
+
+# Examples
+```
+julia> τ = 10 .^(range(-10,stop=0,length=250)) # need to define τ vector first
+julia> g2_DA_Nlay_cylinder_CW(τ, 1.0, [0.1, 0.1], [10.0, 10.0], BFi = [2.1e-8, 3.0e-8]) # only define BFi
+julia> g2_DA_Nlay_cylinder_CW(τ, 1.0, [0.1, 0.1], [10.0, 10.0], BFi = [2.1e-8, 3.0e-8], l = [0.8, 3.0]) # define BFi with layer thickness
+```
+"""
+function g1_DA_Nlay_cylinder_CW(τ::AbstractVector, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, bessels = besselroots[1:1000])
+    g1 = similar(τ)
+    μa_dynamic = similar(μa)
+
+    k0 = 2 * π * n_med / (λ * 1e-7) # this should be in cm
+    tmp = @. 2 * μsp * BFi * k0^2
+
+    G0 = fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, bessels)
+
+    Threads.@threads for ind in eachindex(τ)
+        μa_dynamic = μa + tmp * τ[ind]
+        G1 = fluence_DA_Nlay_cylinder_CW(ρ, μa_dynamic, μsp, n_ext, n_med, l, a, z, bessels)
+        g1[ind] = G1 / G0
+    end
+
+    return g1
+end
+
+function g1_DA_Nlay_cylinder_TD(τ::AbstractVector, t::AbstractFloat, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, bessels = besselroots[1:1000], N_laplace = 8)
+    g1 = similar(τ)
+    μa_dynamic = similar(μa)
+
+    k0 = 2 * π * n_med / (λ * 1e-7) # this should be in cm
+    tmp = @. 2 * μsp * BFi * k0^2
+
+    G0 = fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, bessels, N = N_laplace)
+
+    for ind in eachindex(τ)
+        μa_dynamic = μa + tmp * τ[ind]
+        G1 = fluence_DA_Nlay_cylinder_TD(t, ρ, μa_dynamic, μsp, n_ext, n_med, l, a, z, bessels, N = N_laplace)
+        g1[ind] = G1 / G0
+    end
+
+    return g1
+end
+
+
+function g1_DA_Nlay_cylinder_TD(τ::AbstractVector, t::AbstractVector, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, bessels = besselroots[1:1000], N_laplace = 8, N_quad = 100)
+    g1 = similar(τ)
+    μa_dynamic = similar(μa)
+
+    k0 = 2 * π * n_med / (λ * 1e-7) # this should be in cm
+    tmp = @. 2 * μsp * BFi * k0^2
+    x, w = gausslegendre(N_quad)
+
+    tpsf_norm = integrate_compute_y_first(t -> fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, bessels, N = N_laplace), x, w, t[1], t[2])
+
+    Threads.@threads for ind in eachindex(τ)
+        μa_dynamic = μa + tmp * τ[ind]
+        g1[ind] = integrate_compute_y_first(t -> (fluence_DA_Nlay_cylinder_TD(t, ρ, μa_dynamic, μsp, n_ext, n_med, l, a, z, bessels, N = N_laplace) / tpsf_norm), x, w, t[1], t[2])
+    end
+
+    return g1
+end

@@ -68,7 +68,6 @@ function g2_DA_semiinf_CW(τ::AbstractVector, ρ, μa, μsp; BFi = 2e-8, n_ext =
     return g1
 end
 
-
 function g2_DA_semiinf_TD(τ::AbstractVector, t::Union{AbstractVector, AbstractFloat}, ρ, μa, μsp; BFi = 2e-8, n_ext = 1.0, n_med = 1.0, z = 0.0, λ = 700.0, β = 1.0, N_quad = 50)
     if t isa AbstractVector
         g1 = g1_DA_semiinf_TD(τ, t, ρ, μa, μsp, BFi = BFi, n_ext = n_ext, n_med = n_med, z = z, λ = λ, N_quad = N_quad)
@@ -82,11 +81,21 @@ function g2_DA_semiinf_TD(τ::AbstractVector, t::Union{AbstractVector, AbstractF
     return g1
 end
 
-
-function integrate(f, x, w, lb, ub)
+function integrate(f::Function, x, w, lb, ub)
     out = zero(eltype(x))
     for m in eachindex(x)
         out += f(x[m] * (ub - lb) / 2 + (lb + ub) / 2) * w[m]
+    end
+    return out * (ub - lb) / 2
+end
+
+# use this function when it is more efficient to compute y points all together
+function integrate_compute_y_first(f::Function, x, w, lb, ub)
+    x = @. x * (ub - lb) / 2 + (lb + ub) / 2
+    y = f(x) # the function should be able to take a vector and return a vector
+    out = zero(eltype(x))
+    for m in eachindex(x)
+        out += y[m] * w[m]
     end
     return out * (ub - lb) / 2
 end

@@ -41,5 +41,46 @@ layered = g2_DA_Nlay_cylinder_CW(τ, data)
 
 @test si ≈ layered
 
+# test layered TD solution for single time 
+
+τ = 10 .^(range(-10,stop=0,length=250))
+ρ = 1.0; mua = 0.1; musp = 10.0; BFi = 2.0e-8; n_ext = 1.0; n_med = 1.0; z = 0.0; λ = 700.0
+t = 1.0
+si = g1_DA_semiinf_TD(τ, t, ρ, mua, musp; BFi = BFi, n_ext = n_ext, n_med = n_med, z = z, λ = λ)
+layered = g1_DA_Nlay_cylinder_TD(τ, t, ρ, [mua, mua], [musp, musp]; BFi = [BFi, BFi], n_ext = n_ext, n_med = [n_med, n_med], z = z, λ = λ, bessels = besselroots[1:10], N_laplace = 12)
+
+@test si ≈ layered
+
+# test for different optical properties and SDS (limited by degeneration to semi-infinite solution have adjusted relative error)
+τ = 10 .^(range(-10,stop=0,length=250))
+ρ = 2.4; mua = 0.18; musp = 20.1; BFi = 1.2e-6; n_ext = 1.2; n_med = 1.1; z = 0.0; λ = 740.0
+t = 2.1
+si = g1_DA_semiinf_TD(τ, t, ρ, mua, musp; BFi = BFi, n_ext = n_ext, n_med = n_med, z = z, λ = λ)
+layered = g1_DA_Nlay_cylinder_TD(τ, t, ρ, [mua, mua], [musp, musp]; BFi = [BFi, BFi], n_ext = n_ext, n_med = [n_med, n_med], z = z, λ = λ, bessels = besselroots[1:20], N_laplace = 12)
+
+@test isapprox(si, layered, rtol = 1e-5)
+
+# test layered TD solution for 
+
+# test that the sum of all pathlengths (solution given in time-domain) matches CW solution
+@test isapprox(g1_DA_semiinf_TD(τ,[0.00001, 10.0], 1.0, 0.1, 10.0, N_quad = 200), g1_DA_semiinf_CW(τ, 1.0, 0.1, 10.0))
+
+# test range of time vector matches 
+τ = 10 .^(range(-10,stop=0,length=250))
+ρ = 1.0; mua = 0.1; musp = 10.0; BFi = 2.0e-8; n_ext = 1.0; n_med = 1.0; z = 0.0; λ = 700.0
+t = [1.0, 1.5]
+si = g1_DA_semiinf_TD(τ, t, ρ, mua, musp; BFi = BFi, n_ext = n_ext, n_med = n_med, z = z, λ = λ)
+layered = g1_DA_Nlay_cylinder_TD(τ, t, ρ, [mua, mua], [musp, musp]; BFi = [BFi, BFi], n_ext = n_ext, n_med = [n_med, n_med], z = z, λ = λ, bessels = besselroots[1:200], N_laplace = 8, N_quad = 100)
+@test isapprox(si, layered, rtol = 1e-5)
+
+# test range of time vector matches different optical properties
+τ = 10 .^(range(-10,stop=0,length=250))
+ρ = 2.2; mua = 0.42; musp = 18.2; BFi = 8.2e-8; n_ext = 1.2; n_med = 1.4; z = 0.0; λ = 700.0
+t = [1.0, 2.6]
+si = g1_DA_semiinf_TD(τ, t, ρ, mua, musp; BFi = BFi, n_ext = n_ext, n_med = n_med, z = z, λ = λ)
+layered = g1_DA_Nlay_cylinder_TD(τ, t, ρ, [mua, mua], [musp, musp]; BFi = [BFi, BFi], n_ext = n_ext, n_med = [n_med, n_med], z = z, λ = λ, bessels = besselroots[1:200], N_laplace = 16, N_quad = 100)
+@test isapprox(si, layered, rtol = 1e-5)
+
+
 end
 
