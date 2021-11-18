@@ -42,8 +42,8 @@ export flux_DA_Nlay_cylinder_TD
 export g1_DA_semiinf_CW, g1_DA_semiinf_TD
 export g2_DA_semiinf_CW, g2_DA_semiinf_TD
 
-
-export g2_DA_Nlay_cylinder_CW
+export g1_DA_Nlay_cylinder_CW, g1_DA_Nlay_cylinder_TD
+export g2_DA_Nlay_cylinder_CW, g2_DA_Nlay_cylinder_TD
 
 # Structures
 export Nlayer_cylinder

@@ -1,17 +1,22 @@
-@with_kw struct DAsemiinf_DCS{T <: Real}
-    μsp::T = 10.0                                       # reduced scattering coefficient (1/cm)
-    μa::T = 0.1                                         # absorption coefficient (1/cm)
-    n_ext::T = 1.0                                      # surrounding index of refraction
-    n_med::T = 1.0                                      # layers index of refraction
+"""
+    g1_DA_semiinf_CW(τ::AbstractVector, ρ, μa, μsp; BFi = 2e-8, β = 1.0, n_ext = 1.0, n_med = 1.0, z = 0.0, λ = 700.0)
 
-    ρ::Union{T, AbstractVector{T}} = 1.0                # source-detector separation (cm)
-    z::T = 0.0                                          # detector depth (cm)
+Compute the electric field autocorrelation function function g1 in a semi-infinite geometry (CW).
 
-    β::T = 1.0                                          # constant in Siegert relation dependent on collection optics
-    BFi::T = 2.0e-8                                     # Blood flow index ~αDb (cm²/s)
-    λ::T = 750.0                                        # wavelength (nm)
-end
+# Arguments
+- `τ`: time lags (s)
+- `ρ`: the source detector separation (cm⁻¹)
+- `μa`: absorption coefficient (cm⁻¹)
+- `μsp`: reduced scattering coefficient (cm⁻¹)
 
+# Keyword arguments
+- `BFi`: Blood flow index ~αDb (cm²/s)
+- `β`: constant in Siegert relation dependent on collection optics
+- `n_ext`: the boundary's index of refraction (air or detector)
+- `n_med`: the sample medium's index of refraction
+- `z`: the z-depth orthogonal from the boundary (cm)
+- `λ`: wavelength (nm)
+"""
 function g1_DA_semiinf_CW(τ::AbstractVector, ρ, μa, μsp; BFi = 2e-8, n_ext = 1.0, n_med = 1.0, z = 0.0, λ = 700.0)
     g1 = similar(τ)
     k0 = 2 * n_med * π / (λ * 1e-7) # this should be in cm
@@ -28,6 +33,31 @@ function g1_DA_semiinf_CW(τ::AbstractVector, ρ, μa, μsp; BFi = 2e-8, n_ext =
     return g1
 end
 
+"""
+    g1_DA_semiinf_TD(τ::AbstractVector, t::AbstractFloat, ρ, μa, μsp; BFi = 2e-8, β = 1.0, n_ext = 1.0, n_med = 1.0, z = 0.0, λ = 700.0)
+    g1_DA_semiinf_TD(τ::AbstractVector, t::Abstractector, ρ, μa, μsp; BFi = 2e-8, β = 1.0, n_ext = 1.0, n_med = 1.0, z = 0.0, λ = 700.0)
+
+Compute the time-domain electric field autocorrelation function function g1 in a semi-infinite geometry.
+
+If t is a AbstractVector then g1(tau) will be calculated by ∫P(t)g1(tau, t)dt with integration bounds given by t[1] and t[end].
+This is needed for time-gated applications.
+
+# Arguments
+- `τ`: time lags (s)
+- `t`: photon time of flight (related to photon path length)
+- `ρ`: the source detector separation (cm⁻¹)
+- `μa`: absorption coefficient (cm⁻¹)
+- `μsp`: reduced scattering coefficient (cm⁻¹)
+
+# Keyword arguments
+- `BFi`: Blood flow index ~αDb (cm²/s)
+- `β`: constant in Siegert relation dependent on collection optics
+- `n_ext`: the boundary's index of refraction (air or detector)
+- `n_med`: the sample medium's index of refraction
+- `z`: the z-depth orthogonal from the boundary (cm)
+- `λ`: wavelength (nm)
+- `N_quad`: number of nodes in gauss-legendre integration
+"""
 function g1_DA_semiinf_TD(τ::AbstractVector, t::AbstractFloat, ρ, μa, μsp; BFi = 2e-8, n_ext = 1.0, n_med = 1.0, z = 0.0, λ = 700.0)
     g1 = similar(τ)
     k0 = 2 * n_med * π / (λ * 1e-7) # this should be in cm
@@ -43,7 +73,6 @@ function g1_DA_semiinf_TD(τ::AbstractVector, t::AbstractFloat, ρ, μa, μsp; B
 
     return g1
 end
-
 function g1_DA_semiinf_TD(τ::AbstractVector, t::AbstractVector, ρ, μa, μsp; BFi = 2e-8, n_ext = 1.0, n_med = 1.0, z = 0.0, λ = 700.0, N_quad = 50)
     g1 = similar(τ)
     k0 = 2 * n_med * π / (λ * 1e-7) # this should be in cm
@@ -89,7 +118,7 @@ function integrate(f::Function, x, w, lb, ub)
     return out * (ub - lb) / 2
 end
 
-# use this function when it is more efficient to compute y points all together
+# use this function when it is more efficient to compute y points all together for layered media (Laplace contour is fixed for each time point)
 function integrate_compute_y_first(f::Function, x, w, lb, ub)
     x = @. x * (ub - lb) / 2 + (lb + ub) / 2
     y = f(x) # the function should be able to take a vector and return a vector

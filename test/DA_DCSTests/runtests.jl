@@ -5,7 +5,6 @@ using LightPropagation
 
 τ = 10 .^(range(-10,stop=0,length=250))
 
-
 # test that the sum of all pathlengths (solution given in time-domain) matches CW solution
 @test isapprox(g1_DA_semiinf_TD(τ,[0.00001, 10.0], 1.0, 0.1, 10.0, N_quad = 200), g1_DA_semiinf_CW(τ, 1.0, 0.1, 10.0))
 
@@ -18,8 +17,6 @@ using LightPropagation
 #check corresponding g2 functions (these call g1 functions)
 @test g2_DA_semiinf_TD(τ,[0.00001, 10.0], 1.8, 0.32, 4.1, BFi = 1.2e-7, n_ext = 1.8, n_med = 1.4, z = 0.0, λ = 820.1, β = 0.88, N_quad = 200) ≈ g2_DA_semiinf_CW(τ, 1.8, 0.32, 4.1, BFi = 1.2e-7, n_ext = 1.8, n_med = 1.4, z = 0.0, λ = 820.1, β = 0.88)
 @test isapprox(g2_DA_semiinf_TD(τ,[2.101, 2.102], 0.4, 0.01, 12.0), g2_DA_semiinf_TD(τ,2.1015, 0.4, 0.01, 12.0), rtol = 1e-7)
-
-
 
 ### test layered against semi-inf
 
@@ -62,8 +59,6 @@ layered = g1_DA_Nlay_cylinder_TD(τ, t, ρ, [mua, mua], [musp, musp]; BFi = [BFi
 
 # test layered TD solution for 
 
-# test that the sum of all pathlengths (solution given in time-domain) matches CW solution
-@test isapprox(g1_DA_semiinf_TD(τ,[0.00001, 10.0], 1.0, 0.1, 10.0, N_quad = 200), g1_DA_semiinf_CW(τ, 1.0, 0.1, 10.0))
 
 # test range of time vector matches 
 τ = 10 .^(range(-10,stop=0,length=250))
@@ -81,6 +76,23 @@ si = g1_DA_semiinf_TD(τ, t, ρ, mua, musp; BFi = BFi, n_ext = n_ext, n_med = n_
 layered = g1_DA_Nlay_cylinder_TD(τ, t, ρ, [mua, mua], [musp, musp]; BFi = [BFi, BFi], n_ext = n_ext, n_med = [n_med, n_med], z = z, λ = λ, bessels = besselroots[1:200], N_laplace = 16, N_quad = 100)
 @test isapprox(si, layered, rtol = 1e-5)
 
+# test that the integral over whole time window range matches cw solution
+τ = 10 .^(range(-10,stop=0,length=250))
+ρ = 1.0; mua = 0.2; musp = 10.0; BFi = 3.0e-8; n_ext = 1.2; n_med = 1.4; z = 0.0; λ = 700.0
+t = [1e-5, 10.0]
+layered = g1_DA_Nlay_cylinder_TD(τ, t, ρ, [mua, mua], [musp, musp]; BFi = [BFi, BFi], n_ext = n_ext, n_med = [n_med, n_med], z = z, λ = λ, bessels = besselroots[1:700], N_laplace = 54, N_quad = 100)
+si = g1_DA_semiinf_CW(τ, ρ, mua, musp; BFi = BFi, n_ext = n_ext, n_med = n_med, z = z, λ = λ)
+
+@test isapprox(si, layered, rtol = 1e-5)
+
+# test that g2 is working
+
+τ = 10 .^(range(-10,stop=0,length=250))
+ρ = 1.0; mua = 0.2; musp = 10.0; BFi = 3.0e-8; n_ext = 1.2; n_med = 1.4; z = 0.0; λ = 700.0
+t = [1e-5, 10.0]
+layered = g2_DA_Nlay_cylinder_TD(τ, t, ρ, [mua, mua], [musp, musp]; BFi = [BFi, BFi], n_ext = n_ext, n_med = [n_med, n_med], z = z, λ = λ, bessels = besselroots[1:700], N_laplace = 54, N_quad = 100)
+si = g2_DA_semiinf_CW(τ, ρ, mua, musp; BFi = BFi, n_ext = n_ext, n_med = n_med, z = z, λ = λ)
+
+@test isapprox(si, layered, rtol = 1e-5)
 
 end
-
