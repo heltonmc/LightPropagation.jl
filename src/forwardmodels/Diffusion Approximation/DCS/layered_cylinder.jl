@@ -145,7 +145,7 @@ function g1_DA_Nlay_cylinder_TD(τ::AbstractVector, t::AbstractVector, ρ, μa, 
 
     tpsf_norm = integrate_compute_y_first(t -> fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, bessels, N = N_laplace), x, w, t[1], t[2])
 
-    Threads.@threads for ind in eachindex(τ)
+    for ind in eachindex(τ)
         μa_dynamic = μa + tmp * τ[ind]
         g1[ind] = integrate_compute_y_first(t -> (fluence_DA_Nlay_cylinder_TD(t, ρ, μa_dynamic, μsp, n_ext, n_med, l, a, z, bessels, N = N_laplace) / tpsf_norm), x, w, t[1], t[2])
     end
