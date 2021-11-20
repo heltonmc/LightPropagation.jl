@@ -1,6 +1,6 @@
 # LightPropagation.jl
 
-![Repo status](https://www.repostatus.org/badges/latest/active.svg?style=flat-square)  [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://heltonmc.github.io/LightPropagation.jl/stable/)  ![GitHub tag (latest SemVer pre-release)](https://img.shields.io/github/v/tag/heltonmc/LightPropagation.jl?include_prereleases&label=latest%20version&logo=github&sort=semver&style=flat-square)  ![MIT license](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)  [![Slack](https://img.shields.io/badge/chat-slack-e01e5a)](https://join.slack.com/t/slack-hfc9489/shared_invite/zt-z9fy9mht-2DCWVAUYW7NRplKuGjx8lg)
+![Repo status](https://www.repostatus.org/badges/latest/active.svg?style=flat-square)  [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://heltonmc.github.io/LightPropagation.jl/stable/)  ![GitHub tag (latest SemVer pre-release)](https://img.shields.io/github/v/tag/heltonmc/LightPropagation.jl?include_prereleases&label=latest%20version&logo=github&sort=semver&style=flat-square)  ![MIT license](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)  [![Slack](https://img.shields.io/badge/chat-slack-e01e5a)](https://join.slack.com/t/lightpropagationjl/shared_invite/zt-z4r47k5w-cco_rRK5EmKQqq3pdqykdw)
 
 ## Overview
 
@@ -93,4 +93,4 @@ We hope you fork and modify the existing code base in anyway for your applicatio
 
 ### Contact
 
-The best place to discuss usage, errors, bugs, features/requests, and potential contributions are in the issues and discussion forums here so everyone can benefit and participate. For more casual discussion, [join us on Slack](https://join.slack.com/t/slack-hfc9489/shared_invite/zt-z9fy9mht-2DCWVAUYW7NRplKuGjx8lg). For other questions, please contact [Michael Helton](mailto:heltonmc@umich.edu).
+The best place to discuss usage, errors, bugs, features/requests, and potential contributions are in the issues and discussion forums here so everyone can benefit and participate. For more casual discussion, [join us on Slack](https://join.slack.com/t/lightpropagationjl/shared_invite/zt-z4r47k5w-cco_rRK5EmKQqq3pdqykdw). For other questions, please contact [Michael Helton](mailto:heltonmc@umich.edu).
