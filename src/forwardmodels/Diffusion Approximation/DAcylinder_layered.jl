@@ -384,9 +384,10 @@ end
         tmp *= D[ind] * α[ind] * n[ind]^2
     end
 
+    tmp1 = exp(-2 * α[1] * (l[1] + zb[1]));
     gN = n[end]^2 * tmp * 2^(N - 1) / 2
     gN *= exp(α[1] * (z0 - l[1]) + α[end] * (sum(l) + zb[end] - z) - βγ_correction)
-    gN /= D[1] * α[1] * n[1]^2 * β * (1 + exp(-2 * α[1] * (l[1] + zb[1]))) + D[2] * α[2] * n[2]^2 * γ * (1 - exp(-2 * α[1] * (l[1] + zb[1])))
+    gN /= D[1] * α[1] * n[1]^2 * β * (1 + tmp1) + D[2] * α[2] * n[2]^2 * γ * (1 - tmp1)
     gN *= (1 - exp(-2 * α[1] * (z0 + zb[1]))) * (1 - exp(-2 * α[end] * (sum(l) + zb[end] - z)))
 
     return gN

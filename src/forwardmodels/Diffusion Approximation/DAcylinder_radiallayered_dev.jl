@@ -21,30 +21,35 @@ end
 
 ##reduced form 
 function _get_αβ_startx(m, γ, D, ρ, n, ind)
+    tmp1 = dImx(m, γ[ind], ρ[ind])
+    tmp2 = exp(ρ[ind]*(γ[ind] - γ[ind - 1]))
 
     α = D[ind - 1] * (n[ind - 1])^2 * dKmx(m, γ[ind - 1], ρ[ind]) * besselix(m, γ[ind]*ρ[ind])
-    α -= D[ind] * (n[ind])^2 * besselkx(m, γ[ind - 1]*ρ[ind]) * dImx(m, γ[ind], ρ[ind]) 
-    α *= exp(ρ[ind]*(γ[ind] - γ[ind - 1]))
+    α -= D[ind] * (n[ind])^2 * besselkx(m, γ[ind - 1]*ρ[ind]) * tmp1
+    α *= tmp2
 
     β = D[ind - 1] * (n[ind - 1])^2 * dImx(m, γ[ind - 1], ρ[ind]) * besselix(m, γ[ind]*ρ[ind])
-    β -= D[ind] * (n[ind])^2 * besselix(m, γ[ind - 1]*ρ[ind]) * dImx(m, γ[ind], ρ[ind]) 
-    β *= exp(ρ[ind]*(γ[ind] - γ[ind - 1]))
+    β -= D[ind] * (n[ind])^2 * besselix(m, γ[ind - 1]*ρ[ind]) * tmp1
+    β *= tmp2
 
     return α, β
 end
 
 function _get_αn_βn(m, αnp1, βnp1, γ, D, ρ, n, ind)
 
+    tmp1 = βnp1*besselk(m, γ[ind + 1]*ρ[ind + 1])
+    tmp2 = βnp1*dKm(m, γ[ind + 1], ρ[ind + 1])
+
     αn = D[ind] * (n[ind])^2 * dKm(m, γ[ind], ρ[ind + 1])
-    αn *= (αnp1*besseli(m, γ[ind + 1]*ρ[ind + 1]) - βnp1*besselk(m, γ[ind + 1]*ρ[ind + 1]))
+    αn *= (αnp1*besseli(m, γ[ind + 1]*ρ[ind + 1]) - tmp1)
     αn_aux = D[ind + 1] * (n[ind + 1])^2 * besselk(m, γ[ind]*ρ[ind + 1])
-    αn_aux *= (αnp1*dIm(m, γ[ind + 1], ρ[ind + 1]) - βnp1*dKm(m, γ[ind + 1], ρ[ind + 1]))
+    αn_aux *= (αnp1*dIm(m, γ[ind + 1], ρ[ind + 1]) - tmp2)
     αn -= αn_aux
 
     βn = D[ind] * (n[ind])^2 * dIm(m, γ[ind], ρ[ind + 1])
-    βn *= (αnp1*besseli(m, γ[ind + 1]*ρ[ind + 1]) - βnp1*besselk(m, γ[ind + 1]*ρ[ind + 1]))
+    βn *= (αnp1*besseli(m, γ[ind + 1]*ρ[ind + 1]) - tmp1)
     βn_aux = D[ind + 1] * (n[ind + 1])^2 * besseli(m, γ[ind]*ρ[ind + 1])
-    βn_aux *= (αnp1*dIm(m, γ[ind + 1], ρ[ind + 1]) - βnp1*dKm(m, γ[ind + 1], ρ[ind + 1]))
+    βn_aux *= (αnp1*dIm(m, γ[ind + 1], ρ[ind + 1]) - tmp2)
     βn -= βn_aux
 
     return αn, βn
