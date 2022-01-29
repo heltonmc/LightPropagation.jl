@@ -81,8 +81,8 @@ function g1_DA_Nlay_cylinder_CW(τ::AbstractVector, ρ, μa, μsp; BFi = [2e-8, 
     G0 = fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, bessels)
 
     Threads.@threads for ind in eachindex(τ)
-        μa_dynamic = μa + tmp * τ[ind]
-        # μa_dynamic = muladd(tmp, τ[ind], μa)
+        # μa_dynamic = μa + tmp * τ[ind]
+        μa_dynamic = muladd(tmp, τ[ind], μa)
         G1 = fluence_DA_Nlay_cylinder_CW(ρ, μa_dynamic, μsp, n_ext, n_med, l, a, z, bessels)
         g1[ind] = G1 / G0
     end
@@ -128,8 +128,8 @@ function g1_DA_Nlay_cylinder_TD(τ::AbstractVector, t::AbstractFloat, ρ, μa, �
     G0 = fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, bessels, N = N_laplace)
 
     for ind in eachindex(τ)
-        μa_dynamic = μa + tmp * τ[ind]
-        # μa_dynamic = muladd(tmp, τ[ind], μa)
+        # μa_dynamic = μa + tmp * τ[ind]
+        μa_dynamic = muladd(tmp, τ[ind], μa)
         G1 = fluence_DA_Nlay_cylinder_TD(t, ρ, μa_dynamic, μsp, n_ext, n_med, l, a, z, bessels, N = N_laplace)
         g1[ind] = G1 / G0
     end
