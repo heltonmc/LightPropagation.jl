@@ -453,18 +453,18 @@ end
         tmp2 = D[k - 1] * α[k - 1] * n[k - 1]^2 * γN
         tmp3 = exp(-2 * α[k - 2] * l[k - 2])
 
-        # βN  =  tmp1 * (1 + tmp3)
-        # βN +=  tmp2 * (1 - tmp3)
-        # γN  =  tmp1 * (1 - tmp3)
-        # γN +=  tmp2 * (1 + tmp3)
+        βN  =  tmp1 * (1 + tmp3)
+        βN +=  tmp2 * (1 - tmp3)
+        γN  =  tmp1 * (1 - tmp3)
+        γN +=  tmp2 * (1 + tmp3)
 
-        # 2 ns optimization for median time of "fluence_DA_Nlay_cylinder_CW"
-        a  =  muladd(tmp1, tmp3, tmp1)
-        b  =  muladd(tmp2, -tmp3, tmp2)
-        βN =  a + b
-        c  =  muladd(tmp1, -tmp3, tmp1)
-        d  =  muladd(tmp2, tmp3, tmp2)
-        γN  =  c + d
+        # # 2 ns optimization for median time of "fluence_DA_Nlay_cylinder_CW"
+        # a  =  muladd(tmp1, tmp3, tmp1)
+        # b  =  muladd(tmp2, -tmp3, tmp2)
+        # βN =  a + b
+        # c  =  muladd(tmp1, -tmp3, tmp1)
+        # d  =  muladd(tmp2, tmp3, tmp2)
+        # γN  =  c + d
 
     end
 
