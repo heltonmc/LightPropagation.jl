@@ -53,7 +53,8 @@ export DAsemiinf_DCS, Nlayer_cylinder_DCS
 export DiffusionParameters
 
 # constants
-export besselroots
+export J0_ROOTS
+export J1_J0ROOTS_2
 
 #export getfit
 #export load_asc_data
@@ -72,6 +73,9 @@ include("forwardmodels/Diffusion Approximation/DAcylinder_layered.jl")
 include("forwardmodels/Diffusion Approximation/DCS/semiinf.jl")
 include("forwardmodels/Diffusion Approximation/DCS/layered_cylinder.jl")
 
-const besselroots = load(joinpath(@__DIR__,"..", "src/forwardmodels/Diffusion Approximation/besselzeroroots.jld"))["besselroots"]
-       
+const J0_ROOTS = load(joinpath(@__DIR__,"..", "utils/besselroots/J0_ROOTS.jld"))["besselroots"]
+
+# computes (besselj1(besselroots[ind]))^2
+const J1_J0ROOTS_2 = load(joinpath(@__DIR__,"..", "utils/besselroots/J1_J0ROOTS_2.jld"))["J1_J0ROOTS_2"]
+    
 end

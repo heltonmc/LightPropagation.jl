@@ -16,7 +16,7 @@ The arguments defined with a Vector should be the same length and same type.
 - `β`: constant in Siegert relation dependent on collection optics
 - `BFi::Vector{T}`: Blood flow index ~αDb (cm²/s)
 - `λ`: wavelength (nm)
-- `bessels::AbstractVector{T}`: roots of J0
+- `N_J0Roots`: roots of J0
 
 # Examples
 ```
@@ -43,14 +43,15 @@ julia> g2_DA_Nlay_cylinder_CW(τ, data)
     BFi::Vector{T} = [2.0e-8, 2.0e-8]                   # Blood flow index ~αDb (cm²/s)
     λ::T = 750.0                                        # wavelength (nm)
 
-    bessels::AbstractVector{T} = besselroots[1:1000]    # roots of J0
+    N_J0Roots::Int = 600                               # Number of besselj0 roots in sum (N<=1e6)
+
 
     N_quad::Int = 50                                    # number of nodes in gauss-legendre integration
     N_laplace::Int = 12                                 # number of laplace evaluations in time-domain inversion
 end
 
 """
-    g1_DA_Nlay_cylinder_CW(τ::AbstractVector, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, bessels = besselroots[1:500])
+    g1_DA_Nlay_cylinder_CW(τ::AbstractVector, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, N_J0Roots = 1:500)
 
 Compute the electric field autocorrelation function function g1 in a layered cylinder (CW).
 
@@ -69,20 +70,20 @@ Compute the electric field autocorrelation function function g1 in a layered cyl
 - `a`: cylinder radius (cm)
 - `z`: the z-depth orthogonal from the boundary (cm)
 - `λ`: wavelength (nm)
-- `bessels`: roots of J0 (bessel function of first kind order zero)
+- `N_J0Roots`: roots of J0 (bessel function of first kind order zero)
 """
-function g1_DA_Nlay_cylinder_CW(τ::AbstractVector, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, bessels = besselroots[1:500])
+function g1_DA_Nlay_cylinder_CW(τ::AbstractVector, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, N_J0Roots = 500)
     g1 = similar(τ)
     μa_dynamic = similar(μa)
 
     k0 = 2 * π * n_med / (λ * 1e-7) # this should be in cm
     tmp = @. 2 * μsp * BFi * k0^2
 
-    G0 = fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, bessels)
+    G0 = fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots)
 
     Threads.@threads for ind in eachindex(τ)
         μa_dynamic = μa + tmp * τ[ind]
-        G1 = fluence_DA_Nlay_cylinder_CW(ρ, μa_dynamic, μsp, n_ext, n_med, l, a, z, bessels)
+        G1 = fluence_DA_Nlay_cylinder_CW(ρ, μa_dynamic, μsp, n_ext, n_med, l, a, z, N_J0Roots)
         g1[ind] = G1 / G0
     end
 
@@ -90,8 +91,8 @@ function g1_DA_Nlay_cylinder_CW(τ::AbstractVector, ρ, μa, μsp; BFi = [2e-8, 
 end
 
 """
-    g1_DA_Nlay_cylinder_TD(τ::AbstractVector, t::AbstractFloat, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, bessels = besselroots[1:1000], N_laplace = 8)
-    g1_DA_Nlay_cylinder_TD(τ::AbstractVector, t::AbstractVector, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, bessels = besselroots[1:1000], N_laplace = 8, N_quad = 100)
+    g1_DA_Nlay_cylinder_TD(τ::AbstractVector, t::AbstractFloat, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, N_J0Roots = 1000, N_laplace = 8)
+    g1_DA_Nlay_cylinder_TD(τ::AbstractVector, t::AbstractVector, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, N_J0Roots = 1000, N_laplace = 8, N_quad = 100)
 
 Compute the time-domain electric field autocorrelation function function g1 in a layered cylinder.
 
@@ -113,29 +114,29 @@ This is needed for time-gated applications.
 - `a`: cylinder radius (cm)
 - `z`: the z-depth orthogonal from the boundary (cm)
 - `λ`: wavelength (nm)
-- `bessels`: roots of J0 (bessel function of first kind order zero)
+- `N_J0Roots`: roots of J0 (bessel function of first kind order zero)
 - `N_quad`: number of nodes in gauss-legendre integration
 - `N_laplace`: number of laplace evaluations in inversion to time-domain
 """
-function g1_DA_Nlay_cylinder_TD(τ::AbstractVector, t::AbstractFloat, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, bessels = besselroots[1:1000], N_laplace = 8)
+function g1_DA_Nlay_cylinder_TD(τ::AbstractVector, t::AbstractFloat, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, N_J0Roots = 1000, N_laplace = 8)
     g1 = similar(τ)
     μa_dynamic = similar(μa)
 
     k0 = 2 * π * n_med / (λ * 1e-7) # this should be in cm
     tmp = @. 2 * μsp * BFi * k0^2
 
-    G0 = fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, bessels, N = N_laplace)
+    G0 = fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots, N = N_laplace)
 
     for ind in eachindex(τ)
         μa_dynamic = μa + tmp * τ[ind]
-        G1 = fluence_DA_Nlay_cylinder_TD(t, ρ, μa_dynamic, μsp, n_ext, n_med, l, a, z, bessels, N = N_laplace)
+        G1 = fluence_DA_Nlay_cylinder_TD(t, ρ, μa_dynamic, μsp, n_ext, n_med, l, a, z, N_J0Roots, N = N_laplace)
         g1[ind] = G1 / G0
     end
 
     return g1
 end
 
-function g1_DA_Nlay_cylinder_TD(τ::AbstractVector, t::AbstractVector, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, bessels = besselroots[1:1000], N_laplace = 8, N_quad = 100)
+function g1_DA_Nlay_cylinder_TD(τ::AbstractVector, t::AbstractVector, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, N_J0Roots = 1000, N_laplace = 8, N_quad = 100)
     g1 = similar(τ)
     μa_dynamic = similar(μa)
 
@@ -143,32 +144,32 @@ function g1_DA_Nlay_cylinder_TD(τ::AbstractVector, t::AbstractVector, ρ, μa, 
     tmp = @. 2 * μsp * BFi * k0^2
     x, w = gausslegendre(N_quad)
 
-    tpsf_norm = integrate_compute_y_first(t -> fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, bessels, N = N_laplace), x, w, t[1], t[2])
+    tpsf_norm = integrate_compute_y_first(t -> fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots, N = N_laplace), x, w, t[1], t[2])
 
     for ind in eachindex(τ)
         μa_dynamic = μa + tmp * τ[ind]
-        g1[ind] = integrate_compute_y_first(t -> (fluence_DA_Nlay_cylinder_TD(t, ρ, μa_dynamic, μsp, n_ext, n_med, l, a, z, bessels, N = N_laplace) / tpsf_norm), x, w, t[1], t[2])
+        g1[ind] = integrate_compute_y_first(t -> (fluence_DA_Nlay_cylinder_TD(t, ρ, μa_dynamic, μsp, n_ext, n_med, l, a, z, N_J0Roots, N = N_laplace) / tpsf_norm), x, w, t[1], t[2])
     end
 
     return g1
 end
 
-function g2_DA_Nlay_cylinder_CW(τ::AbstractVector, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, bessels = besselroots[1:500], β = 1.0)
-    g1 = g1_DA_Nlay_cylinder_CW(τ, ρ, μa, μsp, BFi = BFi, n_ext = n_ext, n_med = n_med, l = l, a = a, z = z, λ = λ, bessels = bessels)
+function g2_DA_Nlay_cylinder_CW(τ::AbstractVector, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, N_J0Roots = 500, β = 1.0)
+    g1 = g1_DA_Nlay_cylinder_CW(τ, ρ, μa, μsp, BFi = BFi, n_ext = n_ext, n_med = n_med, l = l, a = a, z = z, λ = λ, N_J0Roots = N_J0Roots)
     for ind in eachindex(τ)
         g1[ind] = 1 + β * abs(g1[ind])^2
     end
     return g1
 end
 function g2_DA_Nlay_cylinder_CW(τ::AbstractVector, data::Nlayer_cylinder_DCS)
-    return g2_DA_Nlay_cylinder_CW(τ, data.ρ, data.μa, data.μsp, BFi = data.BFi, n_ext = data.n_ext, n_med = data.n_med, l = data.l, a = data.a, λ = data.λ, bessels = data.bessels, β = data.β)
+    return g2_DA_Nlay_cylinder_CW(τ, data.ρ, data.μa, data.μsp, BFi = data.BFi, n_ext = data.n_ext, n_med = data.n_med, l = data.l, a = data.a, λ = data.λ, N_J0Roots = data.N_J0Roots, β = data.β)
 end
 
-function g2_DA_Nlay_cylinder_TD(τ::AbstractVector, t::Union{AbstractVector, AbstractFloat}, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, bessels = besselroots[1:500], N_laplace = 12, N_quad = 50, β = 1.0)
+function g2_DA_Nlay_cylinder_TD(τ::AbstractVector, t::Union{AbstractVector, AbstractFloat}, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, N_J0Roots = 500, N_laplace = 12, N_quad = 50, β = 1.0)
     if t isa AbstractVector
-        g1 = g1_DA_Nlay_cylinder_TD(τ, t, ρ, μa, μsp, BFi = BFi, n_ext = n_ext, n_med = n_med, l = l, a = a, z = z, λ = λ, bessels = bessels, N_laplace = N_laplace, N_quad = N_quad)
+        g1 = g1_DA_Nlay_cylinder_TD(τ, t, ρ, μa, μsp, BFi = BFi, n_ext = n_ext, n_med = n_med, l = l, a = a, z = z, λ = λ, N_J0Roots = N_J0Roots, N_laplace = N_laplace, N_quad = N_quad)
     elseif t isa AbstractFloat
-        g1 = g1_DA_Nlay_cylinder_TD(τ, t, ρ, μa, μsp, BFi = BFi, n_ext = n_ext, n_med = n_med, l = l, a = a, z = z, λ = λ, bessels = bessels, N_laplace = N_laplace)
+        g1 = g1_DA_Nlay_cylinder_TD(τ, t, ρ, μa, μsp, BFi = BFi, n_ext = n_ext, n_med = n_med, l = l, a = a, z = z, λ = λ, N_J0Roots = N_J0Roots, N_laplace = N_laplace)
     end
 
     for ind in eachindex(τ)
@@ -177,5 +178,5 @@ function g2_DA_Nlay_cylinder_TD(τ::AbstractVector, t::Union{AbstractVector, Abs
     return g1
 end
 function g2_DA_Nlay_cylinder_TD(τ::AbstractVector, t, data::Nlayer_cylinder_DCS)
-    return g2_DA_Nlay_cylinder_TD(τ, t, data.ρ, data.μa, data.μsp, BFi = data.BFi, n_ext = data.n_ext, n_med = data.n_med, l = data.l, a = data.a, λ = data.λ, bessels = data.bessels, N_laplace = data.N_laplace, N_quad = data.N_quad, β = data.β)
+    return g2_DA_Nlay_cylinder_TD(τ, t, data.ρ, data.μa, data.μsp, BFi = data.BFi, n_ext = data.n_ext, n_med = data.n_med, l = data.l, a = data.a, λ = data.λ, N_J0Roots = data.N_J0Roots, N_laplace = data.N_laplace, N_quad = data.N_quad, β = data.β)
 end
