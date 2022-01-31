@@ -52,15 +52,16 @@ julia> `fluence_DA_Nlay_cylinder_CW(1.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.
 function fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots)
     D = D_coeff.(μsp)
     N = length(D)
-    A = A_coeff.(n_med / n_ext)
+    A = A_coeff.(n_med ./ n_ext)
     z0 = z0_coeff(μsp[1])
     zb = zb_coeff.(A, D)
     @assert z0 < l[1]
-
+    
+    roots = @view J0_ROOTS[1:N_J0Roots]
     if z < l[1]
-        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, J0_ROOTS[1:N_J0Roots], _green_Nlaycylin_top, N) / (π * (a + zb[1])^2)
+        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, roots, _green_Nlaycylin_top, N) / (π * (a + zb[1])^2)
     elseif z > sum(l[1:end - 1])
-        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, J0_ROOTS[1:N_J0Roots], _green_Nlaycylin_bottom, N) / (π * (a + zb[1])^2)
+        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, roots, _green_Nlaycylin_bottom, N) / (π * (a + zb[1])^2)
     end
 end
 """
@@ -297,10 +298,9 @@ end
 function _kernel_fluence_DA_Nlay_cylinder(ρ::AbstractFloat, D, μa, a, zb, z, z0, l, n_med, besselroots, green, N)
     ϕ = zero(eltype(μa))
     ϕ_tmp = zero(eltype(μa))
-    α = zeros(eltype(μa), N)
 
     @inbounds for ind in eachindex(besselroots)
-        ϕ_tmp = green(α, besselroots[ind] / (a + zb[1]), μa, D, z, z0, zb, l, n_med, N)
+        ϕ_tmp = green(besselroots[ind] / (a + zb[1]), μa, D, z, z0, zb, l, n_med, N)
         ϕ_tmp *= besselj0(besselroots[ind] / (a + zb[1]) * ρ)
         ϕ_tmp /= J1_J0ROOTS_2[ind] # replaces (besselj1(besselroots[ind]))^2
         ϕ += ϕ_tmp
@@ -312,11 +312,10 @@ end
 function _kernel_fluence_DA_Nlay_cylinder(ρ::AbstractVector, D, μa, a, zb, z, z0, l, n_med, besselroots, green, N)
     ϕ = zeros(eltype(μa), length(ρ))
     ϕ_tmp = zero(eltype(μa))
-    α = zeros(eltype(μa), N)
 
     for ind in eachindex(besselroots)
         tmp = besselroots[ind] / (a + zb[1])
-        ϕ_tmp = green(α, tmp, μa, D, z, z0, zb, l, n_med, N)
+        ϕ_tmp = green(tmp, μa, D, z, z0, zb, l, n_med, N)
         ϕ_tmp /= J1_J0ROOTS_2[ind] # replaces (besselj1(besselroots[ind]))^2
         for ρ_ind in eachindex(ρ)
             ϕ[ρ_ind] += ϕ_tmp * besselj0(tmp * ρ[ρ_ind])
@@ -338,8 +337,8 @@ end
     end
     return α
 end
-@inline function _green_Nlaycylin_top(α, sn, μa, D, z, z0, zb, l, n, N)
-    α = α_coeff!(α, μa, D, sn)
+@inline function _green_Nlaycylin_top(sn, μa, D, z, z0, zb, l, n, N)
+    α = @. sqrt(μa / D + sn^2)
 
     if N == 4
         β, γ = _get_βγ4(α, D, n, zb, l)
@@ -362,8 +361,8 @@ end
 
     return (g + g1) / (2 * D[1] * α[1])
 end
-@inline function _green_Nlaycylin_bottom(α, sn, μa, D, z, z0, zb, l, n, N)
-    α = α_coeff!(α, μa, D, sn)
+@inline function _green_Nlaycylin_bottom(sn, μa, D, z, z0, zb, l, n, N)
+    α = @. sqrt(μa / D + sn^2)
 
     if N == 4
         β, γ = _get_βγ4(α, D, n, zb, l)
@@ -537,3 +536,4 @@ end
     return out
 end
 #-------------------------------------------------------------------------------
+
