@@ -414,11 +414,20 @@ end
     tmp3 = exp(-2 * α[2] * l[2])
     tmp4 = exp(-2 * α[3] * (l[3] + zb[2]))
 
-    β  = tmp1 * (1 + tmp3) * (1 - tmp4)
-    β += tmp2 * (1 - tmp3) * (1 + tmp4)
+    a = tmp1 * tmp3
+    b = muladd(-tmp1, tmp4, tmp1)
+    c = a * tmp4
+    a = a - c
+    β = b + a
+    γ = b - a
 
-    γ  = tmp1 * (1 - tmp3) * (1 - tmp4)
-    γ += tmp2 * (1 + tmp3) * (1 + tmp4)
+    a = tmp2 * tmp3
+    b = muladd(tmp2, tmp4, tmp2)
+    c = a * tmp4
+    a = a + c
+
+    β += b - a
+    γ += b + a
 
     return β, γ
 end
