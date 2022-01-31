@@ -384,9 +384,10 @@ end
         tmp *= D[ind] * α[ind] * n[ind]^2
     end
 
+    tmp1 = exp(-2 * α[1] * (l[1] + zb[1]));
     gN = n[end]^2 * tmp * 2^(N - 1) / 2
     gN *= exp(α[1] * (z0 - l[1]) + α[end] * (sum(l) + zb[end] - z) - βγ_correction)
-    gN /= D[1] * α[1] * n[1]^2 * β * (1 + exp(-2 * α[1] * (l[1] + zb[1]))) + D[2] * α[2] * n[2]^2 * γ * (1 - exp(-2 * α[1] * (l[1] + zb[1])))
+    gN /= D[1] * α[1] * n[1]^2 * β * (1 + tmp1) + D[2] * α[2] * n[2]^2 * γ * (1 - tmp1)
     gN *= (1 - exp(-2 * α[1] * (z0 + zb[1]))) * (1 - exp(-2 * α[end] * (sum(l) + zb[end] - z)))
 
     return gN
@@ -413,11 +414,20 @@ end
     tmp3 = exp(-2 * α[2] * l[2])
     tmp4 = exp(-2 * α[3] * (l[3] + zb[2]))
 
-    β  = tmp1 * (1 + tmp3) * (1 - tmp4)
-    β += tmp2 * (1 - tmp3) * (1 + tmp4)
+    a = tmp1 * tmp3
+    b = muladd(-tmp1, tmp4, tmp1)
+    c = a * tmp4
+    a = a - c
+    β = b + a
+    γ = b - a
 
-    γ  = tmp1 * (1 - tmp3) * (1 - tmp4)
-    γ += tmp2 * (1 + tmp3) * (1 + tmp4)
+    a = tmp2 * tmp3
+    b = muladd(tmp2, tmp4, tmp2)
+    c = a * tmp4
+    a = a + c
+
+    β += b - a
+    γ += b + a
 
     return β, γ
 end
@@ -430,14 +440,31 @@ end
     tmp2 = exp(-2 * α[3] * l[3])
     tmp3 = exp(-2 * α[4] * (l[4] + zb[2]))
 
-    β_4  = tmp1 * (1 + tmp2) * (1 - tmp3)
-    β_4 += tmp4 * (1 - tmp2) * (1 + tmp3)
+    a = tmp1 * tmp3
+    b = tmp1 * tmp2
+    c = a * tmp2
+    a = tmp1 - a
+    b = b - c
+    β4 = a + b
+    γ4 = a - b
 
-    γ_4  = tmp1 * (1 - tmp2) * (1 - tmp3)
-    γ_4 += tmp4 * (1 + tmp2) * (1 + tmp3)
+    a = tmp4 * tmp2
+    b = tmp4 * tmp3
+    c = a * tmp3
+    b = tmp4 + b
+    c = a + c
+    β4 += b - c
+    γ4 += b + c
+    
+    a = tmp5 * β4
+    b = a * tmp6
+    c = tmp1 * γ4
+    d = c * tmp6
+    a = a + c
+    b = b - d
 
-    β = (tmp5 * β_4 * (1 + tmp6) + tmp1 * γ_4 * (1 - tmp6))
-    γ = (tmp5 * β_4 * (1 - tmp6) + tmp1 * γ_4 * (1 + tmp6))
+    β = a + b
+    γ = a - b
 
     return β, γ
 end
@@ -449,11 +476,13 @@ end
         tmp2 = D[k - 1] * α[k - 1] * n[k - 1]^2 * γN
         tmp3 = exp(-2 * α[k - 2] * l[k - 2])
 
-        βN  =  tmp1 * (1 + tmp3)
-        βN +=  tmp2 * (1 - tmp3)
-        γN  =  tmp1 * (1 - tmp3)
-        γN +=  tmp2 * (1 + tmp3)
+        a = tmp1 * tmp3
+        c = tmp1 + tmp2
+        b = tmp2 * tmp3
+        d = a - b
 
+        βN = c + d
+        γN = c - d
     end
 
     return βN, γN
@@ -464,11 +493,19 @@ end
     tmp3 = exp(-2 * α[end - 1] * l[end - 1])
     tmp4 = exp(-2 * α[end] * (l[end] + zb[2]))
     
-    βN  =   tmp1 * (1 + tmp3) *  (1 - tmp4)
-    βN +=   tmp2 * (1 - tmp3) *  (1 + tmp4)
+    a = tmp1 * tmp3
+    b = tmp1 - tmp1 * tmp4
+    c = a * tmp4
+    a = a - c
+    βN =  b + a
+    γN =  b - a
 
-    γN =  tmp1 * (1 - tmp3) *  (1 - tmp4)
-    γN +=  tmp2 * (1 + tmp3) *  (1 + tmp4)
+    a = tmp2 * tmp3
+    b = tmp2 + tmp2 * tmp4
+    c = a * tmp4
+    a = a + c
+    βN += b - a
+    γN += b + a
 
     return βN, γN
 end

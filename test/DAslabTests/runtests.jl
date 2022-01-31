@@ -40,5 +40,5 @@ D = 1 / (3 * 20.0)
 
 ## CW
 @test flux_DA_slab_CW(1.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 40.0, z = 0.0, xs = 15) ≈ flux_DA_semiinf_CW(1.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0)
-
+@test flux_DA_slab_CW(1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, s = 60.0, z = 0.0,xs = 10) ≈ flux_DA_semiinf_CW(1.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0)
 end 
