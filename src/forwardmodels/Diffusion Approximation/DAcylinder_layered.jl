@@ -440,14 +440,31 @@ end
     tmp2 = exp(-2 * α[3] * l[3])
     tmp3 = exp(-2 * α[4] * (l[4] + zb[2]))
 
-    β_4  = tmp1 * (1 + tmp2) * (1 - tmp3)
-    β_4 += tmp4 * (1 - tmp2) * (1 + tmp3)
+    a = tmp1 * tmp3
+    b = tmp1 * tmp2
+    c = a * tmp2
+    a = tmp1 - a
+    b = b - c
+    β4 = a + b
+    γ4 = a - b
 
-    γ_4  = tmp1 * (1 - tmp2) * (1 - tmp3)
-    γ_4 += tmp4 * (1 + tmp2) * (1 + tmp3)
+    a = tmp4 * tmp2
+    b = tmp4 * tmp3
+    c = a * tmp3
+    b = tmp4 + b
+    c = a + c
+    β4 += b - c
+    γ4 += b + c
+    
+    a = tmp5 * β4
+    b = a * tmp6
+    c = tmp1 * γ4
+    d = c * tmp6
+    a = a + c
+    b = b - d
 
-    β = (tmp5 * β_4 * (1 + tmp6) + tmp1 * γ_4 * (1 - tmp6))
-    γ = (tmp5 * β_4 * (1 - tmp6) + tmp1 * γ_4 * (1 + tmp6))
+    β = a + b
+    γ = a - b
 
     return β, γ
 end
@@ -476,11 +493,19 @@ end
     tmp3 = exp(-2 * α[end - 1] * l[end - 1])
     tmp4 = exp(-2 * α[end] * (l[end] + zb[2]))
     
-    βN  =   tmp1 * (1 + tmp3) *  (1 - tmp4)
-    βN +=   tmp2 * (1 - tmp3) *  (1 + tmp4)
+    a = tmp1 * tmp3
+    b = tmp1 - tmp1 * tmp4
+    c = a * tmp4
+    a = a - c
+    βN =  b + a
+    γN =  b - a
 
-    γN =  tmp1 * (1 - tmp3) *  (1 - tmp4)
-    γN +=  tmp2 * (1 + tmp3) *  (1 + tmp4)
+    a = tmp2 * tmp3
+    b = tmp2 + tmp2 * tmp4
+    c = a * tmp4
+    a = a + c
+    βN += b - a
+    γN += b + a
 
     return βN, γN
 end
