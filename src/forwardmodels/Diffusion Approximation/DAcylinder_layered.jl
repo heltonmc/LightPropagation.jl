@@ -5,36 +5,21 @@
 # [1] André Liemert and Alwin Kienle, "Light diffusion in a turbid cylinder. II. Layered case," Opt. Express 18, 9266-9279 (2010) 
 #---------------------------------------------------------------------------------------------------------------------------------------- 
 
-@with_kw struct Nlayer_cylinder{T <: Real} <: DiffusionParameters
-    μsp::Vector{T} = [10.0, 10.0, 10.0, 10.0]               # reduced scattering coefficient (1/cm)
-    μa::Vector{T} = [0.1, 0.1, 0.1, 0.1]                    # absorption coefficient (1/cm)
-    n_ext::T = 1.0                                          # surrounding index of refraction
-    n_med::Vector{T} = [1.0, 1.0, 1.0, 1.0]                 # layers index of refraction
-
-    l::Vector{T} = [0.5, 0.8, 1.0, 5.0]                     # length of cylinder layers (cm)
-    ρ::Union{T, AbstractVector{T}} = 1.0                    # source-detector separation (cm)
-    a::T = 5.0                                              # radius of cylinder (cm)
-    z::T = 0.0                                              # detector depth (cm)
-
-    ω::T = 0.0                                              # modulation frequency
-    N_J0Roots::Int = 1000                                   # Number of besselj0 roots in sum (N<=1e6)
-end
-#=
-@with_kw struct Nlayer_cylinder3{N, T <: Real} <: DiffusionParameters
+@with_kw struct Nlayer_cylinder{N, T <: Real} <: DiffusionParameters
     μsp::NTuple{N, T} = (10.0, 10.0, 10.0, 10.0)            # reduced scattering coefficient (1/cm)
     μa::NTuple{N, T} = (0.1, 0.1, 0.1, 0.1)                 # absorption coefficient (1/cm)
     n_ext::T = 1.0                                          # surrounding index of refraction
     n_med::NTuple{N, T} = (1.0, 1.0, 1.0, 1.0)              # layers index of refraction
 
     l::NTuple{N, T} = (0.5, 0.8, 1.0, 5.0)                  # length of cylinder layers (cm)
-    ρ::T = (1.0)                                            # source-detector separation (cm)
+    ρ::T = 1.0                                              # source-detector separation (cm)
     a::T = 5.0                                              # radius of cylinder (cm)
     z::T = 0.0                                              # detector depth (cm)
 
     ω::T = 0.0                                              # modulation frequency
     N_J0Roots::Int = 1000                                   # Number of besselj0 roots in sum (N<=1e6)
 end
-=#
+
 #-------------------------------------------
 # Steady-State Fluence 
 #-------------------------------------------
@@ -392,7 +377,7 @@ end
         βγ_correction = _βγN_correction(α, zb, l)  
     end
 
-    tmp = 1.0
+    tmp = one(eltype(α))
     for ind in (N - 1):-1:2
         tmp *= D[ind] * α[ind] * n[ind]^2
     end
@@ -550,4 +535,3 @@ end
     return out
 end
 #-------------------------------------------------------------------------------
-
