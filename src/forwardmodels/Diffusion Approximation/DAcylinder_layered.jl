@@ -19,7 +19,22 @@
     ω::T = 0.0                                              # modulation frequency
     N_J0Roots::Int = 1000                                   # Number of besselj0 roots in sum (N<=1e6)
 end
+#=
+@with_kw struct Nlayer_cylinder3{N, T <: Real} <: DiffusionParameters
+    μsp::NTuple{N, T} = (10.0, 10.0, 10.0, 10.0)            # reduced scattering coefficient (1/cm)
+    μa::NTuple{N, T} = (0.1, 0.1, 0.1, 0.1)                 # absorption coefficient (1/cm)
+    n_ext::T = 1.0                                          # surrounding index of refraction
+    n_med::NTuple{N, T} = (1.0, 1.0, 1.0, 1.0)              # layers index of refraction
 
+    l::NTuple{N, T} = (0.5, 0.8, 1.0, 5.0)                  # length of cylinder layers (cm)
+    ρ::T = (1.0)                                            # source-detector separation (cm)
+    a::T = 5.0                                              # radius of cylinder (cm)
+    z::T = 0.0                                              # detector depth (cm)
+
+    ω::T = 0.0                                              # modulation frequency
+    N_J0Roots::Int = 1000                                   # Number of besselj0 roots in sum (N<=1e6)
+end
+=#
 #-------------------------------------------
 # Steady-State Fluence 
 #-------------------------------------------
@@ -59,9 +74,9 @@ function fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0R
     
     roots = @view J0_ROOTS[1:N_J0Roots]
     if z < l[1]
-        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, roots, _green_Nlaycylin_top, N) / (π * (a + zb[1])^2)
+        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, roots, _green_Nlaycylin_top, N)
     elseif z > sum(l[1:end - 1])
-        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, roots, _green_Nlaycylin_bottom, N) / (π * (a + zb[1])^2)
+        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, roots, _green_Nlaycylin_bottom, N)
     end
 end
 """
@@ -298,31 +313,30 @@ end
 function _kernel_fluence_DA_Nlay_cylinder(ρ::AbstractFloat, D, μa, a, zb, z, z0, l, n_med, besselroots, green, N)
     ϕ = zero(eltype(μa))
     ϕ_tmp = zero(eltype(μa))
+    apzb = inv(a + zb[1])
 
     @inbounds for ind in eachindex(besselroots)
-        ϕ_tmp = green(besselroots[ind] / (a + zb[1]), μa, D, z, z0, zb, l, n_med, N)
-        ϕ_tmp *= besselj0(besselroots[ind] / (a + zb[1]) * ρ)
+        ϕ_tmp = green(besselroots[ind] * apzb, μa, D, z, z0, zb, l, n_med, N)
+        ϕ_tmp *= besselj0(besselroots[ind] * apzb * ρ)
         ϕ_tmp /= J1_J0ROOTS_2[ind] # replaces (besselj1(besselroots[ind]))^2
         ϕ += ϕ_tmp
     end
 
-    return ϕ
+    return ϕ / (π * (a + zb[1])^2)
 end
-
-function _kernel_fluence_DA_Nlay_cylinder(ρ::AbstractVector, D, μa, a, zb, z, z0, l, n_med, besselroots, green, N)
-    ϕ = zeros(eltype(μa), length(ρ))
+function _kernel_fluence_DA_Nlay_cylinder(ρ::Tuple, D, μa, a, zb, z, z0, l, n_med, besselroots, green, N)
+    ϕ = ρ .* zero(eltype(μa))
     ϕ_tmp = zero(eltype(μa))
+    apzb = inv(a + zb[1])
 
     for ind in eachindex(besselroots)
-        tmp = besselroots[ind] / (a + zb[1])
+        tmp = besselroots[ind] * apzb
         ϕ_tmp = green(tmp, μa, D, z, z0, zb, l, n_med, N)
         ϕ_tmp /= J1_J0ROOTS_2[ind] # replaces (besselj1(besselroots[ind]))^2
-        for ρ_ind in eachindex(ρ)
-            ϕ[ρ_ind] += ϕ_tmp * besselj0(tmp * ρ[ρ_ind])
-        end
+        ϕ = ϕ .+ ϕ_tmp .* besselj0.(tmp .* ρ)
     end
 
-    return ϕ
+    return ϕ ./ (π * (a + zb[1])^2)
 end
 #-------------------------------------------------------------------------------
 # Calculates the Green's function in the first (top) and last (bottom) layer

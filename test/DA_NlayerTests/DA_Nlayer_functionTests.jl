@@ -58,8 +58,11 @@ cyl_4 = Nlayer_cylinder(ρ = 1.0, μsp = [10.0, 10.0, 10.0, 10.0], μa = [0.1, 0
 @test fluence_DA_Nlay_cylinder_CW(0.0, [0.1, 0.1, 0.1, 0.1, 0.1, 0.1], [10.0, 10.0, 10.0, 10.0, 10.0, 10.0], 1.0, [1.0, 1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0, 1.0], 10.0, 6.0, 10000) ≈ fluence_DA_slab_CW(0.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 6.0, z = 6.0, xs = 50)
 
 ### test that scalar and vector ρ matches (they call different routines)
-data = Nlayer_cylinder(ρ = 1.0:0.1:2.0, N_J0Roots = 1000)
-@test fluence_DA_Nlay_cylinder_CW(data) ≈ map(ρ -> fluence_DA_Nlay_cylinder_CW(Nlayer_cylinder(ρ = ρ, N_J0Roots = 1000)), 1.0:0.1:2.0)
+μsp = (10.0, 10.0, 10.0, 10.0); μa = (0.1, 0.1, 0.1, 0.1); n_ext = 1.0;
+n_med = (1.0, 1.0, 1.0, 1.0); l = (0.5, 0.8, 1.0, 5.0); a = 5.0; z = 0.0                                         
+N_J0Roots = 1000                       
+ρ1 = (1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0)
+@test [fluence_DA_Nlay_cylinder_CW(ρ1, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots)...] ≈ map(ρ -> fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots), 1.0:0.1:2.0)
 
 #########
 # Time-Domain
