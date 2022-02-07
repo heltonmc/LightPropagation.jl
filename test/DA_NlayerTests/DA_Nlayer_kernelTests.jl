@@ -50,7 +50,7 @@ l = [1.0, 2.0]
 n = [1.0, 1.0]
 z = 0.0
 
-@test _green_Nlaycylin_top(α, sn, μa, D, z, z0, zb, l, n, 2) ≈ green_2layer(α, sn, μa, D, z, z0, zb, l, n)
+@test _green_Nlaycylin_top(sn, μa, D, z, z0, zb, l, n, 2) ≈ green_2layer(α, sn, μa, D, z, z0, zb, l, n)
 
 ### test the 3 layer case
 α = [1.2, 1.5, 1.3]
@@ -63,6 +63,6 @@ l = [1.0, 2.0, 1.2]
 n = [1.0, 1.0, 1.1]
 z = 0.0
 
-@test _green_Nlaycylin_top(α, sn, μa, D, z, z0, zb, l, n, 3) ≈ green_3layer(α, sn, μa, D, z, z0, zb, l, n)
+@test _green_Nlaycylin_top(sn, μa, D, z, z0, zb, l, n, 3) ≈ green_3layer(α, sn, μa, D, z, z0, zb, l, n)
 
 end # module

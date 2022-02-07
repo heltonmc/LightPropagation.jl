@@ -5,14 +5,14 @@
 # [1] André Liemert and Alwin Kienle, "Light diffusion in a turbid cylinder. II. Layered case," Opt. Express 18, 9266-9279 (2010) 
 #---------------------------------------------------------------------------------------------------------------------------------------- 
 
-@with_kw struct Nlayer_cylinder{T <: Real} <: DiffusionParameters
-    μsp::Vector{T} = [10.0, 10.0, 10.0, 10.0]               # reduced scattering coefficient (1/cm)
-    μa::Vector{T} = [0.1, 0.1, 0.1, 0.1]                    # absorption coefficient (1/cm)
+@with_kw struct Nlayer_cylinder{N, T <: Real} <: DiffusionParameters
+    μsp::NTuple{N, T} = (10.0, 10.0, 10.0, 10.0)            # reduced scattering coefficient (1/cm)
+    μa::NTuple{N, T} = (0.1, 0.1, 0.1, 0.1)                 # absorption coefficient (1/cm)
     n_ext::T = 1.0                                          # surrounding index of refraction
-    n_med::Vector{T} = [1.0, 1.0, 1.0, 1.0]                 # layers index of refraction
+    n_med::NTuple{N, T} = (1.0, 1.0, 1.0, 1.0)              # layers index of refraction
 
-    l::Vector{T} = [0.5, 0.8, 1.0, 5.0]                     # length of cylinder layers (cm)
-    ρ::Union{T, AbstractVector{T}} = 1.0                    # source-detector separation (cm)
+    l::NTuple{N, T} = (0.5, 0.8, 1.0, 5.0)                  # length of cylinder layers (cm)
+    ρ::T = 1.0                                              # source-detector separation (cm)
     a::T = 5.0                                              # radius of cylinder (cm)
     z::T = 0.0                                              # detector depth (cm)
 
@@ -52,15 +52,16 @@ julia> `fluence_DA_Nlay_cylinder_CW(1.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.
 function fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots)
     D = D_coeff.(μsp)
     N = length(D)
-    A = A_coeff.(n_med / n_ext)
+    A = A_coeff.(n_med ./ n_ext)
     z0 = z0_coeff(μsp[1])
     zb = zb_coeff.(A, D)
     @assert z0 < l[1]
-
+    
+    roots = @view J0_ROOTS[1:N_J0Roots]
     if z < l[1]
-        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, J0_ROOTS[1:N_J0Roots], _green_Nlaycylin_top, N) / (π * (a + zb[1])^2)
+        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, roots, _green_Nlaycylin_top, N)
     elseif z > sum(l[1:end - 1])
-        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, J0_ROOTS[1:N_J0Roots], _green_Nlaycylin_bottom, N) / (π * (a + zb[1])^2)
+        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, roots, _green_Nlaycylin_bottom, N)
     end
 end
 """
@@ -297,33 +298,30 @@ end
 function _kernel_fluence_DA_Nlay_cylinder(ρ::AbstractFloat, D, μa, a, zb, z, z0, l, n_med, besselroots, green, N)
     ϕ = zero(eltype(μa))
     ϕ_tmp = zero(eltype(μa))
-    α = zeros(eltype(μa), N)
+    apzb = inv(a + zb[1])
 
     @inbounds for ind in eachindex(besselroots)
-        ϕ_tmp = green(α, besselroots[ind] / (a + zb[1]), μa, D, z, z0, zb, l, n_med, N)
-        ϕ_tmp *= besselj0(besselroots[ind] / (a + zb[1]) * ρ)
+        ϕ_tmp = green(besselroots[ind] * apzb, μa, D, z, z0, zb, l, n_med, N)
+        ϕ_tmp *= besselj0(besselroots[ind] * apzb * ρ)
         ϕ_tmp /= J1_J0ROOTS_2[ind] # replaces (besselj1(besselroots[ind]))^2
         ϕ += ϕ_tmp
     end
 
-    return ϕ
+    return ϕ / (π * (a + zb[1])^2)
 end
-
-function _kernel_fluence_DA_Nlay_cylinder(ρ::AbstractVector, D, μa, a, zb, z, z0, l, n_med, besselroots, green, N)
-    ϕ = zeros(eltype(μa), length(ρ))
+function _kernel_fluence_DA_Nlay_cylinder(ρ::Tuple, D, μa, a, zb, z, z0, l, n_med, besselroots, green, N)
+    ϕ = ρ .* zero(eltype(μa))
     ϕ_tmp = zero(eltype(μa))
-    α = zeros(eltype(μa), N)
+    apzb = inv(a + zb[1])
 
     for ind in eachindex(besselroots)
-        tmp = besselroots[ind] / (a + zb[1])
-        ϕ_tmp = green(α, tmp, μa, D, z, z0, zb, l, n_med, N)
+        tmp = besselroots[ind] * apzb
+        ϕ_tmp = green(tmp, μa, D, z, z0, zb, l, n_med, N)
         ϕ_tmp /= J1_J0ROOTS_2[ind] # replaces (besselj1(besselroots[ind]))^2
-        for ρ_ind in eachindex(ρ)
-            ϕ[ρ_ind] += ϕ_tmp * besselj0(tmp * ρ[ρ_ind])
-        end
+        ϕ = ϕ .+ ϕ_tmp .* besselj0.(tmp .* ρ)
     end
 
-    return ϕ
+    return ϕ ./ (π * (a + zb[1])^2)
 end
 #-------------------------------------------------------------------------------
 # Calculates the Green's function in the first (top) and last (bottom) layer
@@ -338,8 +336,8 @@ end
     end
     return α
 end
-@inline function _green_Nlaycylin_top(α, sn, μa, D, z, z0, zb, l, n, N)
-    α = α_coeff!(α, μa, D, sn)
+@inline function _green_Nlaycylin_top(sn, μa, D, z, z0, zb, l, n, N)
+    α = @. sqrt(μa / D + sn^2)
 
     if N == 4
         β, γ = _get_βγ4(α, D, n, zb, l)
@@ -362,8 +360,8 @@ end
 
     return (g + g1) / (2 * D[1] * α[1])
 end
-@inline function _green_Nlaycylin_bottom(α, sn, μa, D, z, z0, zb, l, n, N)
-    α = α_coeff!(α, μa, D, sn)
+@inline function _green_Nlaycylin_bottom(sn, μa, D, z, z0, zb, l, n, N)
+    α = @. sqrt(μa / D + sn^2)
 
     if N == 4
         β, γ = _get_βγ4(α, D, n, zb, l)
@@ -379,14 +377,15 @@ end
         βγ_correction = _βγN_correction(α, zb, l)  
     end
 
-    tmp = 1.0
+    tmp = one(eltype(α))
     for ind in (N - 1):-1:2
         tmp *= D[ind] * α[ind] * n[ind]^2
     end
 
+    tmp1 = exp(-2 * α[1] * (l[1] + zb[1]))
     gN = n[end]^2 * tmp * 2^(N - 1) / 2
     gN *= exp(α[1] * (z0 - l[1]) + α[end] * (sum(l) + zb[end] - z) - βγ_correction)
-    gN /= D[1] * α[1] * n[1]^2 * β * (1 + exp(-2 * α[1] * (l[1] + zb[1]))) + D[2] * α[2] * n[2]^2 * γ * (1 - exp(-2 * α[1] * (l[1] + zb[1])))
+    gN /= D[1] * α[1] * n[1]^2 * β * (1 + tmp1) + D[2] * α[2] * n[2]^2 * γ * (1 - tmp1)
     gN *= (1 - exp(-2 * α[1] * (z0 + zb[1]))) * (1 - exp(-2 * α[end] * (sum(l) + zb[end] - z)))
 
     return gN

@@ -28,23 +28,22 @@ julia> τ = 10 .^(range(-10,stop=0,length=250))
 julia> g2_DA_Nlay_cylinder_CW(τ, data)
 ```
 """
-@with_kw struct Nlayer_cylinder_DCS{T <: Real}
-    μsp::Vector{T} = [10.0, 10.0]                       # reduced scattering coefficient (1/cm)
-    μa::Vector{T} = [0.1, 0.1]                          # absorption coefficient (1/cm)
+@with_kw struct Nlayer_cylinder_DCS{N, T <: Real}
+    μsp::NTuple{N, T} = (10.0, 10.0)                    # reduced scattering coefficient (1/cm)
+    μa::NTuple{N, T} = (0.1, 0.1)                       # absorption coefficient (1/cm)
     n_ext::T = 1.0                                      # surrounding index of refraction
-    n_med::Vector{T} = [1.0, 1.0]                       # layers index of refraction
+    n_med::NTuple{N, T} = (1.0, 1.0)                    # layers index of refraction
 
-    l::Vector{T} = [0.5, 10.0]                          # length of cylinder layers (cm)
-    ρ::Union{T, AbstractVector{T}} = 1.0                # source-detector separation (cm)
+    l::NTuple{N, T} = (0.5, 10.0)                       # length of cylinder layers (cm)
+    ρ::T = 1.0                                          # source-detector separation (cm)
     a::T = 20.0                                         # radius of cylinder (cm)
     z::T = 0.0                                          # detector depth (cm)
 
     β::T = 1.0                                          # constant in Siegert relation dependent on collection optics
-    BFi::Vector{T} = [2.0e-8, 2.0e-8]                   # Blood flow index ~αDb (cm²/s)
+    BFi::NTuple{N, T} = (2.0e-8, 2.0e-8)                   # Blood flow index ~αDb (cm²/s)
     λ::T = 750.0                                        # wavelength (nm)
 
-    N_J0Roots::Int = 600                               # Number of besselj0 roots in sum (N<=1e6)
-
+    N_J0Roots::Int = 600                                # Number of besselj0 roots in sum (N<=1e6)
 
     N_quad::Int = 50                                    # number of nodes in gauss-legendre integration
     N_laplace::Int = 12                                 # number of laplace evaluations in time-domain inversion
@@ -72,17 +71,16 @@ Compute the electric field autocorrelation function function g1 in a layered cyl
 - `λ`: wavelength (nm)
 - `N_J0Roots`: roots of J0 (bessel function of first kind order zero)
 """
-function g1_DA_Nlay_cylinder_CW(τ::AbstractVector, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, N_J0Roots = 500)
+function g1_DA_Nlay_cylinder_CW(τ::AbstractVector, ρ, μa, μsp; BFi = (2e-8, 2e-8), n_ext = 1.0, n_med = (1.0, 1.0), l = (1.0, 10.0), a = 20.0, z = 0.0, λ = 700.0, N_J0Roots = 500)
     g1 = similar(τ)
-    μa_dynamic = similar(μa)
 
-    k0 = 2 * π * n_med / (λ * 1e-7) # this should be in cm
+    k0 = @. 2 * π * n_med / (λ * 1e-7) # this should be in cm
     tmp = @. 2 * μsp * BFi * k0^2
 
     G0 = fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots)
 
     Threads.@threads for ind in eachindex(τ)
-        μa_dynamic = μa + tmp * τ[ind]
+        μa_dynamic = @. μa + tmp * τ[ind]
         G1 = fluence_DA_Nlay_cylinder_CW(ρ, μa_dynamic, μsp, n_ext, n_med, l, a, z, N_J0Roots)
         g1[ind] = G1 / G0
     end
@@ -118,17 +116,16 @@ This is needed for time-gated applications.
 - `N_quad`: number of nodes in gauss-legendre integration
 - `N_laplace`: number of laplace evaluations in inversion to time-domain
 """
-function g1_DA_Nlay_cylinder_TD(τ::AbstractVector, t::AbstractFloat, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, N_J0Roots = 1000, N_laplace = 8)
+function g1_DA_Nlay_cylinder_TD(τ::AbstractVector, t::AbstractFloat, ρ, μa, μsp; BFi = (2e-8, 2e-8), n_ext = 1.0, n_med = (1.0, 1.0), l = (1.0, 10.0), a = 20.0, z = 0.0, λ = 700.0, N_J0Roots = 1000, N_laplace = 8)
     g1 = similar(τ)
-    μa_dynamic = similar(μa)
 
-    k0 = 2 * π * n_med / (λ * 1e-7) # this should be in cm
+    k0 = @. 2 * π * n_med / (λ * 1e-7) # this should be in cm
     tmp = @. 2 * μsp * BFi * k0^2
 
     G0 = fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots, N = N_laplace)
 
     for ind in eachindex(τ)
-        μa_dynamic = μa + tmp * τ[ind]
+        μa_dynamic = @. μa + tmp * τ[ind]
         G1 = fluence_DA_Nlay_cylinder_TD(t, ρ, μa_dynamic, μsp, n_ext, n_med, l, a, z, N_J0Roots, N = N_laplace)
         g1[ind] = G1 / G0
     end
@@ -136,25 +133,24 @@ function g1_DA_Nlay_cylinder_TD(τ::AbstractVector, t::AbstractFloat, ρ, μa, �
     return g1
 end
 
-function g1_DA_Nlay_cylinder_TD(τ::AbstractVector, t::AbstractVector, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, N_J0Roots = 1000, N_laplace = 8, N_quad = 100)
+function g1_DA_Nlay_cylinder_TD(τ::AbstractVector, t::AbstractVector, ρ, μa, μsp; BFi = (2e-8, 2e-8), n_ext = 1.0, n_med = (1.0, 1.0), l = (1.0, 10.0), a = 20.0, z = 0.0, λ = 700.0, N_J0Roots = 1000, N_laplace = 8, N_quad = 100)
     g1 = similar(τ)
-    μa_dynamic = similar(μa)
 
-    k0 = 2 * π * n_med / (λ * 1e-7) # this should be in cm
+    k0 = @. 2 * π * n_med / (λ * 1e-7) # this should be in cm
     tmp = @. 2 * μsp * BFi * k0^2
     x, w = gausslegendre(N_quad)
 
     tpsf_norm = integrate_compute_y_first(t -> fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots, N = N_laplace), x, w, t[1], t[2])
 
     for ind in eachindex(τ)
-        μa_dynamic = μa + tmp * τ[ind]
+        μa_dynamic = @. μa + tmp * τ[ind]
         g1[ind] = integrate_compute_y_first(t -> (fluence_DA_Nlay_cylinder_TD(t, ρ, μa_dynamic, μsp, n_ext, n_med, l, a, z, N_J0Roots, N = N_laplace) / tpsf_norm), x, w, t[1], t[2])
     end
 
     return g1
 end
 
-function g2_DA_Nlay_cylinder_CW(τ::AbstractVector, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, N_J0Roots = 500, β = 1.0)
+function g2_DA_Nlay_cylinder_CW(τ::AbstractVector, ρ, μa, μsp; BFi = (2e-8, 2e-8), n_ext = 1.0, n_med = (1.0, 1.0), l = (1.0, 10.0), a = 20.0, z = 0.0, λ = 700.0, N_J0Roots = 500, β = 1.0)
     g1 = g1_DA_Nlay_cylinder_CW(τ, ρ, μa, μsp, BFi = BFi, n_ext = n_ext, n_med = n_med, l = l, a = a, z = z, λ = λ, N_J0Roots = N_J0Roots)
     for ind in eachindex(τ)
         g1[ind] = 1 + β * abs(g1[ind])^2
@@ -165,7 +161,7 @@ function g2_DA_Nlay_cylinder_CW(τ::AbstractVector, data::Nlayer_cylinder_DCS)
     return g2_DA_Nlay_cylinder_CW(τ, data.ρ, data.μa, data.μsp, BFi = data.BFi, n_ext = data.n_ext, n_med = data.n_med, l = data.l, a = data.a, λ = data.λ, N_J0Roots = data.N_J0Roots, β = data.β)
 end
 
-function g2_DA_Nlay_cylinder_TD(τ::AbstractVector, t::Union{AbstractVector, AbstractFloat}, ρ, μa, μsp; BFi = [2e-8, 2e-8], n_ext = 1.0, n_med = [1.0, 1.0], l = [1.0, 10.0], a = 20.0, z = 0.0, λ = 700.0, N_J0Roots = 500, N_laplace = 12, N_quad = 50, β = 1.0)
+function g2_DA_Nlay_cylinder_TD(τ::AbstractVector, t::Union{AbstractVector, AbstractFloat}, ρ, μa, μsp; BFi = (2e-8, 2e-8), n_ext = 1.0, n_med = (1.0, 1.0), l = (1.0, 10.0), a = 20.0, z = 0.0, λ = 700.0, N_J0Roots = 500, N_laplace = 12, N_quad = 50, β = 1.0)
     if t isa AbstractVector
         g1 = g1_DA_Nlay_cylinder_TD(τ, t, ρ, μa, μsp, BFi = BFi, n_ext = n_ext, n_med = n_med, l = l, a = a, z = z, λ = λ, N_J0Roots = N_J0Roots, N_laplace = N_laplace, N_quad = N_quad)
     elseif t isa AbstractFloat
