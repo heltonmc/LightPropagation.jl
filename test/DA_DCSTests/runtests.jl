@@ -89,4 +89,9 @@ si = g2_DA_semiinf_CW(τ, ρ, mua, musp; BFi = BFi, n_ext = n_ext, n_med = n_med
 
 @test isapprox(si, layered, rtol = 1e-5)
 
+# test Structures
+data = Nlayer_cylinder_DCS(BFi = (2e-8, 2e-8), n_ext = 1.0, n_med = (1.0, 1.0), l = (1.0, 10.0), a = 20.0, z = 0.0, λ = 700.0, N_J0Roots = 500, β = 1.0)
+@test g2_DA_Nlay_cylinder_CW(τ, data) ≈ g2_DA_Nlay_cylinder_CW(τ, data.ρ, data.μa, data.μsp)
+@test g2_DA_Nlay_cylinder_TD(τ,1.0, data) ≈ g2_DA_Nlay_cylinder_TD(τ,1.0, data.ρ, data.μa, data.μsp)
+
 end
