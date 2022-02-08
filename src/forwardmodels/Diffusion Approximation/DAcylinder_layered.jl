@@ -319,7 +319,7 @@ function _kernel_fluence_DA_Nlay_cylinder(ρ::Tuple, D, μa, a, zb, z, z0, l, n_
         tmp = besselroots[ind] * apzb
         ϕ_tmp = green(tmp, μa, D, z, z0, zb, l, n_med, N)
         ϕ_tmp /= J1_J0ROOTS_2[ind] # replaces (besselj1(besselroots[ind]))^2
-        ϕ = ϕ .+ ϕ_tmp .* besselj0.(tmp .* ρ)
+        ϕ = @. ϕ + ϕ_tmp * besselj0(tmp * ρ)
     end
 
     return ϕ ./ (π * (a + zb[1])^2)
@@ -335,13 +335,13 @@ end
     α = @. sqrt(μa / D + sn^2)
 
     if N == 4
-        β, γ = _get_βγ4(α, D, n, zb, l)
+        β, γ = _get_βγ4(α, n, zb, l)
     elseif N == 3
-        β, γ = _get_βγ3(α, D, n, zb, l)
+        β, γ = _get_βγ3(α, n, zb, l)
     elseif N == 2
-        β, γ = _get_βγ2(α, D, n, zb, l)
+        β, γ = _get_βγ2(α, zb, l)
     elseif N > 4
-        β, γ = _get_βγk(α, D, n, zb, l)
+        β, γ = _get_βγk(α, n, zb, l)
     end
 
     tmp1 = α[1] * n[1] * β
@@ -361,16 +361,16 @@ end
     α = @. sqrt(μa / D + sn^2)
 
     if N == 4
-        β, γ = _get_βγ4(α, D, n, zb, l)
+        β, γ = _get_βγ4(α, n, zb, l)
         βγ_correction = _βγ4_correction(α, zb, l)  
     elseif N == 3
-        β, γ = _get_βγ3(α, D, n, zb, l)
+        β, γ = _get_βγ3(α, n, zb, l)
         βγ_correction = _βγ3_correction(α, zb, l)  
     elseif N == 2
-        β, γ = _get_βγ2(α, D, n, zb, l)
+        β, γ = _get_βγ2(α, zb, l)
         βγ_correction = _βγ2_correction(α, zb, l)  
     elseif N > 4
-        β, γ = _get_βγk(α, D, n, zb, l)
+        β, γ = _get_βγk(α, n, zb, l)
         βγ_correction = _βγN_correction(α, zb, l)  
     end
 
@@ -395,7 +395,7 @@ end
 # For N = 2, 3, 4 coefficients are explicitly calculated.
 # For N > 4, β and γ are calculated recursively using eqn. 17 & 18.
 #-------------------------------------------------------------------------------
-@inline function _get_βγ2(α, D, n, zb, l)
+@inline function _get_βγ2(α, zb, l)
     tmp1 = exp(-2 * α[2] * (l[2] + zb[2]))
     
     β = (1 - tmp1)
@@ -403,7 +403,7 @@ end
     
     return β, γ
 end
-@inline function _get_βγ3(α, D, n, zb, l)
+@inline function _get_βγ3(α, n, zb, l)
     tmp1 = α[2] * n[2]
     tmp2 = α[3] * n[3]
     tmp3 = exp(-2 * α[2] * l[2])
@@ -426,7 +426,7 @@ end
     
     return β, γ
 end
-@inline function _get_βγ4(α, D, n, zb, l)
+@inline function _get_βγ4(α, n, zb, l)
     tmp5 = α[2] * n[2]
     tmp1 = α[3] * n[3]
     tmp4 = α[4] * n[4]
@@ -463,8 +463,8 @@ end
 
     return β, γ
 end
-@inline function _get_βγk(α, D, n, zb, l)
-    βN, γN = _get_βγN(α, D, n, zb, l)
+@inline function _get_βγk(α, n, zb, l)
+    βN, γN = _get_βγN(α, n, zb, l)
   
     for k in length(α):-1:4
         tmp1 = α[k - 2] * n[k - 2] * βN
@@ -482,7 +482,7 @@ end
 
     return βN, γN
 end
-@inline function _get_βγN(α, D, n, zb, l)
+@inline function _get_βγN(α, n, zb, l)
     tmp1 = α[end - 1] * n[end - 1]
     tmp2 = α[end] * n[end]
     tmp3 = exp(-2 * α[end - 1] * l[end - 1])
