@@ -330,12 +330,6 @@ end
 # For N = 2, 3, 4 coefficients are explicitly calculated.
 # For N > 4, β and γ are calculated recursively using eqn. 17 & 18.
 #-------------------------------------------------------------------------------
-@inline function α_coeff!(α, μa, D, sn)
-    @inbounds for ind in 1:length(μa)
-        α[ind] = sqrt(μa[ind] / D[ind] + sn^2)
-    end
-    return α
-end
 @inline function _green_Nlaycylin_top(sn, μa, D, z, z0, zb, l, n, N)
     α = @. sqrt(μa / D + sn^2)
 
