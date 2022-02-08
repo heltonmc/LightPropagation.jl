@@ -348,10 +348,12 @@ end
     tmp2 = α[2] * n[2] * γ
     tmp3 = exp(-2 * α[1] * (l[1] + zb[1]))
 
-    g  = (exp(-α[1] * abs(z - z0)) - exp(-α[1] * (z + z0 + 2 * zb[1])))
-    g1 = exp(α[1] * (z + z0 - 2 * l[1])) * (1 - exp(-2 * α[1] * (z0 + zb[1]))) * (1 - exp(-2 * α[1] * (z + zb[1])))
-    g1 *= (tmp1 - tmp2)
-    g1 /= (tmp1 * (1 + tmp3) + tmp2 * (1 - tmp3))
+    g  = exp(-α[1] * abs(z - z0))
+    g -= exp(-α[1] * (z + z0 + 2 * zb[1]))
+    g1 = exp(α[1] * (z + z0 - 2 * l[1]))
+    g1 *= (1 - exp(-2 * α[1] * (z0 + zb[1]))) * (1 - exp(-2 * α[1] * (z + zb[1])))
+    g1 *= tmp1 - tmp2
+    g1 /= muladd(tmp1, tmp3, tmp1) + muladd(tmp2, -tmp3, tmp2)
 
     return (g + g1) / (2 * D[1] * α[1])
 end
