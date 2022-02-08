@@ -55,6 +55,7 @@ function fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0R
     A = A_coeff.(n_med ./ n_ext)
     z0 = z0_coeff(μsp[1])
     zb = zb_coeff.(A, D)
+    n_med = @. D * n_med^2
     @assert z0 < l[1]
     
     roots = @view J0_ROOTS[1:N_J0Roots]
@@ -318,7 +319,7 @@ function _kernel_fluence_DA_Nlay_cylinder(ρ::Tuple, D, μa, a, zb, z, z0, l, n_
         tmp = besselroots[ind] * apzb
         ϕ_tmp = green(tmp, μa, D, z, z0, zb, l, n_med, N)
         ϕ_tmp /= J1_J0ROOTS_2[ind] # replaces (besselj1(besselroots[ind]))^2
-        ϕ = ϕ .+ ϕ_tmp .* besselj0.(tmp .* ρ)
+        ϕ = @. ϕ + ϕ_tmp * besselj0(tmp * ρ)
     end
 
     return ϕ ./ (π * (a + zb[1])^2)
@@ -330,33 +331,29 @@ end
 # For N = 2, 3, 4 coefficients are explicitly calculated.
 # For N > 4, β and γ are calculated recursively using eqn. 17 & 18.
 #-------------------------------------------------------------------------------
-@inline function α_coeff!(α, μa, D, sn)
-    @inbounds for ind in 1:length(μa)
-        α[ind] = sqrt(μa[ind] / D[ind] + sn^2)
-    end
-    return α
-end
 @inline function _green_Nlaycylin_top(sn, μa, D, z, z0, zb, l, n, N)
     α = @. sqrt(μa / D + sn^2)
 
     if N == 4
-        β, γ = _get_βγ4(α, D, n, zb, l)
+        β, γ = _get_βγ4(α, n, zb, l)
     elseif N == 3
-        β, γ = _get_βγ3(α, D, n, zb, l)
+        β, γ = _get_βγ3(α, n, zb, l)
     elseif N == 2
-        β, γ = _get_βγ2(α, D, n, zb, l)
+        β, γ = _get_βγ2(α, zb, l)
     elseif N > 4
-        β, γ = _get_βγk(α, D, n, zb, l)
+        β, γ = _get_βγk(α, n, zb, l)
     end
 
-    tmp1 = D[1] * α[1] * n[1]^2 * β
-    tmp2 = D[2] * α[2] * n[2]^2 * γ
+    tmp1 = α[1] * n[1] * β
+    tmp2 = α[2] * n[2] * γ
     tmp3 = exp(-2 * α[1] * (l[1] + zb[1]))
 
-    g  = (exp(-α[1] * abs(z - z0)) - exp(-α[1] * (z + z0 + 2 * zb[1])))
-    g1 = exp(α[1] * (z + z0 - 2 * l[1])) * (1 - exp(-2 * α[1] * (z0 + zb[1]))) * (1 - exp(-2 * α[1] * (z + zb[1])))
-    g1 *= (tmp1 - tmp2)
-    g1 /= (tmp1 * (1 + tmp3) + tmp2 * (1 - tmp3))
+    g  = exp(-α[1] * abs(z - z0))
+    g -= exp(-α[1] * (z + z0 + 2 * zb[1]))
+    g1 = exp(α[1] * (z + z0 - 2 * l[1]))
+    g1 *= (1 - exp(-2 * α[1] * (z0 + zb[1]))) * (1 - exp(-2 * α[1] * (z + zb[1])))
+    g1 *= tmp1 - tmp2
+    g1 /= muladd(tmp1, tmp3, tmp1) + muladd(tmp2, -tmp3, tmp2)
 
     return (g + g1) / (2 * D[1] * α[1])
 end
@@ -364,28 +361,28 @@ end
     α = @. sqrt(μa / D + sn^2)
 
     if N == 4
-        β, γ = _get_βγ4(α, D, n, zb, l)
+        β, γ = _get_βγ4(α, n, zb, l)
         βγ_correction = _βγ4_correction(α, zb, l)  
     elseif N == 3
-        β, γ = _get_βγ3(α, D, n, zb, l)
+        β, γ = _get_βγ3(α, n, zb, l)
         βγ_correction = _βγ3_correction(α, zb, l)  
     elseif N == 2
-        β, γ = _get_βγ2(α, D, n, zb, l)
+        β, γ = _get_βγ2(α, zb, l)
         βγ_correction = _βγ2_correction(α, zb, l)  
     elseif N > 4
-        β, γ = _get_βγk(α, D, n, zb, l)
+        β, γ = _get_βγk(α, n, zb, l)
         βγ_correction = _βγN_correction(α, zb, l)  
     end
 
     tmp = one(eltype(α))
     for ind in (N - 1):-1:2
-        tmp *= D[ind] * α[ind] * n[ind]^2
+        tmp *= α[ind] * n[ind]
     end
 
     tmp1 = exp(-2 * α[1] * (l[1] + zb[1]))
-    gN = n[end]^2 * tmp * 2^(N - 1) / 2
+    gN = n[end] * tmp * 2^(N - 1) / 2 / D[end]
     gN *= exp(α[1] * (z0 - l[1]) + α[end] * (sum(l) + zb[end] - z) - βγ_correction)
-    gN /= D[1] * α[1] * n[1]^2 * β * (1 + tmp1) + D[2] * α[2] * n[2]^2 * γ * (1 - tmp1)
+    gN /= α[1] * n[1] * β * (1 + tmp1) + α[2] * n[2] * γ * (1 - tmp1)
     gN *= (1 - exp(-2 * α[1] * (z0 + zb[1]))) * (1 - exp(-2 * α[end] * (sum(l) + zb[end] - z)))
 
     return gN
@@ -398,7 +395,7 @@ end
 # For N = 2, 3, 4 coefficients are explicitly calculated.
 # For N > 4, β and γ are calculated recursively using eqn. 17 & 18.
 #-------------------------------------------------------------------------------
-@inline function _get_βγ2(α, D, n, zb, l)
+@inline function _get_βγ2(α, zb, l)
     tmp1 = exp(-2 * α[2] * (l[2] + zb[2]))
     
     β = (1 - tmp1)
@@ -406,68 +403,104 @@ end
     
     return β, γ
 end
-@inline function _get_βγ3(α, D, n, zb, l)
-    tmp1 = D[2] * α[2] * n[2]^2
-    tmp2 = D[3] * α[3] * n[3]^2
+@inline function _get_βγ3(α, n, zb, l)
+    tmp1 = α[2] * n[2]
+    tmp2 = α[3] * n[3]
     tmp3 = exp(-2 * α[2] * l[2])
     tmp4 = exp(-2 * α[3] * (l[3] + zb[2]))
 
-    β  = tmp1 * (1 + tmp3) * (1 - tmp4)
-    β += tmp2 * (1 - tmp3) * (1 + tmp4)
+    a = tmp1 * tmp3
+    b = muladd(-tmp1, tmp4, tmp1)
+    c = a * tmp4
+    a = a - c
+    β = b + a
+    γ = b - a
 
-    γ  = tmp1 * (1 - tmp3) * (1 - tmp4)
-    γ += tmp2 * (1 + tmp3) * (1 + tmp4)
+    a = tmp2 * tmp3
+    b = muladd(tmp2, tmp4, tmp2)
+    c = a * tmp4
+    a = a + c
 
+    β += b - a
+    γ += b + a
+    
     return β, γ
 end
-@inline function _get_βγ4(α, D, n, zb, l)
-    tmp5 = D[2] * α[2] * n[2]^2
-    tmp1 = D[3] * α[3] * n[3]^2
-    tmp4 = D[4] * α[4] * n[4]^2
+@inline function _get_βγ4(α, n, zb, l)
+    tmp5 = α[2] * n[2]
+    tmp1 = α[3] * n[3]
+    tmp4 = α[4] * n[4]
 
     tmp6 = exp(-2 * α[2] * l[2])
     tmp2 = exp(-2 * α[3] * l[3])
     tmp3 = exp(-2 * α[4] * (l[4] + zb[2]))
 
-    β_4  = tmp1 * (1 + tmp2) * (1 - tmp3)
-    β_4 += tmp4 * (1 - tmp2) * (1 + tmp3)
+    a = tmp1 * tmp3
+    b = tmp1 * tmp2
+    c = a * tmp2
+    a = tmp1 - a
+    b = b - c
+    β4 = a + b
+    γ4 = a - b
 
-    γ_4  = tmp1 * (1 - tmp2) * (1 - tmp3)
-    γ_4 += tmp4 * (1 + tmp2) * (1 + tmp3)
+    a = tmp4 * tmp2
+    b = tmp4 * tmp3
+    c = a * tmp3
+    b = tmp4 + b
+    c = a + c
+    β4 += b - c
+    γ4 += b + c
+    
+    a = tmp5 * β4
+    b = a * tmp6
+    c = tmp1 * γ4
+    d = c * tmp6
+    a = a + c
+    b = b - d
 
-    β = (tmp5 * β_4 * (1 + tmp6) + tmp1 * γ_4 * (1 - tmp6))
-    γ = (tmp5 * β_4 * (1 - tmp6) + tmp1 * γ_4 * (1 + tmp6))
+    β = a + b
+    γ = a - b
 
     return β, γ
 end
-@inline function _get_βγk(α, D, n, zb, l)
-    βN, γN = _get_βγN(α, D, n, zb, l)
+@inline function _get_βγk(α, n, zb, l)
+    βN, γN = _get_βγN(α, n, zb, l)
   
     for k in length(α):-1:4
-        tmp1 = D[k - 2] * α[k - 2] * n[k - 2]^2 * βN
-        tmp2 = D[k - 1] * α[k - 1] * n[k - 1]^2 * γN
+        tmp1 = α[k - 2] * n[k - 2] * βN
+        tmp2 = α[k - 1] * n[k - 1] * γN
         tmp3 = exp(-2 * α[k - 2] * l[k - 2])
 
-        βN  =  tmp1 * (1 + tmp3)
-        βN +=  tmp2 * (1 - tmp3)
-        γN  =  tmp1 * (1 - tmp3)
-        γN +=  tmp2 * (1 + tmp3)
+        a = tmp1 * tmp3
+        c = tmp1 + tmp2
+        b = tmp2 * tmp3
+        d = a - b
 
+        βN = c + d
+        γN = c - d
     end
 
     return βN, γN
 end
-@inline function _get_βγN(α, D, n, zb, l)
-    tmp1 = D[end - 1] * α[end - 1] * n[end - 1]^2
-    tmp2 = D[end] * α[end] * n[end]^2
+@inline function _get_βγN(α, n, zb, l)
+    tmp1 = α[end - 1] * n[end - 1]
+    tmp2 = α[end] * n[end]
     tmp3 = exp(-2 * α[end - 1] * l[end - 1])
     tmp4 = exp(-2 * α[end] * (l[end] + zb[2]))
     
-    βN  =   tmp1 * (1 + tmp3) *  (1 - tmp4)
-    βN +=   tmp2 * (1 - tmp3) *  (1 + tmp4)
+    a = tmp1 * tmp3
+    b = tmp1 - tmp1 * tmp4
+    c = a * tmp4
+    a = a - c
+    βN =  b + a
+    γN =  b - a
 
-    γN =  tmp1 * (1 - tmp3) *  (1 - tmp4)
-    γN +=  tmp2 * (1 + tmp3) *  (1 + tmp4)
+    a = tmp2 * tmp3
+    b = tmp2 + tmp2 * tmp4
+    c = a * tmp4
+    a = a + c
+    βN += b - a
+    γN += b + a
 
     return βN, γN
 end
