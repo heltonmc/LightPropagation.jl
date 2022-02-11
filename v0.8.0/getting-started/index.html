@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Getting Started · LightPropagation.jl</title><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><script src="../../copy.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">LightPropagation.jl</a></span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../install/">Installation</a></li><li class="is-active"><a class="tocitem" href>Getting Started</a><ul class="internal"><li><a class="tocitem" href="#Forward-Simulation"><span>Forward Simulation</span></a></li><li><a class="tocitem" href="#Simple-Plotting"><span>Simple Plotting</span></a></li><li><a class="tocitem" href="#Index"><span>Index</span></a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../inversefitting/">Inverse Fitting</a></li><li><a class="tocitem" href="../whensemiinf/">When is semi-infinite semi-infinite?</a></li></ul></li><li><span class="tocitem">Forward Models</span><ul><li><input class="collapse-toggle" id="menuitem-5-1" type="checkbox"/><label class="tocitem" for="menuitem-5-1"><span class="docs-label">Diffusion Approximation</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../DA_slab_semiinfgeom/">Slab</a></li><li><a class="tocitem" href="../Nlayer_cyl/">N-layer Cylinder</a></li><li><a class="tocitem" href="../DA_DCS/">DCS</a></li></ul></li></ul></li><li><a class="tocitem" href="../API/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Getting Started</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Getting Started</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/heltonmc/LightPropagation.jl/blob/master/docs/src/getting-started.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Getting-Started"><a class="docs-heading-anchor" href="#Getting-Started">Getting Started</a><a id="Getting-Started-1"></a><a class="docs-heading-anchor-permalink" href="#Getting-Started" title="Permalink"></a></h1><p>Please use the installation section to download and install Julia and LightPropagation.jl. Once downloaded we can open the Julia REPL and type...</p><pre><code class="language-julia hljs">using LightPropagation</code></pre><p>The initial download and compilation could take same time but should only take a couple seconds afterwards. </p><h2 id="Forward-Simulation"><a class="docs-heading-anchor" href="#Forward-Simulation">Forward Simulation</a><a id="Forward-Simulation-1"></a><a class="docs-heading-anchor-permalink" href="#Forward-Simulation" title="Permalink"></a></h2><p>Let&#39;s simulate the steady-state (continuous-wave) fluence from an isotropic point source in an infinite medium using <code>fluence_DA_inf_CW</code>.</p><pre><code class="language-julia hljs">julia&gt; fluence_DA_inf_CW(1.0, 0.1, 10.0)
+0.4223682678487986</code></pre><p>This is a bit confusing because we don&#39;t know what <code>1.0, 0.1, 10.0</code> represent. To get more information about a function&#39;s inputs and methods type <code>?</code> in the REPL and then the name of the function...</p><pre><code class="language-julia hljs">julia&gt;?
+help?&gt; fluence_DA_inf_CW
+search: fluence_DA_inf_CW fluence_DA_semiinf_CW fluence_DA_inf_TD
+
+  fluence_DA_inf_CW(ρ, μa, μsp)
+
+  Compute the steady-state fluence in an infinite medium.
+
+  Arguments
+  ≡≡≡≡≡≡≡≡≡≡≡
+
+    •  ρ: source-detector separation (cm)
+
+    •  μa: absorption coefficient (cm⁻¹)
+
+    •  μsp: reduced scattering coefficient (cm⁻¹)
+
+  Examples
+  ≡≡≡≡≡≡≡≡≡≡
+
+  julia&gt; fluence_DA_inf_CW(1.0, 0.1, 10.0)</code></pre><p>This is a convenient way to see a brief description of the function and its arguments. So now in our previous example <code>1.0</code> corresponds to <code>ρ</code> which is the source-detector separation in centimeters. <code>0.1</code> corresponds to <code>μa</code> which is the absorption coefficient and <code>10.0</code> corresponds to <code>μsp</code> which is the reduced scattering coefficient.</p><p>If we wanted to simulate this for many <code>ρ</code> values we can do...</p><pre><code class="language-julia hljs">julia&gt; ρ = 0.1:0.1:1.0
+0.1:0.1:1.0
+
+julia&gt; fluence_DA_inf_CW.(ρ, 0.1, 10.0)
+10-element Vector{Float64}:
+ 20.076563644369305
+  8.441844991553953
+  4.732864855014603
+  2.985130735997168
+  2.0083126892986254
+  1.4074341205286183
+  1.0145168743692066
+  0.7465266519850676
+  0.5580470079778079
+  0.4223682678487986</code></pre><p>Notice the <code>.</code> after the function call to <code>fluence_DA_inf_CW</code> which implies broadcasting the function over each <code>ρ</code> value. We could also use <code>map</code>...</p><pre><code class="language-julia hljs">julia&gt; map(ρ -&gt; fluence_DA_inf_CW(ρ, 0.1, 10.0), 0.1:0.1:1.0)
+10-element Vector{Float64}:
+ 20.076563644369305
+  8.441844991553953
+  4.732864855014603
+  2.985130735997168
+  2.0083126892986254
+  1.4074341205286183
+  1.0145168743692066
+  0.7465266519850676
+  0.5580470079778079
+  0.4223682678487986</code></pre><p>We can also do this for a single <code>ρ</code> value for several different permutations of <code>μsp</code> and <code>μa</code> with both approaches...</p><pre><code class="language-julia hljs">julia&gt; fluence_DA_inf_CW.(1.0, [0.1, 0.2], [10.0, 12.1])
+2-element Vector{Float64}:
+ 0.4223682678487986
+ 0.1952166673254022
+
+ julia&gt; map((μa, μsp) -&gt; fluence_DA_inf_CW(1.0, μa, μsp), [0.1, 0.2], [10.0, 12.1])
+2-element Vector{Float64}:
+ 0.4223682678487986
+ 0.1952166673254022</code></pre><p>The <code>x -&gt; f(x...)</code> creates an anonymous function that can be advantageous when passing functions.</p><p>Sometimes we want a computation to be done with higher precision. Take a slightly unrealistic example where we want the fluence way away from the source for large scattering coefficients......</p><pre><code class="language-julia hljs">julia&gt; fluence_DA_inf_CW(100.0, 1.0, 10000.0)
+0.0</code></pre><p>Well this is slightly unexpected because we wouldn&#39;t expect this to be quite <code>0.0</code>. This is due to using <code>Float64</code> numbers which have a finite minimum <code>floatmin(Float64) = 2.2250738585072014e-308</code>. We can do this calculation in higher precision by converting one of the inputs to higher precision...</p><pre><code class="language-julia hljs">julia&gt; fluence_DA_inf_CW(100.0, 1.0, big(10000.0))
+1.502554931959911174198461266529831255882290472488206080785039554131741898622508e-7521
+
+julia&gt; floatmin(BigFloat)
+8.50969131174083613912978790962048280567755996982969624908264897850135431080301e-1388255822130839284</code></pre><p>The previous example works by promoting the types of the other inputs and doing calculations in the higher precision. It is recommended that all inputs be of the same type to make sure some of the calculation isn&#39;t done in a lower precision...</p><p>Perhaps we were interested in something slightly more interesting such as the time-domain fluence in a semi-infinite medium...</p><pre><code class="language-julia hljs">julia&gt; fluence_DA_semiinf_TD(1.0, 1.0, 0.1, 10.0)
+0.000288659079311426</code></pre><p>More parameters to decipher... let&#39;s check the docs!</p><pre><code class="language-julia hljs">help?&gt; fluence_DA_semiinf_TD
+search: fluence_DA_semiinf_TD fluence_DA_semiinf_CW
+
+  fluence_DA_semiinf_TD(t, ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0)
+
+  Compute the time-domain fluence in a semi-infinite medium (Eqn. 33 Contini).
+
+  Arguments
+  ≡≡≡≡≡≡≡≡≡≡≡
+
+    •  t: the time vector (ns).
+
+    •  ρ: the source detector separation (cm⁻¹)
+
+    •  μa: absorption coefficient (cm⁻¹)
+
+    •  μsp: reduced scattering coefficient (cm⁻¹)
+
+    •  n_ext: the boundary&#39;s index of refraction (air or detector)
+
+    •  n_med: the sample medium&#39;s index of refraction
+
+    •  z: the z-depth in medium
+
+  Examples
+  ≡≡≡≡≡≡≡≡≡≡
+
+  julia&gt; fluence_DA_semiinf_TD(0.1:0.1:1.0, 1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, z = 0.0)</code></pre><p>So now in addition to <code>ρ</code>, <code>μa</code>, <code>μsp</code> we have the <code>t</code> time input. Some of the parameters follow <code>;</code> symbol meaning they are keyword arguments. We can either explicitly define them with their name...</p><pre><code class="language-julia hljs">julia&gt; fluence_DA_semiinf_TD(0.1:0.3:1.0, 1.0, 0.1, 10.0, n_ext = 1.0)
+4-element Vector{Float64}:
+ 0.13275269870908793
+ 0.011700696523308796
+ 0.0015494334532460989
+ 0.000288659079311426</code></pre><p>Or if they aren&#39;t defined they utilize their default value. Notice that we don&#39;t need the <code>.</code> here because methods in the time-domain are constructed to more efficiently compute values at many time points. Therefore, there are methods for both <code>t::AbstractFloat</code> and <code>t::AbstractVector</code>.</p><h2 id="Simple-Plotting"><a class="docs-heading-anchor" href="#Simple-Plotting">Simple Plotting</a><a id="Simple-Plotting-1"></a><a class="docs-heading-anchor-permalink" href="#Simple-Plotting" title="Permalink"></a></h2><p>We can compare semi-infinite to slab models in the time domain like the below example...</p><pre><code class="language-julia hljs">julia&gt; t = 0.01:0.01:4.0; ρ = 1.0; μa = 0.1; μsp = 10.0
+julia&gt; semiinf = fluence_DA_semiinf_TD(t, ρ, μa, μsp)
+julia&gt; slab = fluence_DA_slab_TD(t, ρ, μa, μsp, s = 1.0, xs = 20) # s is the slab thickness
+
+julia&gt; using Plots # make sure to add the Plots package
+julia&gt; plot(t, log10.(semiinf), lw = 2, ylabel = &quot;fluence (1/cm^2)&quot;, xlabel = &quot;time (ns)&quot;, label = &quot;Semi-infinite&quot;)
+julia&gt; plot!(t, log10.(slab), lw = 2, label = &quot;Slab&quot;)</code></pre><p>There are several other forward models in different geometries. The naming scheme of the forward models follow a PhysicalQuantity_Approximation_Geometry_MeasurementType scheme. Check out the index below:</p><h2 id="Index"><a class="docs-heading-anchor" href="#Index">Index</a><a id="Index-1"></a><a class="docs-heading-anchor-permalink" href="#Index" title="Permalink"></a></h2><ul><li><a href="../API/#LightPropagation.Nlayer_cylinder_DCS"><code>LightPropagation.Nlayer_cylinder_DCS</code></a></li><li><a href="../API/#LightPropagation.fluence_DA_Nlay_cylinder_CW"><code>LightPropagation.fluence_DA_Nlay_cylinder_CW</code></a></li><li><a href="../API/#LightPropagation.fluence_DA_Nlay_cylinder_TD"><code>LightPropagation.fluence_DA_Nlay_cylinder_TD</code></a></li><li><a href="../API/#LightPropagation.fluence_DA_inf_CW"><code>LightPropagation.fluence_DA_inf_CW</code></a></li><li><a href="../API/#LightPropagation.fluence_DA_inf_TD"><code>LightPropagation.fluence_DA_inf_TD</code></a></li><li><a href="../API/#LightPropagation.fluence_DA_paralpip_CW"><code>LightPropagation.fluence_DA_paralpip_CW</code></a></li><li><a href="../API/#LightPropagation.fluence_DA_paralpip_TD"><code>LightPropagation.fluence_DA_paralpip_TD</code></a></li><li><a href="../API/#LightPropagation.fluence_DA_semiinf_CW"><code>LightPropagation.fluence_DA_semiinf_CW</code></a></li><li><a href="../API/#LightPropagation.fluence_DA_semiinf_TD"><code>LightPropagation.fluence_DA_semiinf_TD</code></a></li><li><a href="../API/#LightPropagation.fluence_DA_slab_CW"><code>LightPropagation.fluence_DA_slab_CW</code></a></li><li><a href="../API/#LightPropagation.fluence_DA_slab_TD"><code>LightPropagation.fluence_DA_slab_TD</code></a></li><li><a href="../API/#LightPropagation.flux_DA_Nlay_cylinder_CW"><code>LightPropagation.flux_DA_Nlay_cylinder_CW</code></a></li><li><a href="../API/#LightPropagation.flux_DA_Nlay_cylinder_TD"><code>LightPropagation.flux_DA_Nlay_cylinder_TD</code></a></li><li><a href="../API/#LightPropagation.flux_DA_semiinf_CW"><code>LightPropagation.flux_DA_semiinf_CW</code></a></li><li><a href="../API/#LightPropagation.flux_DA_semiinf_TD"><code>LightPropagation.flux_DA_semiinf_TD</code></a></li><li><a href="../API/#LightPropagation.flux_DA_slab_CW"><code>LightPropagation.flux_DA_slab_CW</code></a></li><li><a href="../API/#LightPropagation.flux_DA_slab_TD"><code>LightPropagation.flux_DA_slab_TD</code></a></li></ul></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../install/">« Installation</a><a class="docs-footer-nextpage" href="../inversefitting/">Inverse Fitting »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.12 on <span class="colophon-date" title="Friday 11 February 2022 19:11">Friday 11 February 2022</span>. Using Julia version 1.5.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
