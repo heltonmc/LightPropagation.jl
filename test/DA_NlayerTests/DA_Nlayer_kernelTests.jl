@@ -9,6 +9,13 @@ include(joinpath(dirname(@__FILE__), "..", "..","src/forwardmodels/Diffusion App
 
 ## Test the derivations with original
 
+@inline function α_coeff!(α, μa, D, sn)
+    @inbounds for ind in 1:length(μa)
+        α[ind] = sqrt(μa[ind] / D[ind] + sn^2)
+    end
+    return α
+end
+
 # greens function for 2 layer cylinder as presented by Liemert
 function green_2layer(α, sn, μa, D, z, z0, zb, l, n)
     α = α_coeff!(α, μa, D, sn)
@@ -48,9 +55,10 @@ z0 = 0.2
 zb = [0.2, 0.3]
 l = [1.0, 2.0]
 n = [1.0, 1.0]
+n2 = @. D * n^2
 z = 0.0
 
-@test _green_Nlaycylin_top(α, sn, μa, D, z, z0, zb, l, n, 2) ≈ green_2layer(α, sn, μa, D, z, z0, zb, l, n)
+@test _green_Nlaycylin_top(sn, μa, D, z, z0, zb, l, n2, 2) ≈ green_2layer(α, sn, μa, D, z, z0, zb, l, n)
 
 ### test the 3 layer case
 α = [1.2, 1.5, 1.3]
@@ -61,8 +69,9 @@ z0 = 0.2
 zb = [0.2, 0.3, 0.3]
 l = [1.0, 2.0, 1.2]
 n = [1.0, 1.0, 1.1]
+n2 = @. D * n^2
 z = 0.0
 
-@test _green_Nlaycylin_top(α, sn, μa, D, z, z0, zb, l, n, 3) ≈ green_3layer(α, sn, μa, D, z, z0, zb, l, n)
+@test _green_Nlaycylin_top(sn, μa, D, z, z0, zb, l, n2, 3) ≈ green_3layer(α, sn, μa, D, z, z0, zb, l, n)
 
 end # module
