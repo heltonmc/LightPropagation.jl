@@ -120,3 +120,41 @@ function hyper_fixed(f::Function, t::AbstractVector; N = 24, T = eltype(t))
     end
     return out
 end
+
+
+#=
+
+# compute the fixed hyperbola contour
+s_fixed(θ, μ; ϕ = 1.09) = μ + im * μ * sinh(θ + im * ϕ)
+ds_fixed(θ, μ; ϕ = 1.09) = im * μ * cosh(θ + im * ϕ)
+
+# compute the function values over the fixed contour nodes
+function fixed_sk_array(f::Function, N, M, t::AbstractVector, T)
+    μ, h = hyper_coef(N, t)
+    a = zeros(Complex{eltype(T)}, N, M)
+    sk = zeros(Complex{eltype(t)}, N)
+    for k in 0:Int(N)-1
+        sk[k+1] = s_fixed((k + 1/2) * h, μ)
+        dsk = ds_fixed((k + 1/2) * h, μ)
+        a[k+1, :] = f(sk[k + 1]) * dsk
+    end
+    return a, sk, h
+end
+
+function hyper_fixed_points_array(a, sk, h, t::AbstractFloat, M)
+    b = zeros(eltype(a), M)
+    for ind in eachindex(sk)
+        b += a[ind, :] * exp(sk[ind] * t)
+    end
+    return imag(b) * h / π
+end
+
+function hyper_fixed_array(f::Function, t::AbstractVector; N = 24, M = 2, T = eltype(t))
+    a, sk, h = fixed_sk_array(f, N, M, t, T)
+    out = zeros(T, length(t), M)
+    for ind in eachindex(t)
+        out[ind, :] = hyper_fixed_points_array(a, sk, h, t[ind], M)
+    end
+    return out
+end
+=#

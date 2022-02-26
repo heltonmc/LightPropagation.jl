@@ -49,7 +49,7 @@ It is advised to use the Nlayer_cylinder() structure format for inputs.
 # Examples
 julia> `fluence_DA_Nlay_cylinder_CW(1.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [4.5, 4.5], 10.0, 0.0, 1000)`
 """
-function fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots)
+function fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z; atol = eps(eltype(ρ)))
     D = D_coeff.(μsp)
     N = length(D)
     A = A_coeff.(n_med ./ n_ext)
@@ -57,11 +57,11 @@ function fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0R
     zb = zb_coeff.(A, D)
     @assert z0 < l[1]
     
-    roots = @view J0_ROOTS[1:N_J0Roots]
+    #roots = @view J0_ROOTS[1:N_J0Roots]
     if z < l[1]
-        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, roots, _green_Nlaycylin_top, N)
+        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, atol, _green_Nlaycylin_top, N)
     elseif z > sum(l[1:end - 1])
-        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, roots, _green_Nlaycylin_bottom, N)
+        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, atol, _green_Nlaycylin_bottom, N)
     end
 end
 """
@@ -295,30 +295,34 @@ end
 # D is the diffusion coefficient and N is the number of layers.
 # green is the Green's function for either the first or bottom layer (below).
 #-------------------------------------------------------------------------------
-function _kernel_fluence_DA_Nlay_cylinder(ρ::AbstractFloat, D, μa, a, zb, z, z0, l, n_med, besselroots, green, N)
-    ϕ = zero(eltype(μa))
-    ϕ_tmp = zero(eltype(μa))
+function _kernel_fluence_DA_Nlay_cylinder(ρ::AbstractFloat, D, μa, a, zb, z, z0, l, n_med, atol, green, N)
+    T = eltype(μa)
+    ϕ = zero(T)
+    ϕ_tmp = zero(T)
     apzb = inv(a + zb[1])
 
-    @inbounds for ind in eachindex(besselroots)
-        ϕ_tmp = green(besselroots[ind] * apzb, μa, D, z, z0, zb, l, n_med, N)
-        ϕ_tmp *= besselj0(besselroots[ind] * apzb * ρ)
+    for ind in eachindex(J0_ROOTS)
+        ϕ_tmp = green(J0_ROOTS[ind] * apzb, μa, D, z, z0, zb, l, n_med, N)
+        ϕ_tmp *= besselj0(J0_ROOTS[ind] * apzb * ρ)
         ϕ_tmp /= J1_J0ROOTS_2[ind] # replaces (besselj1(besselroots[ind]))^2
         ϕ += ϕ_tmp
+        abs(ϕ_tmp) <= atol && break
     end
 
     return ϕ / (π * (a + zb[1])^2)
 end
-function _kernel_fluence_DA_Nlay_cylinder(ρ::Tuple, D, μa, a, zb, z, z0, l, n_med, besselroots, green, N)
+function _kernel_fluence_DA_Nlay_cylinder(ρ::Tuple, D, μa, a, zb, z, z0, l, n_med, atol, green, N)
     ϕ = ρ .* zero(eltype(μa))
     ϕ_tmp = zero(eltype(μa))
     apzb = inv(a + zb[1])
 
-    for ind in eachindex(besselroots)
-        tmp = besselroots[ind] * apzb
+    for ind in eachindex(J0_ROOTS)
+        tmp = J0_ROOTS[ind] * apzb
         ϕ_tmp = green(tmp, μa, D, z, z0, zb, l, n_med, N)
-        ϕ_tmp /= J1_J0ROOTS_2[ind] # replaces (besselj1(besselroots[ind]))^2
-        ϕ = ϕ .+ ϕ_tmp .* besselj0.(tmp .* ρ)
+        ϕ_tmp /= J1_J0ROOTS_2[ind] # replaces (besselj1(J0_ROOTS[ind]))^2
+        ϕ_tmp2 = ϕ_tmp .* besselj0.(tmp .* ρ)
+        ϕ = ϕ .+ ϕ_tmp2
+        maximum(abs.(ϕ_tmp2)) < atol && break
     end
 
     return ϕ ./ (π * (a + zb[1])^2)
