@@ -47,7 +47,7 @@ It is advised to use the Nlayer_cylinder() structure format for inputs.
 - `N_J0Roots`: Number of roots of bessel function of first kind zero order J0(x) = 0. Must be less than 1e6
 
 # Examples
-julia> `fluence_DA_Nlay_cylinder_CW(1.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [4.5, 4.5], 10.0, 0.0, 1000)`
+julia> `fluence_DA_Nlay_cylinder_CW(1.0, (0.1, 0.1), (10.0, 10.0), 1.0, (1.0, 1.0), (4.5, 4.5), 10.0, 0.0, 1000)`
 """
 function fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots)
     D = D_coeff.(μsp)
@@ -71,7 +71,7 @@ end
 Wrapper to fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots) with inputs given as a structure (data).
 
 # Examples
-julia> data = Nlayer_cylinder(a = 10.0, l = [1.0, 1.0, 1.0, 2.0], z = 5.0)
+julia> data = Nlayer_cylinder(a = 10.0, l = (1.0, 1.0, 1.0, 2.0), z = 5.0)
 julia> `fluence_DA_Nlay_cylinder_CW(data)`
 """
 function fluence_DA_Nlay_cylinder_CW(data)
@@ -152,7 +152,7 @@ The lowest fluence value you can compute will be no less than the machine precis
 - `ILT`: inverse laplace transform function
 
 # Examples
-julia> `fluence_DA_Nlay_cylinder_TD(0.1:0.1:2.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [4.5, 4.5], 10.0, 0.0, 1000)`
+julia> `fluence_DA_Nlay_cylinder_TD(0.1:0.1:2.0, 1.0, (0.1, 0.1), (10.0, 10.0), 1.0, (1.0, 1.0), (4.5, 4.5), 10.0, 0.0, 1000)`
 """
 function fluence_DA_Nlay_cylinder_TD(t::AbstractFloat, ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots; N = 18, ILT = hyperbola)
     return ILT(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z, s, N_J0Roots), t, N = N)
@@ -167,7 +167,7 @@ end
 Wrapper to fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots; N = 24, ILT = hyper_fixed) with inputs given as a structure (data).
 
 # Examples
-julia> data = Nlayer_cylinder(a = 10.0, l = [1.0, 1.0, 1.0, 2.0], z = 5.0)
+julia> data = Nlayer_cylinder(a = 10.0, l = (1.0, 1.0, 1.0, 2.0), z = 5.0)
 julia> `fluence_DA_Nlay_cylinder_TD(0.5:1.0:2.5, data)`
 """
 function fluence_DA_Nlay_cylinder_TD(t, data; N = 24)
@@ -199,7 +199,7 @@ Uses the hyperbola contour if t is an AbstractFloat and the fixed hyperbola cont
 - `N`: number of Hankel-Laplace calculations
 
 # Examples
-julia> `fluence_DA_Nlay_cylinder_TD(0.1:0.1:2.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [4.5, 4.5], 10.0, 0.0, N_J0Roots)`
+julia> `fluence_DA_Nlay_cylinder_TD(0.1:0.1:2.0, 1.0, (0.1, 0.1), (10.0, 10.0), 1.0, (1.0, 1.0), (4.5, 4.5), 10.0, 0.0, N_J0Roots)`
 """
 function flux_DA_Nlay_cylinder_TD(t::AbstractVector, ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots; N = 24)
     @assert z == zero(eltype(z)) || z == sum(l)
@@ -231,7 +231,7 @@ end
 Wrapper to flux_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots; N = 24) with inputs given as a structure (data).
 
 # Examples
-julia> data = Nlayer_cylinder(a = 10.0, l = [1.0, 1.0, 1.0, 2.0], z = 5.0)
+julia> data = Nlayer_cylinder(a = 10.0, l = (1.0, 1.0, 1.0, 2.0), z = 5.0)
 julia> `flux_DA_Nlay_cylinder_TD(0.5:1.0:2.5, data)`
 """
 function flux_DA_Nlay_cylinder_TD(t, data;  N = 24)
@@ -259,7 +259,7 @@ Compute the frequency modulated fluence in an N-layered cylinder. Source is assu
 - `N_J0Roots`: roots of bessel function of first kind zero order J0(x) = 0
 
 # Examples
-julia> `fluence_DA_Nlay_cylinder_CW(1.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [4.5, 4.5], 10.0, 0.0, 1.0, 1000)`
+julia> `fluence_DA_Nlay_cylinder_CW(1.0, (0.1, 0.1), (10.0, 10.0), 1.0, (1.0, 1.0), (4.5, 4.5), 10.0, 0.0, 1.0, 1000)`
 """
 function fluence_DA_Nlay_cylinder_FD(ρ, μa, μsp, n_ext, n_med, l, a, z, ω, N_J0Roots)
     ν = ν_coeff.(n_med)
@@ -273,7 +273,7 @@ end
 Wrapper to fluence_DA_Nlay_cylinder_FD(ρ, μa, μsp, n_ext, n_med, l, a, z, ω, N_J0Roots) with inputs given as a structure (data).
 
 # Examples
-julia> data = Nlayer_cylinder(a = 10.0, l = [1.0, 1.0, 1.0, 2.0], z = 5.0, ω = 1.0)
+julia> data = Nlayer_cylinder(a = 10.0, l = (1.0, 1.0, 1.0, 2.0), z = 5.0, ω = 1.0)
 julia> `fluence_DA_Nlay_cylinder_FD(data)`
 """
 function fluence_DA_Nlay_cylinder_FD(data)
