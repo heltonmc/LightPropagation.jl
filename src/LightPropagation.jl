@@ -2,7 +2,7 @@
 module LightPropagation
 
 using Parameters
-using SpecialFunctions
+using Bessels
 using JLD
 using ForwardDiff
 using FastGaussQuadrature: gausslegendre
