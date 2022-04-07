@@ -76,12 +76,11 @@ julia> `flux_DA_Nlay_cylinder_CW(1.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0],
 """
 function flux_DA_Nlay_cylinder_CW(ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64))
     @assert z == zero(eltype(z)) || z == sum(l)
-    dz = ForwardDiff.derivative(dz -> fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp; n_ext=n_ext, n_med=n_med, l=l, a=a, z=z, MaxIter=MaxIter, atol=atol), z)
     D = D_coeff.(μsp)
     if z == zero(eltype(z))
-        return D[1] * dz
+        return D[1] * ForwardDiff.derivative(dz -> fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp; n_ext=n_ext, n_med=n_med, l=l, a=a, z=dz, MaxIter=MaxIter, atol=atol), z)
     elseif z == sum(l)
-        return -D[end] * dz
+        return -D[end] * ForwardDiff.derivative(dz -> fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp; n_ext=n_ext, n_med=n_med, l=l, a=a, z=dz, MaxIter=MaxIter, atol=atol), z)
     end
 end
 
@@ -169,9 +168,9 @@ function flux_DA_Nlay_cylinder_TD(t::AbstractFloat, ρ, μa, μsp; n_ext=1.0, n_
     @assert z == zero(eltype(z)) || z == sum(l)
     D = D_coeff.(μsp)  
     if z == zero(eltype(z))
-        return D[1] * ForwardDiff.derivative(dz -> hyperbola(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z, s, MaxIter, atol), t, N = N), 0.0)
+        return D[1] * ForwardDiff.derivative(dz -> hyperbola(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, dz, s, MaxIter, atol), t, N = N), 0.0)
     elseif z == sum(l)
-        return -D[end] * ForwardDiff.derivative(dz -> hyperbola(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z, s, MaxIter, atol), t, N = N), sum(l))
+        return -D[end] * ForwardDiff.derivative(dz -> hyperbola(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, dz, s, MaxIter, atol), t, N = N), sum(l))
     end
 end
 
