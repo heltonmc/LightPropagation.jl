@@ -224,15 +224,16 @@ function _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, be
     ϕ = ρ .* zero(eltype(μa))
     ϕ_tmp = zero(eltype(μa))
     apzb = inv(a + zb[1])
-
-    for ind in eachindex(besselroots)
+    
+    local ind
+    for outer ind in eachindex(besselroots)
         tmp = besselroots[ind] * apzb
         ϕ_tmp = green(tmp, μa, D, z, z0, zb, l, n_med, N)
         ϕ_tmp /= J1_J0ROOTS_2[ind] # replaces (besselj1(besselroots[ind]))^2
         ϕ = @. ϕ + ϕ_tmp * besselj0(tmp * ρ)
         abs(ϕ_tmp) < atol && break
     end
-
+    ind == length(besselroots) && @warn "Failed to converge to desired tolerance: Increase MaxIter"
     return ϕ ./ (π * (a + zb[1])^2)
 end
 

@@ -202,24 +202,8 @@ julia> fluence_DA_semiinf_FD(1.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, z = 0.0, 
 function fluence_DA_semiinf_FD(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0, ω = 1.0)
     params = DiffusionKernelParams(μsp, n_med, n_ext)
     μa_complex = μa + ω * im / params.ν
-    μeff = sqrt(3 * μa_complex * data.μsp)
+    μeff = sqrt(3 * μa_complex * μsp)
     return _kernel_fluence_DA_semiinf_CW(μeff, ρ, z, params.z0, params.zb, params.D)
-end
-"""
-    fluence_DA_semiinf_FD(data::DiffusionParameters)
-
-Wrapper to `fluence_DA_semiinf_FD(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0, ω = 1.0)`
-
-# Examples
-```
-julia> data = DAsemiinf_params(ω = 1.0) # use structure to generate inputs
-julia> fluence_DA_semiinf_FD(data) # then call the function
-```
-"""
-function fluence_DA_semiinf_FD(data::DiffusionParameters)
-    μa_complex = data.μa + data.ω * im / data.ν
-    μeff = sqrt(3 * μa_complex * data.μsp)
-    return _kernel_fluence_DA_semiinf_CW(μeff, data.ρ, data.z, data.z0, data.zb, data.D)
 end
 
 #------------------------------
