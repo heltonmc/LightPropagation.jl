@@ -19,7 +19,7 @@ Compute the electric field autocorrelation function function g1 in a semi-infini
 """
 function g1_DA_semiinf_CW(τ::AbstractVector, ρ, μa, μsp; BFi = 2e-8, n_ext = 1.0, n_med = 1.0, z = 0.0, λ = 700.0)
     g1 = similar(τ)
-    k0 = 2 * n_med * π / (λ * 1e-7) # this should be in cm
+    k0 = 2 * π / (λ * 1e-7) # this should be in cm
     tmp = 2 * μsp * BFi * k0^2
 
     G0 = fluence_DA_semiinf_CW(ρ, μa, μsp, n_ext = n_ext, n_med = n_med, z = z)
@@ -60,7 +60,7 @@ This is needed for time-gated applications.
 """
 function g1_DA_semiinf_TD(τ::AbstractVector, t::AbstractFloat, ρ, μa, μsp; BFi = 2e-8, n_ext = 1.0, n_med = 1.0, z = 0.0, λ = 700.0)
     g1 = similar(τ)
-    k0 = 2 * n_med * π / (λ * 1e-7) # this should be in cm
+    k0 = 2 * π / (λ * 1e-7) # this should be in cm
     tmp = 2 * μsp * BFi * k0^2
 
     G0 = fluence_DA_semiinf_TD(t, ρ, μa, μsp, n_ext = n_ext, n_med = n_med, z = z)
@@ -75,7 +75,7 @@ function g1_DA_semiinf_TD(τ::AbstractVector, t::AbstractFloat, ρ, μa, μsp; B
 end
 function g1_DA_semiinf_TD(τ::AbstractVector, t::AbstractVector, ρ, μa, μsp; BFi = 2e-8, n_ext = 1.0, n_med = 1.0, z = 0.0, λ = 700.0, N_quad = 50)
     g1 = similar(τ)
-    k0 = 2 * n_med * π / (λ * 1e-7) # this should be in cm
+    k0 = 2 * π / (λ * 1e-7) # this should be in cm
     tmp = 2 * μsp * BFi * k0^2
     x, w = gausslegendre(N_quad)
 
