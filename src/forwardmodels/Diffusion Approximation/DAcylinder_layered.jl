@@ -9,30 +9,45 @@
 # Steady-State Fluence 
 #-------------------------------------------
 """
-    fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots)
+    fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64))
 
-Compute the steady-state fluence in an N-layered cylinder. Source is assumed to be located on the top middle of the cylinder.
-No checks on arguments are made except enforcing that the source is located in the top layer.
-ρ, μa, and z should be >= 0.0.
-μsp, n_ext, n_med, a should be > 0.0.
-Each layer in l should be > 0.0.
-In general, ρ should always be < a.
-All arguments should have the same types and the length of μsp, μa, n_med, l should be equal.
-It is advised to use the Nlayer_cylinder() structure format for inputs.
+Compute the steady-state fluence in an N-layered cylinder.
 
 # Arguments
 - `ρ`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
-- `μa`: absorption coefficient (cm⁻¹)
-- `μsp`: reduced scattering coefficient (cm⁻¹)
+- `μa`: absorption coefficients in each layer (cm⁻¹)
+- `μsp`: reduced scattering coefficient in each layer (cm⁻¹)
+
+# Keyword arguments
 - `n_ext`: the boundary's index of refraction (air or detector)
-- `n_med`: the sample medium's index of refraction
+- `n_med`: the sample medium's index of refraction in each layer
+- `z`: the z-depth orthogonal from the boundary (cm) within the cylinder
 - `l`: layer thicknesses (cm)
 - `a`: cylinder radius (cm)
-- `z`: source depth within cylinder
-- `N_J0Roots`: Number of roots of bessel function of first kind zero order J0(x) = 0. Must be less than 1e6
+- `MaxIter`: the maximum number of terms to consider in the infinite sum
+- `atol`: the infinite sum will break after this absolute tolerance is met
+
+The source must be located in the first layer (l[1] > 1/μsp[1]). Other arguments are not checked but should be restricted to:
+- ρ, μa, and z >= 0.0
+- μsp, n_ext, n_med, a > 0.0
+- l .> 0.0
+- ρ < a
+- length(μa) == length(μsp) == length(n_med) == length(l)
+
+μa, μsp, n_med, l should be tuples of the same length (e.g., (0.1, 0.1)) The input parameters should be of the same type, but will work with mixed types. 
+The routine can be accurate until the machine precision usedin the calculation. 
+Therefore, atol should be >= eps(eltype(μsp)). Larger values of μsp[1] will require a larger number of terms in the summation.
+It is recommended to increase MaxIter if simulating higher scattering coefficients. It is also recommended to keep the cylinder radius as small as 
+possible to increase convergence rate.  
+
 
 # Examples
-julia> `fluence_DA_Nlay_cylinder_CW(1.0, (0.1, 0.1), (10.0, 10.0), 1.0, (1.0, 1.0), (4.5, 4.5), 10.0, 0.0, 1000)`
+```
+julia> fluence_DA_Nlay_cylinder_CW(1.0, (0.1, 0.1), (10.0, 10.0))
+julia> fluence_DA_Nlay_cylinder_CW(1.0, (0.2, 0.1), (12.0, 10.0), l = (10.0, 10.0), MaxIter=1000, atol=1.0e-8)
+# to simulate a 3 layer media
+julia> fluence_DA_Nlay_cylinder_CW(1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=1000, atol=1.0e-8)
+```
 """
 function fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64))
     D = D_coeff.(μsp)
@@ -41,7 +56,8 @@ function fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0),
     z0 = z0_coeff(μsp[1])
     zb = zb_coeff.(A, D)
     n_med = @. D * n_med^2
-    @assert z0 < l[1]
+    @assert z0 < l[1] "The source must be located in the first layer (l[1] > 1/μsp[1])"
+    @assert length(μa) == length(μsp) == length(n_med) == length(l) "μa, μsp, n_med, l should be tuples of the same length"
     
     roots = @view J0_ROOTS[1:MaxIter]
     if z < l[1]
@@ -55,24 +71,46 @@ end
 # Steady-State Flux 
 #-------------------------------------------
 """
-    flux_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots)
+    flux_DA_Nlay_cylinder_CW(ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64))
 
-Compute the steady-state flux using Fick's law D[1]*∂ϕ(ρ)/∂z for z = 0 (reflectance) and -D[end]*∂ϕ(ρ)/∂z for z = sum(l) (transmittance) in an N-layered cylinder. 
-Source is assumed to be located on the top middle of the cylinder. z must be equal to 0 or the total length sum(l) of cylinder.
+Compute the steady-state flux using Fick's law D[1]*∂ϕ(ρ)/∂z for z = 0 (reflectance) and -D[end]*∂ϕ(ρ)/∂z for z = sum(l) (transmittance) in an N-layered cylinder.
+z must be equal to 0 or the total length sum(l) of cylinder.
 
 # Arguments
 - `ρ`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
-- `μa`: absorption coefficient (cm⁻¹)
-- `μsp`: reduced scattering coefficient (cm⁻¹)
+- `μa`: absorption coefficients in each layer (cm⁻¹)
+- `μsp`: reduced scattering coefficient in each layer (cm⁻¹)
+
+# Keyword arguments
 - `n_ext`: the boundary's index of refraction (air or detector)
-- `n_med`: the sample medium's index of refraction
+- `n_med`: the sample medium's index of refraction in each layer
+- `z`: the z-depth orthogonal from the boundary (cm) within the cylinder
 - `l`: layer thicknesses (cm)
 - `a`: cylinder radius (cm)
-- `z`: source depth within cylinder: must be equal to 0 or sum(l)
-- `N_J0Roots`: number of roots of bessel function of first kind zero order J0(x) = 0. Must be less than 1e6.
+- `MaxIter`: the maximum number of terms to consider in the infinite sum
+- `atol`: the infinite sum will break after this absolute tolerance is met
+
+The source must be located in the first layer (l[1] > 1/μsp[1]). Other arguments are not checked but should be restricted to:
+- ρ, μa, and z >= 0.0
+- μsp, n_ext, n_med, a > 0.0
+- l .> 0.0
+- ρ < a
+- length(μa) == length(μsp) == length(n_med) == length(l)
+
+μa, μsp, n_med, l should be tuples of the same length (e.g., (0.1, 0.1)) The input parameters should be of the same type, but will work with mixed types. 
+The routine can be accurate until the machine precision usedin the calculation. 
+Therefore, atol should be >= eps(eltype(μsp)). Larger values of μsp[1] will require a larger number of terms in the summation.
+It is recommended to increase MaxIter if simulating higher scattering coefficients. It is also recommended to keep the cylinder radius as small as 
+possible to increase convergence rate.  
+
 
 # Examples
-julia> `flux_DA_Nlay_cylinder_CW(1.0, [0.1, 0.1], [10.0, 10.0], 1.0, [1.0, 1.0], [4.5, 4.5], 10.0, 0.0, 1000)`
+```
+julia> flux_DA_Nlay_cylinder_CW(1.0, (0.1, 0.1), (10.0, 10.0))
+julia> flux_DA_Nlay_cylinder_CW(1.0, (0.2, 0.1), (12.0, 10.0), l = (10.0, 10.0), MaxIter=1000, atol=1.0e-8)
+# to simulate a 3 layer media
+julia> flux_DA_Nlay_cylinder_CW(1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=1000, atol=1.0e-8)
+```
 """
 function flux_DA_Nlay_cylinder_CW(ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64))
     @assert z == zero(eltype(z)) || z == sum(l)
@@ -88,32 +126,55 @@ end
 # Time-Domain Fluence 
 #-------------------------------------------
 """
-    fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots; N = 24, ILT = hyper_fixed)
+    fluence_DA_Nlay_cylinder_TD(t, ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64), N, ILT)
 
-Compute the time-domain fluence in an N-layered cylinder. Source is assumed to be located on the top middle of the cylinder.
-See notes on fluence_DA_Nlay_cylinder_CW for input checks with the initial constraint that all values of t should be > 0.0 and ordered least to greatest.
-Do not have any value of t be zero or negative.
-
-It is best to use `hyper_fixed` as the inverse laplace transform if t consists of many time points. Utilize `hyperbola` for a single time point.
-The value of N should be proportional to the dynamic range of the time-domain signal needed. For later times you will need a larger N.
-The lowest fluence value you can compute will be no less than the machine precision you utilize. Float64 values are limited to fluence > ~2.2-16.
+Compute the time-domain fluence in an N-layered cylinder.
 
 # Arguments
-- `t`: time point or vector (ns)
+- `t`: time point or vector of time values (ns)
 - `ρ`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
-- `μa`: absorption coefficient (cm⁻¹)
-- `μsp`: reduced scattering coefficient (cm⁻¹)
+- `μa`: absorption coefficients in each layer (cm⁻¹)
+- `μsp`: reduced scattering coefficient in each layer (cm⁻¹)
+
+# Keyword arguments
 - `n_ext`: the boundary's index of refraction (air or detector)
-- `n_med`: the sample medium's index of refraction
+- `n_med`: the sample medium's index of refraction in each layer
+- `z`: the z-depth orthogonal from the boundary (cm) within the cylinder
 - `l`: layer thicknesses (cm)
 - `a`: cylinder radius (cm)
-- `z`: source depth within cylinder
-- `N_J0Roots`: roots of bessel function of first kind zero order J0(x) = 0
-- `N`: number of Hankel-Laplace calculations
-- `ILT`: inverse laplace transform function
+- `MaxIter`: the maximum number of terms to consider in the infinite sum
+- `atol`: the infinite sum will break after this absolute tolerance is met
+
+The source must be located in the first layer (l[1] > 1/μsp[1]). Other arguments are not checked but should be restricted to:
+- ρ, μa, and z >= 0.0
+- μsp, n_ext, n_med, a > 0.0
+- l .> 0.0
+- ρ < a
+- length(μa) == length(μsp) == length(n_med) == length(l)
+- t .> 0.0
+
+t can be a scaler or a vector but all values of t should be greater than zero and if a vector should be ordered. If t is a scaler `hyperbola` is used for 
+the inverse Laplace transform where `hyper_fixed` is used if it is a vector. The value of N should be proportional to the dynamic range of the time-domain signal needed.
+If t[end]/t[1] is large then a higher value of N will be required. In general, a larger N will be needed to reconstruct very late times. 
+μa, μsp, n_med, l should be tuples of the same length (e.g., (0.1, 0.1)) The input parameters should be of the same type, but will work with mixed types. 
+The routine can be accurate until the machine precision used in the calculation. 
+Therefore, atol should be >= eps(eltype(μsp)). Larger values of μsp[1] will require a larger number of terms in the summation.
+It is recommended to increase MaxIter if simulating higher scattering coefficients. It is also recommended to keep the cylinder radius as small as 
+possible to increase convergence rate.
+
+The Laplace transform implements threaded parallelism. It is recommended to start Julia with multiple threads (check with Threads.nthreads() in the REPL)
 
 # Examples
-julia> `fluence_DA_Nlay_cylinder_TD(0.1:0.1:2.0, 1.0, (0.1, 0.1), (10.0, 10.0), 1.0, (1.0, 1.0), (4.5, 4.5), 10.0, 0.0, 1000)`
+```
+# at a single time point
+julia> fluence_DA_Nlay_cylinder_TD(1.0, 1.0, (0.1, 0.1), (10.0, 10.0))
+# for several time points
+julia> fluence_DA_Nlay_cylinder_TD(0.2:0.2:2.0, 1.0, (0.1, 0.1), (10.0, 10.0))
+julia> fluence_DA_Nlay_cylinder_TD([0.5, 0.8, 1.2], 1.0, (0.1, 0.1), (10.0, 10.0))
+julia> fluence_DA_Nlay_cylinder_TD(0.1:0.3:5.0, 1.0, (0.1, 0.2), (12.0, 10.0), N = 48)
+# to simulate a 3 layer media
+julia> fluence_DA_Nlay_cylinder_TD(0.1:0.2:1.2, 1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=1000, atol=1.0e-8)
+```
 """
 function fluence_DA_Nlay_cylinder_TD(t::AbstractFloat, ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64), N = 18, ILT = hyperbola)
     return ILT(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z, s, MaxIter, atol), t, N = N)
@@ -127,28 +188,56 @@ end
 # Time-Domain Flux 
 #-------------------------------------------
 """
-    flux_DA_Nlay_cylinder_TD(t, ρ, μa, μsp, n_ext, n_med, l, a, z, N_J0Roots; N = 24)
+    flux_DA_Nlay_cylinder_TD(t, ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64), N, ILT)
 
-Compute the time-domain flux using Fick's law D[1]*∂ϕ(ρ, t)/∂z for z = 0 (reflectance) and -D[end]*∂ϕ(ρ, t)/∂z for z = sum(l) (transmittance) in an N-layered cylinder. 
-Source is assumed to be located on the top middle of the cylinder. z must be equal to 0 or the total length sum(l) of cylinder.
-Uses the hyperbola contour if t is an AbstractFloat and the fixed hyperbola contour if t is an AbstractVector.
+Compute the time-domain flux using Fick's law D[1]*∂ϕ(ρ, t)/∂z for z = 0 (reflectance) and -D[end]*∂ϕ(ρ, t)/∂z for z = sum(l) (transmittance) in an N-layered cylinder.
 ∂ϕ(ρ, t)/∂z is calculated using forward mode auto-differentiation with ForwardDiff.jl
 
 # Arguments
-- `t`: time point or vector (ns)
+- `t`: time point or vector of time values (ns)
 - `ρ`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
-- `μa`: absorption coefficient (cm⁻¹)
-- `μsp`: reduced scattering coefficient (cm⁻¹)
+- `μa`: absorption coefficients in each layer (cm⁻¹)
+- `μsp`: reduced scattering coefficient in each layer (cm⁻¹)
+
+# Keyword arguments
 - `n_ext`: the boundary's index of refraction (air or detector)
-- `n_med`: the sample medium's index of refraction
+- `n_med`: the sample medium's index of refraction in each layer
+- `z`: the z-depth orthogonal from the boundary (cm) within the cylinder
 - `l`: layer thicknesses (cm)
 - `a`: cylinder radius (cm)
-- `z`: source depth within cylinder
-- `N_J0Roots`: roots of bessel function of first kind zero order J0(x) = 0
-- `N`: number of Hankel-Laplace calculations
+- `MaxIter`: the maximum number of terms to consider in the infinite sum
+- `atol`: the infinite sum will break after this absolute tolerance is met
+
+The source must be located in the first layer (l[1] > 1/μsp[1]). Other arguments are not checked but should be restricted to:
+- ρ, μa, and z >= 0.0
+- μsp, n_ext, n_med, a > 0.0
+- l .> 0.0
+- ρ < a
+- length(μa) == length(μsp) == length(n_med) == length(l)
+- t .> 0.0
+
+t can be a scaler or a vector but all values of t should be greater than zero and if a vector should be ordered. If t is a scaler `hyperbola` is used for 
+the inverse Laplace transform where `hyper_fixed` is used if it is a vector. The value of N should be proportional to the dynamic range of the time-domain signal needed.
+If t[end]/t[1] is large then a higher value of N will be required. In general, a larger N will be needed to reconstruct very late times. 
+μa, μsp, n_med, l should be tuples of the same length (e.g., (0.1, 0.1)) The input parameters should be of the same type, but will work with mixed types. 
+The routine can be accurate until the machine precision used in the calculation. 
+Therefore, atol should be >= eps(eltype(μsp)). Larger values of μsp[1] will require a larger number of terms in the summation.
+It is recommended to increase MaxIter if simulating higher scattering coefficients. It is also recommended to keep the cylinder radius as small as 
+possible to increase convergence rate.
+
+The Laplace transform implements threaded parallelism. It is recommended to start Julia with multiple threads (check with Threads.nthreads() in the REPL)
 
 # Examples
-julia> `fluence_DA_Nlay_cylinder_TD(0.1:0.1:2.0, 1.0, (0.1, 0.1), (10.0, 10.0), 1.0, (1.0, 1.0), (4.5, 4.5), 10.0, 0.0, N_J0Roots)`
+```
+# at a single time point
+julia> flux_DA_Nlay_cylinder_TD(1.0, 1.0, (0.1, 0.1), (10.0, 10.0))
+# for several time points
+julia> flux_DA_Nlay_cylinder_TD(0.2:0.2:2.0, 1.0, (0.1, 0.1), (10.0, 10.0))
+julia> flux_DA_Nlay_cylinder_TD([0.5, 0.8, 1.2], 1.0, (0.1, 0.1), (10.0, 10.0))
+julia> flux_DA_Nlay_cylinder_TD(0.1:0.3:5.0, 1.0, (0.1, 0.2), (12.0, 10.0), N = 48)
+# to simulate a 3 layer media
+julia> flux_DA_Nlay_cylinder_TD(0.1:0.2:1.2, 1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=1000, atol=1.0e-8)
+```
 """
 function flux_DA_Nlay_cylinder_TD(t::AbstractVector, ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64), N = 24)
     @assert z == zero(eltype(z)) || z == sum(l)
@@ -178,24 +267,45 @@ end
 # Frequency-Domain Fluence 
 #-------------------------------------------
 """
-    fluence_DA_Nlay_cylinder_FD(ρ, μa, μsp, n_ext, n_med, l, a, z, ω, N_J0Roots)
+    fluence_DA_Nlay_cylinder_FD(ρ, μa, μsp; ω=1.0, n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64))
 
-Compute the frequency modulated fluence in an N-layered cylinder. Source is assumed to be located on the top middle of the cylinder.
+Compute the frequency modulated fluence in an N-layered cylinder.
 
 # Arguments
 - `ρ`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
-- `μa`: absorption coefficient (cm⁻¹)
-- `μsp`: reduced scattering coefficient (cm⁻¹)
+- `μa`: absorption coefficients in each layer (cm⁻¹)
+- `μsp`: reduced scattering coefficient in each layer (cm⁻¹)
+
+# Keyword arguments
+- `ω`: source modulation frequency (1/ns)
 - `n_ext`: the boundary's index of refraction (air or detector)
-- `n_med`: the sample medium's index of refraction
+- `n_med`: the sample medium's index of refraction in each layer
+- `z`: the z-depth orthogonal from the boundary (cm) within the cylinder
 - `l`: layer thicknesses (cm)
 - `a`: cylinder radius (cm)
-- `z`: source depth within cylinder
-- `ω`: source modulation frequency (1/ns)
-- `N_J0Roots`: roots of bessel function of first kind zero order J0(x) = 0
+- `MaxIter`: the maximum number of terms to consider in the infinite sum
+- `atol`: the infinite sum will break after this absolute tolerance is met
+
+The source must be located in the first layer (l[1] > 1/μsp[1]). Other arguments are not checked but should be restricted to:
+- ρ, μa, and z >= 0.0
+- μsp, n_ext, n_med, a > 0.0
+- l .> 0.0
+- ρ < a
+- length(μa) == length(μsp) == length(n_med) == length(l)
+
+μa, μsp, n_med, l should be tuples of the same length (e.g., (0.1, 0.1)) The input parameters should be of the same type, but will work with mixed types. 
+The routine can be accurate until the machine precision usedin the calculation. 
+Therefore, atol should be >= eps(eltype(μsp)). Larger values of μsp[1] will require a larger number of terms in the summation.
+It is recommended to increase MaxIter if simulating higher scattering coefficients. It is also recommended to keep the cylinder radius as small as 
+possible to increase convergence rate.  
 
 # Examples
-julia> `fluence_DA_Nlay_cylinder_CW(1.0, (0.1, 0.1), (10.0, 10.0), 1.0, (1.0, 1.0), (4.5, 4.5), 10.0, 0.0, 1.0, 1000)`
+```
+julia> fluence_DA_Nlay_cylinder_FD(1.0, (0.1, 0.1), (10.0, 10.0))
+julia> fluence_DA_Nlay_cylinder_FD(1.0, (0.2, 0.1), (12.0, 10.0), l = (10.0, 10.0), MaxIter=1000, atol=1.0e-8)
+# to simulate a 3 layer media
+julia> fluence_DA_Nlay_cylinder_FD(1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=1000, atol=1.0e-8)
+```
 """
 function fluence_DA_Nlay_cylinder_FD(ρ, μa, μsp; ω=1.0, n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64))
     ν = ν_coeff.(n_med)
