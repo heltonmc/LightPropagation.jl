@@ -10,8 +10,8 @@ using LightPropagation: flux_DA_slab_CW, flux_DA_slab_TD, flux_DA_semiinf_TD, fl
 # Test slabs against semi-inf for sufficiently thick slabs
 
 # CW
-@test fluence_DA_slab_CW(1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, s = 20.0, z = 0.0) == 0.024035998288332954
-@test fluence_DA_slab_CW(2.4, 0.6, 18.0, n_ext = 1.3, n_med = 1.2, s = 15.0, z = 1.0) == 1.77784095787581e-7
+@test fluence_DA_slab_CW(1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, s = 20.0, z = 0.0) ≈ 0.024035998288332954
+@test fluence_DA_slab_CW(2.4, 0.6, 18.0, n_ext = 1.3, n_med = 1.2, s = 15.0, z = 1.0) ≈ 1.77784095787581e-7
 @test fluence_DA_semiinf_CW(1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, z = 0.0) ≈ fluence_DA_slab_CW(1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, z = 0.0, s = 20.0)
 @test fluence_DA_semiinf_CW(4.0, 0.01, 50.0, n_ext = 1.0, n_med = 1.0, z = 0.0) ≈ fluence_DA_slab_CW(4.0, 0.01, 50.0,n_ext = 1.0, n_med = 1.0, z = 0.0, s = 20.0)
 
