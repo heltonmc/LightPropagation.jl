@@ -142,6 +142,25 @@ function flux_DA_Nlay_cylinder_CW(ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=
         return -D[end] * ForwardDiff.derivative(dz -> fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp; n_ext=n_ext, n_med=n_med, l=l, a=a, z=dz, MaxIter=MaxIter, atol=atol), z)
     end
 end
+function flux_DA_Nlay_cylinder_CW_approx(ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=5*eps(Float64))
+    @assert length(μa) == length(μsp) == length(n_med) == length(l) "μa, μsp, n_med, l should be tuples of the same length"
+    D = D_coeff.(μsp)
+    N = length(D)
+    A = A_coeff.(n_med ./ n_ext)
+    z0 = z0_coeff(μsp[1])
+    zb = zb_coeff.(A, D)
+    D_nmed2 = @. D * n_med^2
+    @assert z0 < l[1] "The source must be located in the first layer (l[1] > 1/μsp[1])"
+    abs(z - z0) > 0.5 && @warn "This approximation may yield inaccurate results. Consider using the exact version"
+    
+    if z <= l[1]
+        ϕ = _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, D_nmed2, MaxIter, _green_approx_dz_z0, N, atol)
+    else
+        throw(DomainError(z, "This approximation should only be used to calculate the fluence in the first layer when z ≈ z0"))
+    end
+    ϕ = @. ϕ * D[1] + flux_DA_semiinf_CW(ρ, μa[1], μsp[1], n_ext = n_ext, n_med = n_med[1])
+    return ϕ 
+end
 
 #-------------------------------------------
 # Time-Domain Fluence 
@@ -472,6 +491,32 @@ end
 
     g1 = exp(α[1] * (z + z0 - 2 * l[1]))
     g1 *= (1 - exp(-2 * α[1] * (z0 + zb[1]))) * (1 - exp(-2 * α[1] * (z + zb[1])))
+    g1 *= tmp1 - tmp2
+    g1 /= muladd(tmp1, tmp3, tmp1) + muladd(tmp2, -tmp3, tmp2)
+
+    return g1 / (2 * D[1] * α[1])
+end
+@inline function _green_approx_dz_z0(sn, μa, D, z, z0, zb, l, n, N)
+    α = @. sqrt(μa / D + sn^2)
+
+    if N == 4
+        β, γ = _get_βγ4(α, n, zb, l)
+    elseif N == 3
+        β, γ = _get_βγ3(α, n, zb, l)
+    elseif N == 2
+        β, γ = _get_βγ2(α, zb, l)
+    elseif N > 4
+        β, γ = _get_βγk(α, n, zb, l)
+    end
+
+    tmp1 = α[1] * n[1] * β
+    tmp2 = α[2] * n[2] * γ
+    tmp3 = exp(-2 * α[1] * (l[1] + zb[1]))
+
+    gtmp = exp(α[1] * (z + z0 - 2 * l[1]))
+    g1 = 2 * α[1] * gtmp * exp(-2 * α[1] * (z + zb[1]))
+    g1 += α[1] * gtmp * -expm1(-2 * α[1] * (z + zb[1]))
+    g1 *= -expm1(-2 * α[1] * (z0 + zb[1]))
     g1 *= tmp1 - tmp2
     g1 /= muladd(tmp1, tmp3, tmp1) + muladd(tmp2, -tmp3, tmp2)
 

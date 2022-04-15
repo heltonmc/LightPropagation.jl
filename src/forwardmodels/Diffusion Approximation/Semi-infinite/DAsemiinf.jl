@@ -282,8 +282,8 @@ julia> flux_DA_semiinf_CW(1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0)
 ```
 """
 function flux_DA_semiinf_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0)
-    params = DiffusionKernelParams(μsp, n_med, n_ext)
-    return params.D * ForwardDiff.derivative(z -> fluence_DA_semiinf_CW(ρ, μa, μsp, n_med = n_med, n_ext = n_ext, z = z), 0.0)
+    D = D_coeff(μsp)
+    return D * ForwardDiff.derivative(z -> fluence_DA_semiinf_CW(ρ, μa, μsp, n_med = n_med, n_ext = n_ext, z = z), 0.0)
 end
 
 """
