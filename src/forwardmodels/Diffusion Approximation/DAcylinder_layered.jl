@@ -14,18 +14,18 @@
 Compute the steady-state fluence in an N-layered cylinder.
 
 # Arguments
-- `ρ`: source-detector separation or tuple of separations in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
-- `μa`: absorption coefficients in each layer (cm⁻¹)
-- `μsp`: reduced scattering coefficient in each layer (cm⁻¹)
+- `ρ::Union{T, NTuple{M, T}}`: source-detector separation or tuple of separations in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
+- `μa::NTuple{N, T}`: absorption coefficients in each layer (cm⁻¹)
+- `μsp::NTuple{N, T}`: reduced scattering coefficient in each layer (cm⁻¹)
 
 # Keyword arguments
-- `n_ext`: the boundary's index of refraction (air or detector)
-- `n_med`: the sample medium's index of refraction in each layer
-- `z`: the z-depth orthogonal from the boundary (cm) within the cylinder
-- `l`: layer thicknesses (cm)
-- `a`: cylinder radius (cm)
-- `MaxIter`: the maximum number of terms to consider in the infinite sum
-- `atol`: the infinite sum will break after this absolute tolerance is met
+- `n_ext::T`: the boundary's index of refraction (air or detector)
+- `n_med::NTuple{N, T}`: the sample medium's index of refraction in each layer
+- `z::T`: the z-depth orthogonal from the boundary (cm) within the cylinder
+- `l::NTuple{N, T}`: layer thicknesses (cm)
+- `a::T`: cylinder radius (cm)
+- `MaxIter::Int`: the maximum number of terms to consider in the infinite sum
+- `atol::T`: the infinite sum will break after this absolute tolerance is met
 
 The source must be located in the first layer (l[1] > 1/μsp[1]). Other arguments are not checked but should be restricted to:
 - ρ, μa, and z >= 0.0
@@ -78,18 +78,18 @@ Compute the steady-state flux using Fick's law D[1]*∂ϕ(ρ)/∂z for z = 0 (re
 z must be equal to 0 or the total length sum(l) of cylinder.
 
 # Arguments
-- `ρ`: source-detector separation or tuple of separations in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
-- `μa`: absorption coefficients in each layer (cm⁻¹)
-- `μsp`: reduced scattering coefficient in each layer (cm⁻¹)
+- `ρ::Union{T, NTuple{M, T}}`: source-detector separation or tuple of separations in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
+- `μa::NTuple{N, T}`: absorption coefficients in each layer (cm⁻¹)
+- `μsp::NTuple{N, T}`: reduced scattering coefficient in each layer (cm⁻¹)
 
 # Keyword arguments
-- `n_ext`: the boundary's index of refraction (air or detector)
-- `n_med`: the sample medium's index of refraction in each layer
-- `z`: the z-depth orthogonal from the boundary (cm) within the cylinder
-- `l`: layer thicknesses (cm)
-- `a`: cylinder radius (cm)
-- `MaxIter`: the maximum number of terms to consider in the infinite sum
-- `atol`: the infinite sum will break after this absolute tolerance is met
+- `n_ext::T`: the boundary's index of refraction (air or detector)
+- `n_med::NTuple{N, T}`: the sample medium's index of refraction in each layer
+- `z::T`: the z-depth orthogonal from the boundary (cm) within the cylinder
+- `l::NTuple{N, T}`: layer thicknesses (cm)
+- `a::T`: cylinder radius (cm)
+- `MaxIter::Int`: the maximum number of terms to consider in the infinite sum
+- `atol::T`: the infinite sum will break after this absolute tolerance is met
 
 The source must be located in the first layer (l[1] > 1/μsp[1]). Other arguments are not checked but should be restricted to:
 - ρ, μa, and z >= 0.0
@@ -134,20 +134,20 @@ end
 Compute the time-domain fluence in an N-layered cylinder.
 
 # Arguments
-- `t`: time point or vector of time values (ns)
-- `ρ`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
-- `μa`: absorption coefficients in each layer (cm⁻¹)
-- `μsp`: reduced scattering coefficient in each layer (cm⁻¹)
+- `t::Union{T, Vector{T}}`: time point or vector of time values (ns)
+- `ρ::Union{T, NTuple{M, T}}`: source-detector separation or tuple of separations in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
+- `μa::NTuple{N, T}`: absorption coefficients in each layer (cm⁻¹)
+- `μsp::NTuple{N, T}`: reduced scattering coefficient in each layer (cm⁻¹)
 
 # Keyword arguments
-- `n_ext`: the boundary's index of refraction (air or detector)
-- `n_med`: the sample medium's index of refraction in each layer
-- `z`: the z-depth orthogonal from the boundary (cm) within the cylinder
-- `l`: layer thicknesses (cm)
-- `a`: cylinder radius (cm)
-- `MaxIter`: the maximum number of terms to consider in the infinite sum
-- `atol`: the infinite sum will break after this absolute tolerance is met
-- `N`: the number of terms used in the integration of the trapezoidal rule for the Laplace transform
+- `n_ext::T`: the boundary's index of refraction (air or detector)
+- `n_med::NTuple{N, T}`: the sample medium's index of refraction in each layer
+- `z::T`: the z-depth orthogonal from the boundary (cm) within the cylinder
+- `l::NTuple{N, T}`: layer thicknesses (cm)
+- `a::T`: cylinder radius (cm)
+- `MaxIter::Int`: the maximum number of terms to consider in the infinite sum
+- `atol::T`: the infinite sum will break after this absolute tolerance is met
+- `N::Int`: the number of terms used in the integration of the trapezoidal rule for the Laplace transform
 - `ILT`: fucntion used to perform the inverse Laplace transform
 
 The source must be located in the first layer (l[1] > 1/μsp[1]). Other arguments are not checked but should be restricted to:
@@ -199,20 +199,20 @@ Compute the time-domain flux using Fick's law D[1]*∂ϕ(ρ, t)/∂z for z = 0 (
 ∂ϕ(ρ, t)/∂z is calculated using forward mode auto-differentiation with ForwardDiff.jl
 
 # Arguments
-- `t`: time point or vector of time values (ns)
-- `ρ`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
-- `μa`: absorption coefficients in each layer (cm⁻¹)
-- `μsp`: reduced scattering coefficient in each layer (cm⁻¹)
+- `t::Union{T, Vector{T}}`: time point or vector of time values (ns)
+- `ρ::Union{T, NTuple{M, T}}`: source-detector separation or tuple of separations in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
+- `μa::NTuple{N, T}`: absorption coefficients in each layer (cm⁻¹)
+- `μsp::NTuple{N, T}`: reduced scattering coefficient in each layer (cm⁻¹)
 
 # Keyword arguments
-- `n_ext`: the boundary's index of refraction (air or detector)
-- `n_med`: the sample medium's index of refraction in each layer
-- `z`: the z-depth orthogonal from the boundary (cm) within the cylinder
-- `l`: layer thicknesses (cm)
-- `a`: cylinder radius (cm)
-- `MaxIter`: the maximum number of terms to consider in the infinite sum
-- `atol`: the infinite sum will break after this absolute tolerance is met
-- `N`: the number of terms used in the integration of the trapezoidal rule for the Laplace transform
+- `n_ext::T`: the boundary's index of refraction (air or detector)
+- `n_med::NTuple{N, T}`: the sample medium's index of refraction in each layer
+- `z::T`: the z-depth orthogonal from the boundary (cm) within the cylinder
+- `l::NTuple{N, T}`: layer thicknesses (cm)
+- `a::T`: cylinder radius (cm)
+- `MaxIter::Int`: the maximum number of terms to consider in the infinite sum
+- `atol::T`: the infinite sum will break after this absolute tolerance is met
+- `N::Int`: the number of terms used in the integration of the trapezoidal rule for the Laplace transform
 - `ILT`: fucntion used to perform the inverse Laplace transform
 
 The source must be located in the first layer (l[1] > 1/μsp[1]). Other arguments are not checked but should be restricted to:
@@ -277,21 +277,21 @@ end
     fluence_DA_Nlay_cylinder_FD(ρ, μa, μsp; ω=1.0, n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64))
 
 Compute the frequency modulated fluence in an N-layered cylinder.
-
+    
 # Arguments
-- `ρ`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
-- `μa`: absorption coefficients in each layer (cm⁻¹)
-- `μsp`: reduced scattering coefficient in each layer (cm⁻¹)
+- `ρ::Union{T, NTuple{M, T}}`: source-detector separation or tuple of separations in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
+- `μa::NTuple{N, T}`: absorption coefficients in each layer (cm⁻¹)
+- `μsp::NTuple{N, T}`: reduced scattering coefficient in each layer (cm⁻¹)
 
 # Keyword arguments
-- `ω`: source modulation frequency (1/ns)
-- `n_ext`: the boundary's index of refraction (air or detector)
-- `n_med`: the sample medium's index of refraction in each layer
-- `z`: the z-depth orthogonal from the boundary (cm) within the cylinder
-- `l`: layer thicknesses (cm)
-- `a`: cylinder radius (cm)
-- `MaxIter`: the maximum number of terms to consider in the infinite sum
-- `atol`: the infinite sum will break after this absolute tolerance is met
+- `ω::T`: source modulation frequency (1/ns)
+- `n_ext::T`: the boundary's index of refraction (air or detector)
+- `n_med::NTuple{N, T}`: the sample medium's index of refraction in each layer
+- `z::T`: the z-depth orthogonal from the boundary (cm) within the cylinder
+- `l::NTuple{N, T}`: layer thicknesses (cm)
+- `a::T`: cylinder radius (cm)
+- `MaxIter::Int`: the maximum number of terms to consider in the infinite sum
+- `atol::T`: the infinite sum will break after this absolute tolerance is met
 
 The source must be located in the first layer (l[1] > 1/μsp[1]). Other arguments are not checked but should be restricted to:
 - ρ, μa, and z >= 0.0
