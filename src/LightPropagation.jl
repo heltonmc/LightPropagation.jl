@@ -77,5 +77,9 @@ const J0_ROOTS = load(joinpath(@__DIR__,"..", "utils/besselroots/J0_ROOTS.jld"))
 
 # computes (besselj1(besselroots[ind]))^2
 const J1_J0ROOTS_2 = load(joinpath(@__DIR__,"..", "utils/besselroots/J1_J0ROOTS_2.jld"))["J1_J0ROOTS_2"]
-    
+
+### Higher precision
+#const J0_ROOTSbig = load(joinpath(@__DIR__,"..", "utils/besselroots/besselzeroroots_big.jld"))["big_besselroots"]
+#const J1_J0ROOTS_2big = (besselj1.(J0_ROOTSbig)).^2
+
 end

@@ -59,12 +59,30 @@ function fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0),
     @assert z0 < l[1] "The source must be located in the first layer (l[1] > 1/μsp[1])"
     @assert length(μa) == length(μsp) == length(n_med) == length(l) "μa, μsp, n_med, l should be tuples of the same length"
     
-    roots = @view J0_ROOTS[1:MaxIter]
     if z < l[1]
-        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, roots, _green_Nlaycylin_top, N, atol)
+        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, MaxIter, _green_Nlaycylin_top, N, atol)
     elseif z > sum(l[1:end - 1])
-        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, roots, _green_Nlaycylin_bottom, N, atol)
+        return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, MaxIter, _green_Nlaycylin_bottom, N, atol)
     end
+end
+function fluence_DA_Nlay_cylinder_CW_approx(ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64))
+    @assert length(μa) == length(μsp) == length(n_med) == length(l) "μa, μsp, n_med, l should be tuples of the same length"
+    D = D_coeff.(μsp)
+    N = length(D)
+    A = A_coeff.(n_med ./ n_ext)
+    z0 = z0_coeff(μsp[1])
+    zb = zb_coeff.(A, D)
+    D_nmed2 = @. D * n_med^2
+    @assert z0 < l[1] "The source must be located in the first layer (l[1] > 1/μsp[1])"
+    abs(z - z0) > 0.5 && @warn "This approximation may yield inaccurate results. Consider using the exact version"
+    
+    if z <= l[1]
+        ϕ = _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, D_nmed2, MaxIter, _green_approx_z_z0, N, atol)
+    else
+        throw(DomainError(z, "This approximation should only be used to calculate the fluence in the first layer when z ≈ z0"))
+    end
+    ϕ = @. ϕ + fluence_DA_semiinf_CW(ρ, μa[1], μsp[1], n_ext = n_ext, n_med = n_med[1], z = z)
+    return ϕ
 end
 
 #-------------------------------------------
@@ -330,20 +348,38 @@ end
 # D is the diffusion coefficient and N is the number of layers.
 # green is the Green's function for either the first or bottom layer (below).
 #-------------------------------------------------------------------------------
-function _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, besselroots, green, N, atol)
+function _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, MaxIter, green, N, atol)
     ϕ = ρ .* zero(eltype(μa))
     ϕ_tmp = zero(eltype(μa))
     apzb = inv(a + zb[1])
+    #T = eltype(ρ)
     
     local ind
-    for outer ind in eachindex(besselroots)
-        tmp = besselroots[ind] * apzb
+    @inbounds for outer ind in 1:MaxIter#eachindex(besselroots)
+        tmp = J0_ROOTS[ind] * apzb
         ϕ_tmp = green(tmp, μa, D, z, z0, zb, l, n_med, N)
         ϕ_tmp /= J1_J0ROOTS_2[ind] # replaces (besselj1(besselroots[ind]))^2
         ϕ = @. ϕ + ϕ_tmp * besselj0(tmp * ρ)
         abs(ϕ_tmp) < atol && break
     end
-    ind == length(besselroots) && @warn "Failed to converge to desired tolerance: Increase MaxIter"
+    #ind == length(1000) && @warn "Failed to converge to desired tolerance: Increase MaxIter"
+    return ϕ ./ (π * (a + zb[1])^2)
+end
+function _kernel_fluence_DA_Nlay_cylinder(ρ::BigFloat, D, μa, a, zb, z, z0, l, n_med, MaxIter, green, N, atol)
+    ϕ = ρ .* zero(eltype(μa))
+    ϕ_tmp = zero(eltype(μa))
+    apzb = inv(a + zb[1])
+    #T = eltype(ρ)
+    
+    local ind
+    @inbounds for outer ind in 1:MaxIter#eachindex(besselroots)
+        tmp = J0_ROOTSbig[ind] * apzb
+        ϕ_tmp = green(tmp, μa, D, z, z0, zb, l, n_med, N)
+        ϕ_tmp /= J1_J0ROOTS_2big[ind] # replaces (besselj1(besselroots[ind]))^2
+        ϕ = @. ϕ + ϕ_tmp * besselj0(tmp * ρ)
+        abs(ϕ_tmp) < atol && break
+    end
+    #ind == length(1000) && @warn "Failed to converge to desired tolerance: Increase MaxIter"
     return ϕ ./ (π * (a + zb[1])^2)
 end
 
@@ -410,6 +446,30 @@ end
 
     return gN
  end
+ @inline function _green_approx_z_z0(sn, μa, D, z, z0, zb, l, n, N)
+    α = @. sqrt(μa / D + sn^2)
+
+    if N == 4
+        β, γ = _get_βγ4(α, n, zb, l)
+    elseif N == 3
+        β, γ = _get_βγ3(α, n, zb, l)
+    elseif N == 2
+        β, γ = _get_βγ2(α, zb, l)
+    elseif N > 4
+        β, γ = _get_βγk(α, n, zb, l)
+    end
+
+    tmp1 = α[1] * n[1] * β
+    tmp2 = α[2] * n[2] * γ
+    tmp3 = exp(-2 * α[1] * (l[1] + zb[1]))
+
+    g1 = exp(α[1] * (z + z0 - 2 * l[1]))
+    g1 *= (1 - exp(-2 * α[1] * (z0 + zb[1]))) * (1 - exp(-2 * α[1] * (z + zb[1])))
+    g1 *= tmp1 - tmp2
+    g1 /= muladd(tmp1, tmp3, tmp1) + muladd(tmp2, -tmp3, tmp2)
+
+    return g1 / (2 * D[1] * α[1])
+end
 
 #-------------------------------------------------------------------------------
 # Calculate β and γ coefficients with eqn. 17 in [1].
