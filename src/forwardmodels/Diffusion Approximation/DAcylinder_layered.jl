@@ -14,18 +14,18 @@
 Compute the steady-state fluence in an N-layered cylinder.
 
 # Arguments
-- `ρ`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
-- `μa`: absorption coefficients in each layer (cm⁻¹)
-- `μsp`: reduced scattering coefficient in each layer (cm⁻¹)
+- `ρ::Union{T, NTuple{M, T}}`: source-detector separation(s) in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
+- `μa::NTuple{N, T}`: absorption coefficients in each layer (cm⁻¹)
+- `μsp::NTuple{N, T}`: reduced scattering coefficient in each layer (cm⁻¹)
 
 # Keyword arguments
-- `n_ext`: the boundary's index of refraction (air or detector)
-- `n_med`: the sample medium's index of refraction in each layer
-- `z`: the z-depth orthogonal from the boundary (cm) within the cylinder
-- `l`: layer thicknesses (cm)
-- `a`: cylinder radius (cm)
-- `MaxIter`: the maximum number of terms to consider in the infinite sum
-- `atol`: the infinite sum will break after this absolute tolerance is met
+- `n_ext::T`: the boundary's index of refraction (air or detector)
+- `n_med::NTuple{N, T}`: the sample medium's index of refraction in each layer
+- `z::T`: the z-depth orthogonal from the boundary (cm) within the cylinder
+- `l::NTuple{N, T}`: layer thicknesses (cm)
+- `a::T`: cylinder radius (cm)
+- `MaxIter::Int`: the maximum number of terms to consider in the infinite sum
+- `atol::T`: the infinite sum will break after this absolute tolerance is met
 
 The source must be located in the first layer (l[1] > 1/μsp[1]). Other arguments are not checked but should be restricted to:
 - ρ, μa, and z >= 0.0
@@ -34,9 +34,10 @@ The source must be located in the first layer (l[1] > 1/μsp[1]). Other argument
 - ρ < a
 - length(μa) == length(μsp) == length(n_med) == length(l)
 
-μa, μsp, n_med, l should be tuples of the same length (e.g., (0.1, 0.1)) The input parameters should be of the same type, but will work with mixed types. 
-The routine can be accurate until the machine precision usedin the calculation. 
-Therefore, atol should be >= eps(eltype(μsp)). Larger values of μsp[1] will require a larger number of terms in the summation.
+ρ can be a single source detector separation or a tuple of separations. μa, μsp, n_med, l should be tuples of the same length (e.g., (0.1, 0.1)). 
+The input parameters should be of the same type, but will work with mixed types. 
+The routine can be accurate until the machine precision used in the calculation. 
+Therefore, atol should be >= eps(T). Larger values of μsp[1] will require a larger number of terms in the summation.
 It is recommended to increase MaxIter if simulating higher scattering coefficients. It is also recommended to keep the cylinder radius as small as 
 possible to increase convergence rate.  
 
@@ -44,6 +45,7 @@ possible to increase convergence rate.
 # Examples
 ```
 julia> fluence_DA_Nlay_cylinder_CW(1.0, (0.1, 0.1), (10.0, 10.0))
+julia> fluence_DA_Nlay_cylinder_CW((1.0, 2.0), (0.1, 0.1), (10.0, 10.0))
 julia> fluence_DA_Nlay_cylinder_CW(1.0, (0.2, 0.1), (12.0, 10.0), l = (10.0, 10.0), MaxIter=1000, atol=1.0e-8)
 # to simulate a 3 layer media
 julia> fluence_DA_Nlay_cylinder_CW(1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=1000, atol=1.0e-8)
@@ -77,18 +79,18 @@ Compute the steady-state flux using Fick's law D[1]*∂ϕ(ρ)/∂z for z = 0 (re
 z must be equal to 0 or the total length sum(l) of cylinder.
 
 # Arguments
-- `ρ`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
-- `μa`: absorption coefficients in each layer (cm⁻¹)
-- `μsp`: reduced scattering coefficient in each layer (cm⁻¹)
+- `ρ::Union{T}`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
+- `μa::NTuple{N, T}`: absorption coefficients in each layer (cm⁻¹)
+- `μsp::NTuple{N, T}`: reduced scattering coefficient in each layer (cm⁻¹)
 
 # Keyword arguments
-- `n_ext`: the boundary's index of refraction (air or detector)
-- `n_med`: the sample medium's index of refraction in each layer
-- `z`: the z-depth orthogonal from the boundary (cm) within the cylinder
-- `l`: layer thicknesses (cm)
-- `a`: cylinder radius (cm)
-- `MaxIter`: the maximum number of terms to consider in the infinite sum
-- `atol`: the infinite sum will break after this absolute tolerance is met
+- `n_ext::T`: the boundary's index of refraction (air or detector)
+- `n_med::NTuple{N, T}`: the sample medium's index of refraction in each layer
+- `z::T`: the z-depth orthogonal from the boundary (cm) within the cylinder
+- `l::NTuple{N, T}`: layer thicknesses (cm)
+- `a::T`: cylinder radius (cm)
+- `MaxIter::Int`: the maximum number of terms to consider in the infinite sum
+- `atol::T`: the infinite sum will break after this absolute tolerance is met
 
 The source must be located in the first layer (l[1] > 1/μsp[1]). Other arguments are not checked but should be restricted to:
 - ρ, μa, and z >= 0.0
@@ -97,8 +99,9 @@ The source must be located in the first layer (l[1] > 1/μsp[1]). Other argument
 - ρ < a
 - length(μa) == length(μsp) == length(n_med) == length(l)
 
-μa, μsp, n_med, l should be tuples of the same length (e.g., (0.1, 0.1)) The input parameters should be of the same type, but will work with mixed types. 
-The routine can be accurate until the machine precision usedin the calculation. 
+ρ can be a single source detector separation, however there is currently a bug in the code preventing this https://github.com/heltonmc/LightPropagation.jl/issues/11. 
+μa, μsp, n_med, l should be tuples of the same length (e.g., (0.1, 0.1)). The input parameters should be of the same type, but will work with mixed types. 
+The routine can be accurate until the machine precision used in the calculation. 
 Therefore, atol should be >= eps(eltype(μsp)). Larger values of μsp[1] will require a larger number of terms in the summation.
 It is recommended to increase MaxIter if simulating higher scattering coefficients. It is also recommended to keep the cylinder radius as small as 
 possible to increase convergence rate.  
@@ -107,6 +110,7 @@ possible to increase convergence rate.
 # Examples
 ```
 julia> flux_DA_Nlay_cylinder_CW(1.0, (0.1, 0.1), (10.0, 10.0))
+julia> flux_DA_Nlay_cylinder_CW((1.0, 2.0), (0.1, 0.1), (10.0, 10.0))
 julia> flux_DA_Nlay_cylinder_CW(1.0, (0.2, 0.1), (12.0, 10.0), l = (10.0, 10.0), MaxIter=1000, atol=1.0e-8)
 # to simulate a 3 layer media
 julia> flux_DA_Nlay_cylinder_CW(1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=1000, atol=1.0e-8)
@@ -131,19 +135,21 @@ end
 Compute the time-domain fluence in an N-layered cylinder.
 
 # Arguments
-- `t`: time point or vector of time values (ns)
-- `ρ`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
-- `μa`: absorption coefficients in each layer (cm⁻¹)
-- `μsp`: reduced scattering coefficient in each layer (cm⁻¹)
+- `t::Union{T, Vector{T}}`: time point or vector of time values (ns)
+- `ρ::Union{T}`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
+- `μa::NTuple{N, T}`: absorption coefficients in each layer (cm⁻¹)
+- `μsp::NTuple{N, T}`: reduced scattering coefficient in each layer (cm⁻¹)
 
 # Keyword arguments
-- `n_ext`: the boundary's index of refraction (air or detector)
-- `n_med`: the sample medium's index of refraction in each layer
-- `z`: the z-depth orthogonal from the boundary (cm) within the cylinder
-- `l`: layer thicknesses (cm)
-- `a`: cylinder radius (cm)
-- `MaxIter`: the maximum number of terms to consider in the infinite sum
-- `atol`: the infinite sum will break after this absolute tolerance is met
+- `n_ext::T`: the boundary's index of refraction (air or detector)
+- `n_med::NTuple{N, T}`: the sample medium's index of refraction in each layer
+- `z::T`: the z-depth orthogonal from the boundary (cm) within the cylinder
+- `l::NTuple{N, T}`: layer thicknesses (cm)
+- `a::T`: cylinder radius (cm)
+- `MaxIter::Int`: the maximum number of terms to consider in the infinite sum
+- `atol::T`: the infinite sum will break after this absolute tolerance is met
+- `N::Int`: the number of terms used in the integration of the trapezoidal rule for the Laplace transform
+- `ILT`: fucntion used to perform the inverse Laplace transform
 
 The source must be located in the first layer (l[1] > 1/μsp[1]). Other arguments are not checked but should be restricted to:
 - ρ, μa, and z >= 0.0
@@ -153,10 +159,10 @@ The source must be located in the first layer (l[1] > 1/μsp[1]). Other argument
 - length(μa) == length(μsp) == length(n_med) == length(l)
 - t .> 0.0
 
-t can be a scaler or a vector but all values of t should be greater than zero and if a vector should be ordered. If t is a scaler `hyperbola` is used for 
+t can be a scaler or a vector but all values of t should be greater than zero and if a vector, should be ordered. If t is a scaler `hyperbola` is used for 
 the inverse Laplace transform where `hyper_fixed` is used if it is a vector. The value of N should be proportional to the dynamic range of the time-domain signal needed.
 If t[end]/t[1] is large then a higher value of N will be required. In general, a larger N will be needed to reconstruct very late times. 
-μa, μsp, n_med, l should be tuples of the same length (e.g., (0.1, 0.1)) The input parameters should be of the same type, but will work with mixed types. 
+μa, μsp, n_med, l should be tuples of the same length (e.g., (0.1, 0.1)). The input parameters should be of the same type, but will work with mixed types. 
 The routine can be accurate until the machine precision used in the calculation. 
 Therefore, atol should be >= eps(eltype(μsp)). Larger values of μsp[1] will require a larger number of terms in the summation.
 It is recommended to increase MaxIter if simulating higher scattering coefficients. It is also recommended to keep the cylinder radius as small as 
@@ -194,19 +200,21 @@ Compute the time-domain flux using Fick's law D[1]*∂ϕ(ρ, t)/∂z for z = 0 (
 ∂ϕ(ρ, t)/∂z is calculated using forward mode auto-differentiation with ForwardDiff.jl
 
 # Arguments
-- `t`: time point or vector of time values (ns)
-- `ρ`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
-- `μa`: absorption coefficients in each layer (cm⁻¹)
-- `μsp`: reduced scattering coefficient in each layer (cm⁻¹)
+- `t::Union{T, Vector{T}}`: time point or vector of time values (ns)
+- `ρ::Union{T}`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
+- `μa::NTuple{N, T}`: absorption coefficients in each layer (cm⁻¹)
+- `μsp::NTuple{N, T}`: reduced scattering coefficient in each layer (cm⁻¹)
 
 # Keyword arguments
-- `n_ext`: the boundary's index of refraction (air or detector)
-- `n_med`: the sample medium's index of refraction in each layer
-- `z`: the z-depth orthogonal from the boundary (cm) within the cylinder
-- `l`: layer thicknesses (cm)
-- `a`: cylinder radius (cm)
-- `MaxIter`: the maximum number of terms to consider in the infinite sum
-- `atol`: the infinite sum will break after this absolute tolerance is met
+- `n_ext::T`: the boundary's index of refraction (air or detector)
+- `n_med::NTuple{N, T}`: the sample medium's index of refraction in each layer
+- `z::T`: the z-depth orthogonal from the boundary (cm) within the cylinder
+- `l::NTuple{N, T}`: layer thicknesses (cm)
+- `a::T`: cylinder radius (cm)
+- `MaxIter::Int`: the maximum number of terms to consider in the infinite sum
+- `atol::T`: the infinite sum will break after this absolute tolerance is met
+- `N::Int`: the number of terms used in the integration of the trapezoidal rule for the Laplace transform
+- `ILT`: fucntion used to perform the inverse Laplace transform
 
 The source must be located in the first layer (l[1] > 1/μsp[1]). Other arguments are not checked but should be restricted to:
 - ρ, μa, and z >= 0.0
@@ -216,12 +224,12 @@ The source must be located in the first layer (l[1] > 1/μsp[1]). Other argument
 - length(μa) == length(μsp) == length(n_med) == length(l)
 - t .> 0.0
 
-t can be a scaler or a vector but all values of t should be greater than zero and if a vector should be ordered. If t is a scaler `hyperbola` is used for 
+t can be a scaler or a vector but all values of t should be greater than zero and if a vector, should be ordered. If t is a scaler `hyperbola` is used for 
 the inverse Laplace transform where `hyper_fixed` is used if it is a vector. The value of N should be proportional to the dynamic range of the time-domain signal needed.
 If t[end]/t[1] is large then a higher value of N will be required. In general, a larger N will be needed to reconstruct very late times. 
-μa, μsp, n_med, l should be tuples of the same length (e.g., (0.1, 0.1)) The input parameters should be of the same type, but will work with mixed types. 
+μa, μsp, n_med, l should be tuples of the same length (e.g., (0.1, 0.1)). The input parameters should be of the same type, but will work with mixed types. 
 The routine can be accurate until the machine precision used in the calculation. 
-Therefore, atol should be >= eps(eltype(μsp)). Larger values of μsp[1] will require a larger number of terms in the summation.
+Therefore, atol should be >= eps(T). Larger values of μsp[1] will require a larger number of terms in the summation.
 It is recommended to increase MaxIter if simulating higher scattering coefficients. It is also recommended to keep the cylinder radius as small as 
 possible to increase convergence rate.
 
@@ -270,21 +278,21 @@ end
     fluence_DA_Nlay_cylinder_FD(ρ, μa, μsp; ω=1.0, n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64))
 
 Compute the frequency modulated fluence in an N-layered cylinder.
-
+    
 # Arguments
-- `ρ`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
-- `μa`: absorption coefficients in each layer (cm⁻¹)
-- `μsp`: reduced scattering coefficient in each layer (cm⁻¹)
+- `ρ::Union{T, NTuple{M, T}}`: source-detector separation(s) in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
+- `μa::NTuple{N, T}`: absorption coefficients in each layer (cm⁻¹)
+- `μsp::NTuple{N, T}`: reduced scattering coefficient in each layer (cm⁻¹)
 
 # Keyword arguments
-- `ω`: source modulation frequency (1/ns)
-- `n_ext`: the boundary's index of refraction (air or detector)
-- `n_med`: the sample medium's index of refraction in each layer
-- `z`: the z-depth orthogonal from the boundary (cm) within the cylinder
-- `l`: layer thicknesses (cm)
-- `a`: cylinder radius (cm)
-- `MaxIter`: the maximum number of terms to consider in the infinite sum
-- `atol`: the infinite sum will break after this absolute tolerance is met
+- `ω::T`: source modulation frequency (1/ns)
+- `n_ext::T`: the boundary's index of refraction (air or detector)
+- `n_med::NTuple{N, T}`: the sample medium's index of refraction in each layer
+- `z::T`: the z-depth orthogonal from the boundary (cm) within the cylinder
+- `l::NTuple{N, T}`: layer thicknesses (cm)
+- `a::T`: cylinder radius (cm)
+- `MaxIter::Int`: the maximum number of terms to consider in the infinite sum
+- `atol::T`: the infinite sum will break after this absolute tolerance is met
 
 The source must be located in the first layer (l[1] > 1/μsp[1]). Other arguments are not checked but should be restricted to:
 - ρ, μa, and z >= 0.0
@@ -293,8 +301,8 @@ The source must be located in the first layer (l[1] > 1/μsp[1]). Other argument
 - ρ < a
 - length(μa) == length(μsp) == length(n_med) == length(l)
 
-μa, μsp, n_med, l should be tuples of the same length (e.g., (0.1, 0.1)) The input parameters should be of the same type, but will work with mixed types. 
-The routine can be accurate until the machine precision usedin the calculation. 
+ρ can  be a single source detector separation or a tuple of separations. μa, μsp, n_med, l should be tuples of the same length (e.g., (0.1, 0.1)). The input parameters should be of the same type, but will work with mixed types. 
+The routine can be accurate until the machine precision used in the calculation. 
 Therefore, atol should be >= eps(eltype(μsp)). Larger values of μsp[1] will require a larger number of terms in the summation.
 It is recommended to increase MaxIter if simulating higher scattering coefficients. It is also recommended to keep the cylinder radius as small as 
 possible to increase convergence rate.  
@@ -302,6 +310,7 @@ possible to increase convergence rate.
 # Examples
 ```
 julia> fluence_DA_Nlay_cylinder_FD(1.0, (0.1, 0.1), (10.0, 10.0))
+julia> fluence_DA_Nlay_cylinder_FD((1.0, 2.0), (0.1, 0.1), (10.0, 10.0))
 julia> fluence_DA_Nlay_cylinder_FD(1.0, (0.2, 0.1), (12.0, 10.0), l = (10.0, 10.0), MaxIter=1000, atol=1.0e-8)
 # to simulate a 3 layer media
 julia> fluence_DA_Nlay_cylinder_FD(1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=1000, atol=1.0e-8)
