@@ -96,29 +96,25 @@ julia> fluence_DA_semiinf_CW(1.0, 0.1, 10.0, n_ext = 1.0, n_med = 1.0, z = 0.0)
 ```
 """
 function fluence_DA_semiinf_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0)
-    params = DiffusionKernelParams(μsp, n_med, n_ext)
     μeff = sqrt(3 * μa * μsp)
-    return _kernel_fluence_DA_semiinf_CW(μeff, ρ, z, params.z0, params.zb, params.D)
+    D = D_coeff(μsp)
+    (z0, zb) = (z0_coeff(μsp), zb_coeff(A_coeff(n_med / n_ext), D))
+    return _kernel_fluence_DA_semiinf_CW(μeff, ρ, z, z0, zb, D)
 end
-"""
-    fluence_DA_semiinf_CW(data::DiffusionParameters)
-
-Wrapper to `fluence_DA_semiinf_CW(ρ, μa, μsp; n_ext = 1.0, n_med = 1.0, z = 0.0...)`
-
-# Examples
-```
-julia> data = DAsemiinf_params(ρ = 1.0) # use structure to generate inputs
-julia> fluence_DA_semiinf_CW(data) # then call the function
-```
-"""
-function fluence_DA_semiinf_CW(data::DiffusionParameters)
-    μeff = sqrt(3 * data.μa * data.μsp)
-    return _kernel_fluence_DA_semiinf_CW(μeff, data.ρ, data.z, data.z0, data.zb, data.D)
-end
-
 function _kernel_fluence_DA_semiinf_CW(μeff, ρ, z, z0, zb, D)
-    ϕ = exp(-μeff * sqrt(ρ^2 + (z - z0)^2)) / (sqrt(ρ^2 + (z - z0)^2))
-    ϕ -= exp(-μeff * sqrt(ρ^2 + (z + 2 * zb + z0)^2)) / (sqrt(ρ^2 + (z + 2 * zb + z0)^2))
+    a = hypot(ρ, z - z0)
+    b = hypot(ρ, z + 2 * zb + z0)
+
+    # the following tries to compute ϕ = exp(-μeff * a) / a - exp(-μeff * b) / b more accurately
+    # there is some loss of significance when a ≈ b and a > 5
+    h = b - a
+    ϕ = exp(-b * μeff) * fma(b, expm1(h * μeff), h) / (b * a)
+    return ϕ / (4 * π * D)
+end
+function _kernel_fluence_DA_semiinf_CW(μeff::Complex, ρ, z, z0, zb, D)
+    a = hypot(ρ, z - z0)
+    b = hypot(ρ, z + 2 * zb + z0)
+    ϕ = exp(-μeff * a) / a - exp(-μeff * b) / b 
     return ϕ / (4 * π * D)
 end
 

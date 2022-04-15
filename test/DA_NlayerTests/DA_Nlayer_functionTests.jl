@@ -72,6 +72,31 @@ n_med = (1.0, 1.0, 1.0, 1.0); l = (0.5, 0.8, 1.0, 5.0); a = 5.0; z = 0.0
 ρ1 = (1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0)
 @test [fluence_DA_Nlay_cylinder_CW(ρ1, μa, μsp, n_med=n_med, l=l, a=a)...] ≈ map(ρ -> fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp, n_med=n_med, l=l, a=a), 1.0:0.1:2.0)
 
+### test approximations against higher precision
+
+# test for ρ = 1.0 cm
+#fluence_DA_Nlay_cylinder_CW(big"1.0", BigFloat.((0.2, 0.1, 0.2)), BigFloat.((12.0, 10.0, 11.0)), l = BigFloat.((1.0, 1.2, 4.0)), n_med = BigFloat.((1.0, 1.0, 1.0)), z=big"0.0", MaxIter=100000, atol=1.0e-60, a = big"30.0") ...
+# = 0.01059246710599644995407690834032245361228582286358680220137244538434879662408047
+exact = fluence_DA_Nlay_cylinder_CW(1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=100000, atol=1.0e-60, a = 30.0, z = 0.0)
+approx = fluence_DA_Nlay_cylinder_CW_approx(1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=100000, atol=1.0e-60, a = 30.0, z = 0.0)
+@test exact ≈ 0.01059246710599644995407690834032245361228582286358680220137244538434879662408047 
+@test approx ≈ 0.01059246710599644995407690834032245361228582286358680220137244538434879662408047
+
+# test for ρ = 3.5 cm
+#fluence_DA_Nlay_cylinder_CW(big"3.5", BigFloat.((0.01, 0.2, 0.35)), BigFloat.((6.0, 15.0, 11.0)), l = BigFloat.((0.5, 1.2, 4.0)), n_med = BigFloat.((1.0, 1.0, 1.0)), z=big"0.0", MaxIter=100000, atol=1.0e-60, a = big"30.0") ...
+# = 2.37808800608361746480719102898448922930259853687958126602277737309411249063373e-05
+exact = fluence_DA_Nlay_cylinder_CW(3.5, (0.01, 0.2, 0.35), (6.0, 15.0, 11.0), l = (0.5, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=100000, atol=1.0e-60, a = 30.0, z = 0.0)
+approx = fluence_DA_Nlay_cylinder_CW_approx(3.5, (0.01, 0.2, 0.35), (6.0, 15.0, 11.0), l = (0.5, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=100000, atol=1.0e-60, a = 30.0, z = 0.0)
+@test exact ≈ 2.37808800608361746480719102898448922930259853687958126602277737309411249063373e-05
+@test approx ≈ 2.37808800608361746480719102898448922930259853687958126602277737309411249063373e-05
+
+# test for ρ = 10.0 cm
+# fluence_DA_Nlay_cylinder_CW(big"10.0", BigFloat.((0.2, 0.1, 0.2)), BigFloat.((12.0, 10.0, 11.0)), l = BigFloat.((1.0, 1.2, 4.0)), n_med = BigFloat.((1.0, 1.0, 1.0)), z=big"0.0", MaxIter=100000, atol=1.0e-60, a = big"30.0") ...
+# = 5.130032007256222345294315223040138886305142618609630358861997082580778793718697e-13
+#exact = fluence_DA_Nlay_cylinder_CW(10.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=100000, atol=1.0e-60, a = 30.0, z = 0.0)
+approx = fluence_DA_Nlay_cylinder_CW_approx(10.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=100000, atol=1.0e-60, a = 30.0, z = 0.0)
+#@test exact ≈ 5.130032007256222345294315223040138886305142618609630358861997082580778793718697e-13 this test fails because of numerical errors
+@test approx ≈ 5.130032007256222345294315223040138886305142618609630358861997082580778793718697e-13 # the approximation is actually more accurate
 
 ##################
 # Time-Domain
@@ -83,8 +108,8 @@ t = range(0.03, 8.0, length = 60)
 
 ρ, μa, μsp = (0.5, 0.1, 10.0)
 si = fluence_DA_semiinf_TD(t, ρ, μa, μsp)
-a72 = fluence_DA_Nlay_cylinder_TD(t, ρ, (μa, μa), (μsp, μsp), l=(4.0, 5.0), N = 72, MaxIter=100)
-a96 = fluence_DA_Nlay_cylinder_TD(t, ρ, (μa, μa), (μsp, μsp), l=(4.0, 5.0), N = 96, MaxIter=100)
+a72 = fluence_DA_Nlay_cylinder_TD(t, ρ, (μa, μa), (μsp, μsp), l=(4.0, 5.0), N = 72, MaxIter=500, atol=1.0e-16)
+a96 = fluence_DA_Nlay_cylinder_TD(t, ρ, (μa, μa), (μsp, μsp), l=(4.0, 5.0), N = 96, MaxIter=500, atol=1.0e-16)
 @test a72 ≈ si
 @test a96 ≈ si
 
@@ -100,8 +125,8 @@ a96 = fluence_DA_Nlay_cylinder_TD(t, ρ, (μa, μa), (μsp, μsp), l=(4.0, 5.0),
 # test high scattering at SDS = 1.5 cm
 ρ, μa, μsp = (1.5, 0.1, 60.0)
 si = fluence_DA_semiinf_TD(t, ρ, μa, μsp)
-a72 = fluence_DA_Nlay_cylinder_TD(t, ρ, (μa, μa), (μsp, μsp), l=(4.0, 5.0), N = 72, MaxIter=500)
-a96 = fluence_DA_Nlay_cylinder_TD(t, ρ, (μa, μa), (μsp, μsp), l=(4.0, 5.0), N = 96, MaxIter=500)
+a72 = fluence_DA_Nlay_cylinder_TD(t, ρ, (μa, μa), (μsp, μsp), l=(4.0, 5.0), N = 72, MaxIter=500, atol=1.0e-12)
+a96 = fluence_DA_Nlay_cylinder_TD(t, ρ, (μa, μa), (μsp, μsp), l=(4.0, 5.0), N = 96, MaxIter=5000)
 @test a72 ≈ si
 @test a96 ≈ si
 
