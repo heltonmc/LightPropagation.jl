@@ -14,7 +14,7 @@
 Compute the steady-state fluence in an N-layered cylinder.
 
 # Arguments
-- `ρ::Union{T, NTuple{M, T}}`: source-detector separation or tuple of separations in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
+- `ρ::Union{T, NTuple{M, T}}`: source-detector separation(s) in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
 - `μa::NTuple{N, T}`: absorption coefficients in each layer (cm⁻¹)
 - `μsp::NTuple{N, T}`: reduced scattering coefficient in each layer (cm⁻¹)
 
@@ -34,9 +34,10 @@ The source must be located in the first layer (l[1] > 1/μsp[1]). Other argument
 - ρ < a
 - length(μa) == length(μsp) == length(n_med) == length(l)
 
-ρ can be a single source detector separation or a tuple of separations. μa, μsp, n_med, l should be tuples of the same length (e.g., (0.1, 0.1)). The input parameters should be of the same type, but will work with mixed types. 
+ρ can be a single source detector separation or a tuple of separations. μa, μsp, n_med, l should be tuples of the same length (e.g., (0.1, 0.1)). 
+The input parameters should be of the same type, but will work with mixed types. 
 The routine can be accurate until the machine precision used in the calculation. 
-Therefore, atol should be >= eps(eltype(μsp)). Larger values of μsp[1] will require a larger number of terms in the summation.
+Therefore, atol should be >= eps(T). Larger values of μsp[1] will require a larger number of terms in the summation.
 It is recommended to increase MaxIter if simulating higher scattering coefficients. It is also recommended to keep the cylinder radius as small as 
 possible to increase convergence rate.  
 
@@ -78,7 +79,7 @@ Compute the steady-state flux using Fick's law D[1]*∂ϕ(ρ)/∂z for z = 0 (re
 z must be equal to 0 or the total length sum(l) of cylinder.
 
 # Arguments
-- `ρ::Union{T, NTuple{M, T}}`: source-detector separation or tuple of separations in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
+- `ρ::Union{T}`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
 - `μa::NTuple{N, T}`: absorption coefficients in each layer (cm⁻¹)
 - `μsp::NTuple{N, T}`: reduced scattering coefficient in each layer (cm⁻¹)
 
@@ -98,7 +99,7 @@ The source must be located in the first layer (l[1] > 1/μsp[1]). Other argument
 - ρ < a
 - length(μa) == length(μsp) == length(n_med) == length(l)
 
-ρ can be a single source detector separation or a tuple of separations, however there is currently a bug in the code preventing this https://github.com/heltonmc/LightPropagation.jl/issues/11. 
+ρ can be a single source detector separation, however there is currently a bug in the code preventing this https://github.com/heltonmc/LightPropagation.jl/issues/11. 
 μa, μsp, n_med, l should be tuples of the same length (e.g., (0.1, 0.1)). The input parameters should be of the same type, but will work with mixed types. 
 The routine can be accurate until the machine precision used in the calculation. 
 Therefore, atol should be >= eps(eltype(μsp)). Larger values of μsp[1] will require a larger number of terms in the summation.
@@ -135,7 +136,7 @@ Compute the time-domain fluence in an N-layered cylinder.
 
 # Arguments
 - `t::Union{T, Vector{T}}`: time point or vector of time values (ns)
-- `ρ::Union{T, NTuple{M, T}}`: source-detector separation or tuple of separations in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
+- `ρ::Union{T}`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
 - `μa::NTuple{N, T}`: absorption coefficients in each layer (cm⁻¹)
 - `μsp::NTuple{N, T}`: reduced scattering coefficient in each layer (cm⁻¹)
 
@@ -200,7 +201,7 @@ Compute the time-domain flux using Fick's law D[1]*∂ϕ(ρ, t)/∂z for z = 0 (
 
 # Arguments
 - `t::Union{T, Vector{T}}`: time point or vector of time values (ns)
-- `ρ::Union{T, NTuple{M, T}}`: source-detector separation or tuple of separations in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
+- `ρ::Union{T}`: source-detector separation in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
 - `μa::NTuple{N, T}`: absorption coefficients in each layer (cm⁻¹)
 - `μsp::NTuple{N, T}`: reduced scattering coefficient in each layer (cm⁻¹)
 
@@ -228,7 +229,7 @@ the inverse Laplace transform where `hyper_fixed` is used if it is a vector. The
 If t[end]/t[1] is large then a higher value of N will be required. In general, a larger N will be needed to reconstruct very late times. 
 μa, μsp, n_med, l should be tuples of the same length (e.g., (0.1, 0.1)). The input parameters should be of the same type, but will work with mixed types. 
 The routine can be accurate until the machine precision used in the calculation. 
-Therefore, atol should be >= eps(eltype(μsp)). Larger values of μsp[1] will require a larger number of terms in the summation.
+Therefore, atol should be >= eps(T). Larger values of μsp[1] will require a larger number of terms in the summation.
 It is recommended to increase MaxIter if simulating higher scattering coefficients. It is also recommended to keep the cylinder radius as small as 
 possible to increase convergence rate.
 
@@ -279,7 +280,7 @@ end
 Compute the frequency modulated fluence in an N-layered cylinder.
     
 # Arguments
-- `ρ::Union{T, NTuple{M, T}}`: source-detector separation or tuple of separations in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
+- `ρ::Union{T, NTuple{M, T}}`: source-detector separation(s) in cylindrical coordinates (distance from middle z-axis of cylinder) (cm⁻¹)
 - `μa::NTuple{N, T}`: absorption coefficients in each layer (cm⁻¹)
 - `μsp::NTuple{N, T}`: reduced scattering coefficient in each layer (cm⁻¹)
 
