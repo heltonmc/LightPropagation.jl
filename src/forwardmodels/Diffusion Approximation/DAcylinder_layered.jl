@@ -50,6 +50,7 @@ julia> fluence_DA_Nlay_cylinder_CW(1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l =
 ```
 """
 function fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64))
+    @assert length(μa) == length(μsp) == length(n_med) == length(l) "μa, μsp, n_med, l should be tuples of the same length"
     D = D_coeff.(μsp)
     N = length(D)
     A = A_coeff.(n_med ./ n_ext)
@@ -57,7 +58,6 @@ function fluence_DA_Nlay_cylinder_CW(ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0),
     zb = zb_coeff.(A, D)
     n_med = @. D * n_med^2
     @assert z0 < l[1] "The source must be located in the first layer (l[1] > 1/μsp[1])"
-    @assert length(μa) == length(μsp) == length(n_med) == length(l) "μa, μsp, n_med, l should be tuples of the same length"
     
     if z < l[1]
         return _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, MaxIter, _green_Nlaycylin_top, N, atol)
