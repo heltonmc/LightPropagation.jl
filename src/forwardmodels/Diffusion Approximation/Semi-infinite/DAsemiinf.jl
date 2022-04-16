@@ -107,7 +107,8 @@ function _kernel_fluence_DA_semiinf_CW(μeff, ρ, z, z0, zb, D)
 
     # the following tries to compute ϕ = exp(-μeff * a) / a - exp(-μeff * b) / b more accurately
     # there is some loss of significance when a ≈ b and a > 5
-    h = b - a
+    # h also tries to compute h = b - a more accurately
+    h = 4 * (z0 * z + z0 * zb + z * zb + zb^2) / (a + b)
     ϕ = exp(-b * μeff) * fma(b, expm1(h * μeff), h) / (b * a)
     return ϕ / (4 * π * D)
 end
