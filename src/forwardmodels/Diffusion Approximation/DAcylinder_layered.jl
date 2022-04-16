@@ -83,7 +83,7 @@ function fluence_DA_Nlay_cylinder_CW_approx(ρ, μa, μsp; n_ext=1.0, n_med=(1.0
     else
         throw(DomainError(z, "This approximation should only be used to calculate the fluence in the first layer when z ≈ z0"))
     end
-    ϕ = @. ϕ + Float64(fluence_DA_semiinf_CW(ρ, μa[1], μsp[1], n_ext = n_ext, n_med = n_med[1], z = z))
+    ϕ = @. ϕ + fluence_DA_semiinf_CW(ρ, μa[1], μsp[1], n_ext = n_ext, n_med = n_med[1], z = z)
     return ϕ
 end
 #-------------------------------------------
@@ -225,6 +225,51 @@ function fluence_DA_Nlay_cylinder_TD(t::AbstractArray, ρ, μa, μsp; n_ext=1.0,
     T = promote_type(eltype(ρ), eltype(μa), eltype(μsp), eltype(z), eltype(l))
     return ILT(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z, s, MaxIter, atol), t, N = N, T = T)
 end
+function fluence_DA_Nlay_cylinder_TD_approx(t::AbstractFloat, ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64), N = 18, ILT = hyperbola)
+    ν = ν_coeff.(n_med)
+
+    @assert length(μa) == length(μsp) == length(n_med) == length(l) "μa, μsp, n_med, l should be tuples of the same length"
+    D = D_coeff.(μsp)
+    N2 = length(D)
+    A = A_coeff.(n_med ./ n_ext)
+    z0 = z0_coeff(μsp[1])
+    zb = zb_coeff.(A, D)
+    D_nmed2 = @. D * n_med^2
+    @assert z0 < l[1] "The source must be located in the first layer (l[1] > 1/μsp[1])"
+    abs(z - z0) > 0.5 && @warn "This approximation may yield inaccurate results. Consider using the exact version"
+    
+    if z <= l[1]
+        ϕ = ILT(s -> _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa .+ s ./ ν, a, zb, z, z0, l, D_nmed2, MaxIter, _green_approx_z_z0, N2, atol), t, N = N)
+    else
+        throw(DomainError(z, "This approximation should only be used to calculate the fluence in the first layer when z ≈ z0"))
+    end
+    ϕ = @. ϕ + fluence_DA_semiinf_TD(t, ρ, μa[1], μsp[1], n_ext = n_ext, n_med = n_med[1], z = z)
+    return ϕ
+end
+function fluence_DA_Nlay_cylinder_TD_approx(t::AbstractVector, ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64), N = 24, ILT = hyper_fixed)
+    ν = ν_coeff.(n_med)
+    T = promote_type(eltype(ρ), eltype(μa), eltype(μsp), eltype(z), eltype(l))
+
+
+    @assert length(μa) == length(μsp) == length(n_med) == length(l) "μa, μsp, n_med, l should be tuples of the same length"
+    D = D_coeff.(μsp)
+    N2 = length(D)
+    A = A_coeff.(n_med ./ n_ext)
+    z0 = z0_coeff(μsp[1])
+    zb = zb_coeff.(A, D)
+    D_nmed2 = @. D * n_med^2
+    @assert z0 < l[1] "The source must be located in the first layer (l[1] > 1/μsp[1])"
+    abs(z - z0) > 0.5 && @warn "This approximation may yield inaccurate results. Consider using the exact version"
+    
+    if z <= l[1]
+        ϕ = ILT(s -> _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa .+ s ./ ν, a, zb, z, z0, l, D_nmed2, MaxIter, _green_approx_z_z0, N2, atol), t, N = N, T = T)
+    else
+        throw(DomainError(z, "This approximation should only be used to calculate the fluence in the first layer when z ≈ z0"))
+    end
+    ϕ = @. ϕ + fluence_DA_semiinf_TD(t, ρ, μa[1], μsp[1], n_ext = n_ext, n_med = n_med[1], z = z)
+    return ϕ
+end
+
 
 #-------------------------------------------
 # Time-Domain Flux 
@@ -306,6 +351,49 @@ function flux_DA_Nlay_cylinder_TD(t::AbstractFloat, ρ, μa, μsp; n_ext=1.0, n_
         return -D[end] * ForwardDiff.derivative(dz -> hyperbola(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, dz, s, MaxIter, atol), t, N = N), sum(l))
     end
 end
+function flux_DA_Nlay_cylinder_TD_approx(t::AbstractFloat, ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64), N = 18, ILT = hyperbola)
+    ν = ν_coeff.(n_med)
+
+    @assert length(μa) == length(μsp) == length(n_med) == length(l) "μa, μsp, n_med, l should be tuples of the same length"
+    D = D_coeff.(μsp)
+    N2 = length(D)
+    A = A_coeff.(n_med ./ n_ext)
+    z0 = z0_coeff(μsp[1])
+    zb = zb_coeff.(A, D)
+    D_nmed2 = @. D * n_med^2
+    @assert z0 < l[1] "The source must be located in the first layer (l[1] > 1/μsp[1])"
+    
+    if iszero(z)
+        ϕ = ILT(s -> _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa .+ s ./ ν, a, zb, z, z0, l, D_nmed2, MaxIter, _green_approx_dz_z0, N2, atol), t, N = N)
+    else
+        throw(DomainError(z, "This approximation can only be used to calculate the fluence in the first layer when z = 0.0"))
+    end
+    ϕ = @. ϕ * D[1] + flux_DA_semiinf_TD(t, ρ, μa[1], μsp[1], n_ext = n_ext, n_med = n_med[1])
+    return ϕ
+end
+function flux_DA_Nlay_cylinder_TD_approx(t::AbstractVector, ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64), N = 24, ILT = hyper_fixed)
+    ν = ν_coeff.(n_med)
+    T = promote_type(eltype(ρ), eltype(μa), eltype(μsp), eltype(z), eltype(l))
+
+
+    @assert length(μa) == length(μsp) == length(n_med) == length(l) "μa, μsp, n_med, l should be tuples of the same length"
+    D = D_coeff.(μsp)
+    N2 = length(D)
+    A = A_coeff.(n_med ./ n_ext)
+    z0 = z0_coeff(μsp[1])
+    zb = zb_coeff.(A, D)
+    D_nmed2 = @. D * n_med^2
+    @assert z0 < l[1] "The source must be located in the first layer (l[1] > 1/μsp[1])"
+    abs(z - z0) > 0.5 && @warn "This approximation may yield inaccurate results. Consider using the exact version"
+    
+    if iszero(z)
+        ϕ = ILT(s -> _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa .+ s ./ ν, a, zb, z, z0, l, D_nmed2, MaxIter, _green_approx_dz_z0, N2, atol), t, N = N, T = T)
+    else
+        throw(DomainError(z, "This approximation should only be used to calculate the fluence in the first layer when z ≈ z0"))
+    end
+    ϕ = @. ϕ * D[1] + flux_DA_semiinf_TD(t, ρ, μa[1], μsp[1], n_ext = n_ext, n_med = n_med[1])
+    return ϕ
+end
 
 #-------------------------------------------
 # Frequency-Domain Fluence 
@@ -368,7 +456,6 @@ function _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z,
 
     return fluence_DA_Nlay_cylinder_CW(ρ, μa_complex,  μsp; n_ext=n_ext, n_med=n_med, l=l, a=a, z=z, MaxIter=MaxIter, atol=atol)
 end
-
 #-------------------------------------------------------------------------------
 # _kernel_fluence_DA_Nlay_cylinder provides the main kernel of the program.
 # The inputs are similar to fluence_DA_Nlay_cylinder_CW.
