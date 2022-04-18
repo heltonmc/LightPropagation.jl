@@ -155,6 +155,19 @@ a96 = fluence_DA_Nlay_cylinder_TD(t, ρ, (μa, μa), (μsp, μsp), l=(1.5, 1.5),
 @test a72 ≈ slab
 @test a96 ≈ slab
 
+# approx
+# TD
+t = 1.0
+exact = fluence_DA_Nlay_cylinder_TD(t, 1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=100000, atol=1.0e-60, a = 30.0, z = 0.0)
+approx = fluence_DA_Nlay_cylinder_TD_approx(t, 1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=100000, atol=1.0e-60, a = 30.0, z = 0.0)
+@test exact ≈ approx
+
+t = 0.5:0.1:1.5
+exact = fluence_DA_Nlay_cylinder_TD(t, 1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=100000, atol=1.0e-60, a = 30.0, z = 0.0)
+approx = fluence_DA_Nlay_cylinder_TD_approx(t, 1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=100000, atol=1.0e-60, a = 30.0, z = 0.0)
+@test exact ≈ approx
+
+
 ## frequency domain
 ρ, μa, μsp = (0.0, 0.1, 10.0)
 @test LightPropagation.fluence_DA_semiinf_FD(ρ, μa, μsp, ω = 1.4) ≈ LightPropagation.fluence_DA_Nlay_cylinder_FD(ρ, (μa, μa), (μsp, μsp), l = (10.0, 10.0), ω = 1.4)
@@ -167,15 +180,24 @@ a96 = fluence_DA_Nlay_cylinder_TD(t, ρ, (μa, μa), (μsp, μsp), l=(1.5, 1.5),
 @test flux_DA_semiinf_CW(ρ, μa, μsp) ≈ flux_DA_Nlay_cylinder_CW(ρ, (μa, μa), (μsp, μsp), l = (10.0, 10.0))
 @test flux_DA_slab_CW(1.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0, s = 4.0, z = 4.0, xs = 15) ≈ flux_DA_Nlay_cylinder_CW(ρ, (μa, μa), (μsp, μsp), l = (2.0, 2.0), z = 4.0)
 
+exact = flux_DA_Nlay_cylinder_CW(1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=100000, atol=1.0e-60, a = 30.0, z = 0.0)
+approx = flux_DA_Nlay_cylinder_CW_approx(1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=100000, atol=1.0e-60, a = 30.0, z = 0.0)
+@test exact ≈ approx
+
 # TD
 t = 1.0
 ρ, μa, μsp = (1.0, 0.1, 10.0)
 @test flux_DA_Nlay_cylinder_TD(t, ρ, (μa, μa), (μsp, μsp), l = (10.0, 10.0)) ≈ flux_DA_semiinf_TD(t, 1.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0)
 @test flux_DA_Nlay_cylinder_TD(t, ρ, (μa, μa), (μsp, μsp), l = (2.0, 2.0), z = 4.0) ≈ flux_DA_slab_TD(t, 1.0, 0.1, 10.0; s = 4.0, z = 4.0, xs = 15)
-
+exact = flux_DA_Nlay_cylinder_TD(t, 1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=100000, atol=1.0e-60, a = 30.0, z = 0.0)
+approx = flux_DA_Nlay_cylinder_TD_approx(t, 1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=100000, atol=1.0e-60, a = 30.0, z = 0.0)
+@test exact ≈ approx
 
 t = 0.5:0.1:1.5
 @test flux_DA_Nlay_cylinder_TD(t, ρ, (μa, μa), (μsp, μsp), l = (10.0, 10.0)) ≈ flux_DA_semiinf_TD(t, 1.0, 0.1, 10.0; n_ext = 1.0, n_med = 1.0)
 @test flux_DA_Nlay_cylinder_TD(t, ρ, (μa, μa), (μsp, μsp), l = (2.0, 2.0), z = 4.0) ≈ flux_DA_slab_TD(t, 1.0, 0.1, 10.0; s = 4.0, z = 4.0, xs = 15)
+exact = flux_DA_Nlay_cylinder_TD(t, 1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=100000, atol=1.0e-60, a = 30.0, z = 0.0)
+approx = flux_DA_Nlay_cylinder_TD_approx(t, 1.0, (0.2, 0.1, 0.2), (12.0, 10.0, 11.0), l = (1.0, 1.2, 4.0), n_med = (1.0, 1.0, 1.0), MaxIter=100000, atol=1.0e-60, a = 30.0, z = 0.0)
+@test exact ≈ approx
 
 end # module
