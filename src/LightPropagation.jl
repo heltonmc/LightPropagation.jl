@@ -33,10 +33,10 @@ export fluence_DA_paralpip_CW
 
 # Layered cylinder
 export fluence_DA_Nlay_cylinder_CW, fluence_DA_Nlay_cylinder_CW_approx
-export fluence_DA_Nlay_cylinder_TD
+export fluence_DA_Nlay_cylinder_TD, fluence_DA_Nlay_cylinder_TD_approx
 
-export flux_DA_Nlay_cylinder_CW
-export flux_DA_Nlay_cylinder_TD
+export flux_DA_Nlay_cylinder_CW, flux_DA_Nlay_cylinder_CW_approx
+export flux_DA_Nlay_cylinder_TD, flux_DA_Nlay_cylinder_TD_approx
 
 # g2 for DCS
 export g1_DA_semiinf_CW, g1_DA_semiinf_TD
