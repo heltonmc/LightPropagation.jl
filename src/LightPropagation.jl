@@ -32,11 +32,11 @@ export fluence_DA_paralpip_TD
 export fluence_DA_paralpip_CW
 
 # Layered cylinder
-export fluence_DA_Nlay_cylinder_CW
-export fluence_DA_Nlay_cylinder_TD
+export fluence_DA_Nlay_cylinder_CW, fluence_DA_Nlay_cylinder_CW_approx
+export fluence_DA_Nlay_cylinder_TD, fluence_DA_Nlay_cylinder_TD_approx
 
-export flux_DA_Nlay_cylinder_CW
-export flux_DA_Nlay_cylinder_TD
+export flux_DA_Nlay_cylinder_CW, flux_DA_Nlay_cylinder_CW_approx
+export flux_DA_Nlay_cylinder_TD, flux_DA_Nlay_cylinder_TD_approx
 
 # g2 for DCS
 export g1_DA_semiinf_CW, g1_DA_semiinf_TD
@@ -77,5 +77,12 @@ const J0_ROOTS = load(joinpath(@__DIR__,"..", "utils/besselroots/J0_ROOTS.jld"))
 
 # computes (besselj1(besselroots[ind]))^2
 const J1_J0ROOTS_2 = load(joinpath(@__DIR__,"..", "utils/besselroots/J1_J0ROOTS_2.jld"))["J1_J0ROOTS_2"]
-    
+
+file_big = joinpath(@__DIR__,"..", "utils/besselroots/besselzeroroots_big.jld")
+
+if isfile(file_big)
+    const J0_ROOTSbig = load(file_big)["big_besselroots"]
+    const J1_J0ROOTS_2big = (besselj1.(J0_ROOTSbig)).^2
+end
+
 end
