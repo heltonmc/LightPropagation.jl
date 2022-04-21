@@ -83,7 +83,7 @@ Compute the time-domain fluence in a semi-infinite medium.
 - `μa`: absorption coefficient (cm⁻¹)
 - `μsp`: reduced scattering coefficient (cm⁻¹)
 
-# Optional arguments
+# Keyword arguments
 - `n_ext`: the boundary's index of refraction (air or detector)
 - `n_med`: the sample medium's index of refraction
 - `z`: the z-depth orthogonal from the boundary (cm)
