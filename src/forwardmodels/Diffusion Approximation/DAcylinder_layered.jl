@@ -225,6 +225,37 @@ function fluence_DA_Nlay_cylinder_TD(t::AbstractArray, ρ, μa, μsp; n_ext=1.0,
     T = promote_type(eltype(ρ), eltype(μa), eltype(μsp), eltype(z), eltype(l))
     return ILT(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, z, s, MaxIter, atol), t, N = N, T = T)
 end
+function fluence_DA_Nlay_TD(t::AbstractVector, ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=1000, atol=eps(Float64),  N = 24, ILT = hyper_fixed, j0 = zeros(MaxIter))
+    ν = ν_coeff.(n_med)
+    T = promote_type(eltype(ρ), eltype(μa), eltype(μsp), eltype(z), eltype(l))
+
+
+    @assert length(μa) == length(μsp) == length(n_med) == length(l) "μa, μsp, n_med, l should be tuples of the same length"
+    D = D_coeff.(μsp)
+    N2 = length(D)
+    A = A_coeff.(n_med ./ n_ext)
+    z0 = z0_coeff(μsp[1])
+    zb = zb_coeff.(A, D)
+    D_nmed2 = @. D * n_med^2
+    @assert z0 < l[1] "The source must be located in the first layer (l[1] > 1/μsp[1])"
+    abs(z - z0) > 0.5 && @warn "This approximation may yield inaccurate results. Consider using the exact version"
+
+
+    apzb = inv(a + zb[1])
+    if iszero(j0[1])
+        for ind in 1:MaxIter
+            j0[ind] = besselj0(J0_ROOTS[ind] * apzb * ρ) / J1_J0ROOTS_2[ind]
+        end
+    end
+    
+    if z <= l[1]
+        ϕ = ILT(s -> _kernel_TD(ρ, D, μa .+ s ./ ν, a, zb, z, z0, l, D_nmed2, MaxIter, _green_approx_z_z0, N2, atol, j0), t, N = N, T = T)
+    else
+        throw(DomainError(z, "This approximation should only be used to calculate the fluence in the first layer when z ≈ z0"))
+    end
+    ϕ = @. ϕ + fluence_DA_semiinf_TD(t, ρ, μa[1], μsp[1], n_ext = n_ext, n_med = n_med[1], z = z)
+    return ϕ
+end
 function fluence_DA_Nlay_cylinder_TD_approx(t::AbstractFloat, ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64), N = 18, ILT = hyperbola)
     ν = ν_coeff.(n_med)
 
@@ -472,7 +503,24 @@ function _kernel_fluence_DA_Nlay_cylinder(ρ, D, μa, a, zb, z, z0, l, n_med, Ma
         tmp = J0_ROOTS[ind] * apzb
         ϕ_tmp = green(tmp, μa, D, z, z0, zb, l, n_med, N)
         ϕ_tmp /= J1_J0ROOTS_2[ind] # replaces (besselj1(besselroots[ind]))^2
-        ϕ = @. ϕ + ϕ_tmp * besselj0(tmp * ρ)
+        ϕ = @. ϕ + ϕ_tmp
+        #@show ϕ
+        abs(ϕ_tmp) < atol && break
+    end
+    #ind == MaxIter && @warn "Failed to converge to desired tolerance: Increase MaxIter"
+    return ϕ ./ (π * (a + zb[1])^2)
+end
+
+function _kernel_TD(ρ, D, μa, a, zb, z, z0, l, n_med, MaxIter, green, N, atol, j0)
+    ϕ = ρ .* zero(eltype(μa))
+    ϕ_tmp = zero(eltype(μa))
+    apzb = inv(a + zb[1])
+    
+    local ind
+    @inbounds for outer ind in 1:MaxIter#eachindex(besselroots)
+        tmp = J0_ROOTS[ind] * apzb
+        ϕ_tmp = green(tmp, μa, D, z, z0, zb, l, n_med, N)
+        ϕ = @. ϕ + ϕ_tmp * j0[ind]
         #@show ϕ
         abs(ϕ_tmp) < atol && break
     end
@@ -753,4 +801,3 @@ end
     end
     return out
 end
-#-------------------------------------------------------------------------------
