@@ -16,7 +16,8 @@ makedocs(
                 "Getting Started" => "getting-started.md",
                 "Tutorials" => Any[
                     "Inverse Fitting" => "inversefitting.md",
-                    "When is semi-infinite semi-infinite?" => "whensemiinf.md"
+                    "When is semi-infinite semi-infinite?" => "whensemiinf.md",
+                    "N-layer Cylinder Examples" => "nlay-cylinder-tutorial.md" 
                 ],
                 "Forward Models" => Any[
                     "Diffusion Approximation" => Any[
