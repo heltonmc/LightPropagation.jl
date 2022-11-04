@@ -2,10 +2,17 @@
 module LightPropagation
 
 using Parameters
-using SpecialFunctions
+import SpecialFunctions
+import Bessels
 using JLD
 using ForwardDiff
 using FastGaussQuadrature: gausslegendre
+
+besselj0(x::T) where T <: Union{Float32, Float64} = Bessels.besselj0(x)
+besselj1(x::T) where T <: Union{Float32, Float64} = Bessels.besselj1(x)
+
+besselj0(x) = SpecialFunctions.besselj0(x)
+besselj1(x) = SpecialFunctions.besselj1(x)
 
 ### Diffusion Theory
 
