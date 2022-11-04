@@ -13,9 +13,9 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [compat]
 ForwardDiff = "v0.10"
-JLD = "v0.12"
-LsqFit = "v0.12"
+JLD = "v0.12, v0.13"
+LsqFit = "v0.12, v0.13"
 Parameters = " v0.12"
-SpecialFunctions = "v0.7, v1.0"
-FastGaussQuadrature = "v0.4"
+SpecialFunctions = "v0.7, v1.0, v2.0"
+FastGaussQuadrature = "v0.4, 0.5"
 julia = "1.5"
