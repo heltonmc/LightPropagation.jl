@@ -134,10 +134,9 @@ julia> InverseLaplace.hyper_fixed!(out, s -> 1/(s + 1), t)
  0.16529888822160033
  0.13533528323663216
 """
-function hyper_fixed!(out::AbstractVector{T}, f::Function, t::AbstractVector{T}; N::Int = 24) where T
+function hyper_fixed!(out, f::Function, t::AbstractVector{T}; N::Int = 24) where T
     length(out) == length(t) || throw(DimensionMismatch("out is not equal to length of t"))
     iszero(out) || throw(ArgumentError("out is not a vector of zeros"))
-
     μ, h = hyper_coef(N, t)
 
     Threads.@threads for k in 0:N-1
