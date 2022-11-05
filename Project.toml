@@ -1,7 +1,7 @@
 name = "LightPropagation"
 uuid = "bd080553-88c9-414f-9879-667caf467699"
 authors = ["Michael Helton <heltonmc@umich.edu>"]
-version = "0.9.1"
+version = "0.9.2"
 
 [deps]
 Bessels = "0e736298-9ec6-45e8-9647-e4fc86a2fe38"
