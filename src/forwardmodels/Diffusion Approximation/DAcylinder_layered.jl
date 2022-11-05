@@ -521,11 +521,11 @@ end
     g  = exp(-α[1] * abs(z - z0))
     g -= exp(-α[1] * (z + z0 + 2 * zb[1]))
     g1 = exp(α[1] * (z + z0 - 2 * l[1]))
-    g1 *= (1 - exp(-2 * α[1] * (z0 + zb[1]))) * (1 - exp(-2 * α[1] * (z + zb[1])))
+    g1 *= expm1(-2 * α[1] * (z0 + zb[1])) * expm1(-2 * α[1] * (z + zb[1]))
     g1 *= tmp1 - tmp2
     g1 /= muladd(tmp1, tmp3, tmp1) + muladd(tmp2, -tmp3, tmp2)
-
-    return (g + g1) / (2 * D[1] * α[1])
+    g = (g + g1) / (2 * D[1] * α[1])
+    return g
 end
 @inline function _green_Nlaycylin_bottom(sn, μa, D, z, z0, zb, l, n, N)
     α = @. sqrt(μa / D + sn^2)
@@ -550,10 +550,10 @@ end
     end
 
     tmp1 = exp(-2 * α[1] * (l[1] + zb[1]))
-    gN = n[end] * tmp * 2^(N - 1) / 2 / D[end]
+    gN = n[end] * tmp * 2^(N - 1) / (2 * D[end])
     gN *= exp(α[1] * (z0 - l[1]) + α[end] * (sum(l) + zb[end] - z) - βγ_correction)
     gN /= α[1] * n[1] * β * (1 + tmp1) + α[2] * n[2] * γ * (1 - tmp1)
-    gN *= (1 - exp(-2 * α[1] * (z0 + zb[1]))) * (1 - exp(-2 * α[end] * (sum(l) + zb[end] - z)))
+    gN *= expm1(-2 * α[1] * (z0 + zb[1])) * expm1(-2 * α[end] * (sum(l) + zb[end] - z))
 
     return gN
  end
@@ -575,7 +575,7 @@ end
     tmp3 = exp(-2 * α[1] * (l[1] + zb[1]))
 
     g1 = exp(α[1] * (z + z0 - 2 * l[1]))
-    g1 *= (1 - exp(-2 * α[1] * (z0 + zb[1]))) * (1 - exp(-2 * α[1] * (z + zb[1])))
+    g1 *= expm1(-2 * α[1] * (z0 + zb[1])) * expm1(-2 * α[1] * (z + zb[1]))
     g1 *= tmp1 - tmp2
     g1 /= muladd(tmp1, tmp3, tmp1) + muladd(tmp2, -tmp3, tmp2)
 
