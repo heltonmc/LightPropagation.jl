@@ -344,7 +344,7 @@ function flux_DA_Nlay_cylinder_TD(t::AbstractVector, ρ, μa, μsp; n_ext=1.0, n
 end
 function flux_DA_Nlay_cylinder_TD(t::AbstractFloat, ρ, μa, μsp; n_ext=1.0, n_med=(1.0, 1.0), l=(1.0, 5.0), a=10.0, z=0.0, MaxIter=10000, atol=eps(Float64), N = 24)
     @assert z == zero(eltype(z)) || z == sum(l)
-    D = D_coeff.(μsp)  
+    D = D_coeff.(μsp)
     if z == zero(eltype(z))
         return D[1] * ForwardDiff.derivative(dz -> hyperbola(s -> _fluence_DA_Nlay_cylinder_Laplace(ρ, μa, μsp, n_ext, n_med, l, a, dz, s, MaxIter, atol), t, N = N), 0.0)
     elseif z == sum(l)
@@ -500,17 +500,8 @@ end
 # For N > 4, β and γ are calculated recursively using eqn. 17 & 18.
 #-------------------------------------------------------------------------------
 @inline function _green_Nlaycylin_top(sn, μa, D, z, z0, zb, l, n, N)
-    α = @. sqrt(μa / D + sn^2)
-
-    if N == 4
-        β, γ = _get_βγ4(α, n, zb, l)
-    elseif N == 3
-        β, γ = _get_βγ3(α, n, zb, l)
-    elseif N == 2
-        β, γ = _get_βγ2(α, zb, l)
-    elseif N > 4
-        β, γ = _get_βγk(α, n, zb, l)
-    end
+    α = @. sqrt(μa / D + sn^2)    β, γ = _βγ(α, n, zb, l)
+    β, γ = _βγ(α, n, zb, l)
 
     x = α[1] * n[1] * β
     xy = x - α[2] * n[2] * γ
@@ -523,20 +514,8 @@ end
 end
 @inline function _green_Nlaycylin_bottom(sn, μa, D, z, z0, zb, l, n, N)
     α = @. sqrt(μa / D + sn^2)
-
-    if N == 4
-        β, γ = _get_βγ4(α, n, zb, l)
-        βγ_correction = _βγ4_correction(α, zb, l)  
-    elseif N == 3
-        β, γ = _get_βγ3(α, n, zb, l)
-        βγ_correction = _βγ3_correction(α, zb, l)  
-    elseif N == 2
-        β, γ = _get_βγ2(α, zb, l)
-        βγ_correction = _βγ2_correction(α, zb, l)  
-    elseif N > 4
-        β, γ = _get_βγk(α, n, zb, l)
-        βγ_correction = _βγN_correction(α, zb, l)  
-    end
+    β, γ = _βγ(α, n, zb, l)
+    βγ_correction = _βγ_correction(α, zb, l)
 
     tmp = one(eltype(α))
     for ind in (N - 1):-1:2
@@ -553,16 +532,7 @@ end
  end
  @inline function _green_approx_z_z0(sn, μa, D, z, z0, zb, l, n, N)
     α = @. sqrt(μa / D + sn^2)
-
-    if N == 4
-        β, γ = _get_βγ4(α, n, zb, l)
-    elseif N == 3
-        β, γ = _get_βγ3(α, n, zb, l)
-    elseif N == 2
-        β, γ = _get_βγ2(α, zb, l)
-    elseif N > 4
-        β, γ = _get_βγk(α, n, zb, l)
-    end
+    β, γ = _βγ(α, n, zb, l)
 
     x = α[1] * n[1] * β
     xy = x - α[2] * n[2] * γ
@@ -574,17 +544,8 @@ end
 end
 @inline function _green_approx_dz_z0(sn, μa, D, z, z0, zb, l, n, N)
     α = @. sqrt(μa / D + sn^2)
-
-    if N == 4
-        β, γ = _get_βγ4(α, n, zb, l)
-    elseif N == 3
-        β, γ = _get_βγ3(α, n, zb, l)
-    elseif N == 2
-        β, γ = _get_βγ2(α, zb, l)
-    elseif N > 4
-        β, γ = _get_βγk(α, n, zb, l)
-    end
-
+    β, γ = _βγ(α, n, zb, l)
+    
     tmp1 = α[1] * n[1] * β
     tmp2 = α[2] * n[2] * γ
     tmp3 = exp(-2 * α[1] * (l[1] + zb[1]))
@@ -602,17 +563,17 @@ end
 #-------------------------------------------------------------------------------
 # Calculate β and γ coefficients with eqn. 17 in [1].
 # sinh and cosh have been expanded as exponentials.
-# A common term has been factored out. This cancels for G1 but not GN (see _βγN_correction)
+# A common term has been factored out. This cancels for G1 but not GN (see _βγ_correction)
 # Terms are rearranged using expm1(x) = -(1 - exp(x)) and 2 + expm1(x) = 1 + exp(x)
 # For N = 2, 3, 4 coefficients are explicitly calculated.
 # For N > 4, β and γ are calculated recursively using eqn. 17 & 18.
 #-------------------------------------------------------------------------------
-@inline function _get_βγ2(α, zb, l)    
+@inline function _βγ(α::M, n::M, zb::M, l::M) where M <: NTuple{2, Number}
     β = -expm1(-2 * α[2] * (l[2] + zb[2]))
     γ = 2 - β
     return β, γ
 end
-@inline function _get_βγ3(α, n, zb, l)
+@inline function _βγ(α::M, n::M, zb::M, l::M) where M <: NTuple{3, Number}
     t1 = α[2] * n[2]
     t2 = α[3] * n[3]
     t3 = expm1(-2 * α[2] * l[2])
@@ -626,7 +587,7 @@ end
   
     return -β, γ
 end
-@inline function _get_βγ4(α, n, zb, l)
+@inline function _βγ(α::M, n::M, zb::M, l::M) where M <: NTuple{4, Number}
     t5 = α[2] * n[2]
     t1 = α[3] * n[3]
     t4 = α[4] * n[4]
@@ -645,7 +606,7 @@ end
     γ = t5 * β_4 * t6 + t1 * γ_4 * (2 + t6)
     return -β, γ
 end
-@inline function _get_βγk(α, n, zb, l)
+@inline function _βγ(α, n, zb, l)
     βN, γN = _get_βγN(α, n, zb, l)
   
     for k in length(α):-1:4
@@ -653,25 +614,26 @@ end
         t2 = α[k - 1] * n[k - 1] * γN
         t3 = expm1(-2 * α[k - 2] * l[k - 2])
 
-        βN  =  t1 * (2 + t3)
-        βN +=  -t2 * t3
-        γN  =  -t1 * t3
-        γN +=  t2 * (2 + t3)
+        βN  = t1 * (2 + t3)
+        βN += -t2 * t3
+
+        γN  = -t1 * t3
+        γN += t2 * (2 + t3)
     end
 
     return βN, γN
 end
-@inline function _get_βγN(α, n, zb, l)
+@inline function _βγN(α, n, zb, l)
     t1 = α[end - 1] * n[end - 1]
     t2 = α[end] * n[end]
     t3 = expm1(-2 * α[end - 1] * l[end - 1])
     t4 = expm1(-2 * α[end] * (l[end] + zb[2]))
     
-    βN  =  t1 * (2 + t3) *  t4
-    βN +=  t2 * t3 *  (2 + t4)
+    βN  = t1 * (2 + t3) *  t4
+    βN += t2 * t3 *  (2 + t4)
 
-    γN  =  t1 * t3 *  t4
-    γN +=  t2 * (2 + t3) *  (2 + t4)
+    γN  = t1 * t3 *  t4
+    γN += t2 * (2 + t3) *  (2 + t4)
 
     return -βN, γN
 end
@@ -683,19 +645,11 @@ end
 # For N = 2, 3, 4 coefficients are explicitly calculated.
 # For N > 4, β and γ are calculated recursively
 #-------------------------------------------------------------------------------
-@inline function _βγ2_correction(α, zb, l)  
-    return α[2] * (l[2] + zb[2])
-end
-function _βγ3_correction(α, zb, l)  
-    return α[2] * l[2] + α[3] * (l[3] + zb[2])
-end
-@inline function _βγ4_correction(α, zb, l)  
-    return α[2] * l[2] + α[3] * l[3] + α[4] * (l[4] + zb[2])
-end
-@inline function _βγ5_correction(α, zb, l)  
-    return α[2] * l[2] + α[3] * l[3] + α[4] * l[4] + α[5] * (l[5] + zb[2])
-end
-@inline function _βγN_correction(α, zb, l) 
+_βγ_correction(α::M, zb::M, l::M) where M <: NTuple{2, Number} = α[2] * (l[2] + zb[2])
+_βγ_correction(α::M, zb::M, l::M) where M <: NTuple{3, Number} = α[2] * l[2] + α[3] * (l[3] + zb[2])
+_βγ_correction(α::M, zb::M, l::M) where M <: NTuple{4, Number} = α[2] * l[2] + α[3] * l[3] + α[4] * (l[4] + zb[2])
+
+@inline function _βγ_correction(α, zb, l) 
     out = α[end] * (l[end] + zb[2])
     for ind in (length(α) - 1):-1:2
         out += α[ind] * l[ind]
